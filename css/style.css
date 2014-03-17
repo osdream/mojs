@@ -1,0 +1,87 @@
+body {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+
+h1 {
+    margin: 0;
+    padding: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+#playground {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+#container {
+    position: relative;
+    width: 600px;
+    height: 500px;
+    margin: 0 auto;
+}
+
+.gun {
+    position: absolute;
+    width: 40px;
+    height: 10px;
+    background-color: #333;
+}
+
+.gun-inner {
+    position: absolute;
+    width: 10px;
+    height: 20px;
+    background-color: #333;
+    left: 15px;
+    top: -20px;
+}
+
+.drag-scope {
+    position: absolute;
+    left: 50px;
+    top: 250px;
+    z-index: 1;
+    width: 160px;
+    height: 160px;
+    -webkit-border-radius: 80px;
+       -moz-border-radius: 80px;
+            border-radius: 80px;
+
+    background-color: #888;
+  -webkit-box-shadow: 0 0 5px #555 inset;
+     -moz-box-shadow: 0 0 5px #555 inset;
+          box-shadow: 0 0 5px #555 inset;
+    border: 1px solid #444;
+}
+
+.drag,
+.fire {
+    position: absolute;
+    top: 280px;
+    -webkit-border-radius: 50px;
+       -moz-border-radius: 50px;
+            border-radius: 50px;
+    width: 100px;
+    height: 100px;
+    line-height: 100px;
+    text-align: center;
+    z-index: 2;
+}
+
+.drag {
+    background: #42d692;
+    left: 80px;
+  -webkit-box-shadow: 0 0 5px #555;
+     -moz-box-shadow: 0 0 5px #555;
+          box-shadow: 0 0 5px #555;
+    border: 1px solid #555;
+    
+}
+.fire { 
+    background: #4986e7;
+    right: 100px;
+}

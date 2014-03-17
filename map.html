@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>JS Bin</title>
+</head>
+<body>
+<a id="link" href="http://api.map.baidu.com/marker?location=40.047669,116.313082&title=我的位置&content=百度奎科大厦
+&output=html&src=yourComponyName|yourAppName">地图标点</a>
+</body>
+
+<script type="text/javascript">
+var link = document.getElementById('link');
+var linkAdr = '/marker?location=40.047669,116.313082&title=我的位置&content=百度奎科大厦&src=baidu';
+var isAndroid = (/android/gi).test(navigator.appVersion);
+var isIDevice = (/iphone|ipad/gi).test(navigator.appVersion);
+
+var goURI = function(type, url ,cb) {
+if(url) {
+  var resUrl = protolHead[type] + url + "&src=baidu|jsapi";
+  if(type == "web") {
+    resUrl += "&output=html";
+  }
+  location.href = resUrl;
+  if(cb) {
+    cb();
+  }
+}
+};
+
+if(isAndroid)  {
+alert('is Android');
+linkAdr = 'bdapp1://map' + linkAdr;
+var script = document.createElement('script');
+script.src = "http://127.0.0.1:6259/getpackageinfo?callback=getinfo&packagename=com.baidu.BaiduMap";
+script.onerror = function() {
+  alert('app Error');
+  goURI("android", url, function() {
+    setTimeout(function() {goURI("web", url);});
+  },100);
+};
+document.head.appendChild(script);
+}
+if(isIDevice) {
+alert('is IOS');
+linkAdr = 'baidumap://map' + linkAdr;
+}
+if(!isAndroid && !isIDevice) {
+linkAdr = 'http://api.map.baidu.com' + linkAdr;
+window.getinfo = function(res) {
+  alert(res);
+};
+}
+
+link.setAttribute('href', linkAdr);
+
+</script>
+</html>
