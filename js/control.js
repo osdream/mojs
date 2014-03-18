@@ -1,36 +1,41 @@
-var container = document.getElementById("container");
-var hammertime = new Hammer(container, { drag_max_touches: 0 });
-hammertime.on("touch drag", function(ev) {
-    var touches = ev.gesture.touches;
-
-    ev.gesture.preventDefault();
-
-    for(var t = 0, len = touches.length; t < len; t++) {
-        var touchEvt = touches[t];
-        var target = touchEvt.target;
-        if(target.className.indexOf("drag") < 0) {
-            return;
-        }
-
-        var proxyX = touchEvt.pageX + 100 - touchEvt.offsetX;
-        var proxyY = touchEvt.pageY + 100 - touchEvt.offsetY;
-        console.log(proxyX);
-        console.log(proxyY);
-        dragCtrl.move(proxyX, proxyY);
+//utils
+var util = {
+    getEl: function(id) {
+        return document.getElementById(id);
+    },
+    getElPos: function(el) {
+        return [parseInt(el.offsetLeft, 10), parseInt(el.offsetTop, 10)];
+    },
+    /*计算直角边*/
+    calculPy: function(l, w) {
+        return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
+    },
+    /*计算两点间距离*/
+    calculDis: function(pos1x, pos1y, pos2x, pos2y) {
+        return this.calculPy(pos1x - pos2x, pos1y - pos2y);
     }
+};
+
+var container = util.getEl("container");
+var hammertime = new Hammer(container, { drag_max_touches: 0 });
+hammertime.on("touch", function(ev) {
+    dragCtrl.catchEvt(ev, true);
+});
+hammertime.on("drag", function(ev) {
+    dragCtrl.catchEvt(ev);
 });
 hammertime.on("touchend dragend", function(ev) {
-    var touches = ev.gesture.touches;
+    // var touches = ev.gesture.touches;
 
-    ev.gesture.preventDefault();
+    // ev.gesture.preventDefault();
 
-    for(var t = 0, len = touches.length; t < len; t++) {
-        target = touches[t].target;
-        if(target.className.indexOf("drag") < 0) {
-            return;
-        }
+    // for(var t = 0, len = touches.length; t < len; t++) {
+    //     target = touches[t].target;
+    //     if(target.className.indexOf("drag") < 0) {
+    //         return;
+    //     }
         dragCtrl.resetPos();
-    }
+    // }
 });
 
 hammertime.on("touch", function(ev) {
@@ -47,26 +52,12 @@ hammertime.on("touch", function(ev) {
     }
 });
 
-var util = {
-    getElPos: function(el) {
-        return [parseInt(el.offsetLeft, 10), parseInt(el.offsetTop, 10)];
-    },
-    /*计算直角边*/
-    calculPy: function(l, w) {
-        return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
-    },
-    /*计算两点间距离*/
-    calculDis: function(pos1x, pos1y, pos2x, pos2y) {
-        return this.calculPy(pos1x - pos2x, pos1y - pos2y);
-    }
-};
-
 var dragCtrl = {
     init: function(options) {
         this.container = container;
-        this.dragScope = document.getElementById("drag-scope");
-        this.dragEl = document.getElementById("drag");
-        this.fireEl = document.getElementById("fire");
+        this.dragScope = util.getEl("drag-scope");
+        this.dragEl = util.getEl("drag");
+        this.fireEl = util.getEl("fire");
         this.scopePos = util.getElPos(this.dragScope);
         this.dragInitPos = util.getElPos(this.dragEl);
 
@@ -80,16 +71,17 @@ var dragCtrl = {
         this.holding = false;
         clearTimeout(this.positionEmitter);
         this.setDragPos(this.dragInitPos[0], this.dragInitPos[1]);
+        this.initTouchOffsetX = 0;
+        this.initTouchOffsetY = 0;
     },
     move: function(toLeft, toTop) {
-        var tarLeft = toLeft - container.offsetLeft - 50;
-        var tarTop = toTop - container.offsetTop - 50;
+        var moLeft = toLeft - this.initTouchX;
+        var moTop = toTop - this.initTouchY;
+
         var initLeft = this.dragInitPos[0];
         var initTop = this.dragInitPos[1];
-        var moLeft = tarLeft - initLeft;
-        var moTop = tarTop - initTop;
 
-        var dis = util.calculDis(initLeft, initTop, tarLeft, tarTop);
+        var dis = util.calculPy(moLeft, moTop);
 
         if(dis > 30) {
             moLeft = moLeft * 30 / dis;
@@ -105,6 +97,27 @@ var dragCtrl = {
     setDragPos: function(tarLeft, tarTop) {
         this.dragEl.style.left = tarLeft + "px";
         this.dragEl.style.top = tarTop + "px";
+    },
+    catchEvt: function(ev, isTouch) {
+        var touches = ev.gesture.touches;
+
+        ev.gesture.preventDefault();
+
+        for(var t = 0, len = touches.length; t < len; t++) {
+            var touchEvt = touches[t];
+            var target = touchEvt.target;
+            if(target.className.indexOf("drag") < 0) {
+                return;
+            }
+            console.log(touchEvt);
+            var proxyX = touchEvt.pageX;
+            var proxyY = touchEvt.pageY;
+            if(isTouch) {
+                this.initTouchX = proxyX;
+                this.initTouchY = proxyY;
+            }
+            dragCtrl.move(proxyX, proxyY);
+        }
     }
 };
 
