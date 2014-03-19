@@ -1,3 +1,31 @@
+//browser detect
+function prefix(style) {
+    if (vender === '') return style;
+
+    style = style.charAt(0).toUpperCase() + style.substr(1);
+    return vender + style;
+}
+
+var dummyStyle = document.createElement('div').style;
+var vender = (function() {
+    var vendors = 't,webkitT,MozT,msT,OT'.split(','),
+        t,
+        i = 0,
+        l = vendors.length;
+
+    for (; i < l; i++) {
+        t = vendors[i] + 'ransform';
+        if (t in dummyStyle) {
+            return vendors[i].substr(0, vendors[i].length - 1);
+        }
+    }
+
+    return false;
+})();
+var transformAttr = prefix('transform');
+var transformOriginAttr = prefix('transformOrigin');
+var transitionAttr = prefix('transition');
+
 //utils
 var util = {
     getEl: function(id) {
@@ -38,7 +66,7 @@ hammertime.on("touchend dragend", function(ev) {
     // }
 });
 
-hammertime.on("touch", function(ev) {
+hammertime.on("touch drag", function(ev) {
     var touches = ev.gesture.touches;
 
     ev.gesture.preventDefault();
@@ -48,6 +76,7 @@ hammertime.on("touch", function(ev) {
         if(target.className.indexOf("fire") < 0) {
             return;
         }
+        gunCtrl.fire();
         console.log('biang biang biang!');
     }
 });
@@ -63,8 +92,18 @@ var dragCtrl = {
 
         options = options || {};
         this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
-        this.positionListener = options['positionListener'] || function(moLeft, moTop) {
-            console.log(moLeft, moTop);
+        this.positionListener = options['positionListener'] || function() {
+            var moLeft = this.moLeft;
+            var moTop = this.moTop;
+            if(moLeft >= 0) {
+                var multi = Math.floor((moLeft + 4) / 8);
+                gunCtrl.rotateLeft(multi);
+                console.log(multi);
+            } else {
+                var multi = Math.floor((Math.abs(moLeft) + 5) / 10);
+                gunCtrl.rotateRight(multi);
+                console.log('-' + multi);
+            }
         };//位移监听回调
     },
     resetPos: function() {
@@ -91,7 +130,8 @@ var dragCtrl = {
         tarLeft = initLeft + moLeft;
         tarTop = initTop + moTop;
 
-        this.positionListener(moLeft, moTop);
+        this.moLeft = moLeft;
+        this.moTop = moTop;
         this.setDragPos(tarLeft, tarTop);
     },
     setDragPos: function(tarLeft, tarTop) {
@@ -109,20 +149,74 @@ var dragCtrl = {
             if(target.className.indexOf("drag") < 0) {
                 return;
             }
-            console.log(touchEvt);
             var proxyX = touchEvt.pageX;
             var proxyY = touchEvt.pageY;
             if(isTouch) {
                 this.initTouchX = proxyX;
                 this.initTouchY = proxyY;
+                this.holding = true;
+                this.tickTack();
             }
             dragCtrl.move(proxyX, proxyY);
         }
+    },
+    tickTack: function() {
+        var me = this;
+        if(!me.holding) {
+            return;
+        }
+        me.positionEmitter = setTimeout(function() {
+            me.positionListener.call(me);
+            me.tickTack.call(me);
+        }, me.positionEmitInter);
     }
 };
 
 var gunCtrl = {
-
+    init: function(options) {
+        this.gun = util.getEl('gun');
+        this.initBullet();
+        options = options || {};
+        this.curAngle = options['initAngle'] || 0;
+        this.minAngle = options['minAngle'] || -60;
+        this.maxAngle = options['maxAngle'] || 60;
+        this.stepAngle = options['stepAngle'] || 3;
+    },
+    rotateLeft: function(multi) {
+        var toAngle = this.curAngle - this.stepAngle * multi;
+        this.curAngle = (toAngle < this.minAngle) ? this.minAngle : toAngle;
+        this.doRotate();
+    },
+    rotateRight: function(multi) {
+        var toAngle = this.curAngle + this.stepAngle * multi;
+        this.curAngle = (toAngle > this.maxAngle) ? this.maxAngle : toAngle;
+        this.doRotate();
+    },
+    doRotate: function() {
+        this.gun['style'][transformAttr] = "rotate(" + this.curAngle + "deg)";
+    },
+    initBullet: function() {
+        this.bullet = document.createElement('div');
+        this.bullet.className = 'gun-bullet';
+        this.gun.appendChild(this.bullet);
+    },
+    fire: function() {
+        var me = this;
+        me.resetBullet();
+        setTimeout(function() {
+            me.bullet['style'][transitionAttr] = "bottom 1.5s";
+            me.bullet['style']['bottom'] = "500px";
+        }, 0);
+        me.fireInter = setTimeout(function() {
+            me.resetBullet();
+        }, 1500);
+    },
+    resetBullet: function() {
+        clearTimeout(this.fireInter);
+        this.bullet['style'][transitionAttr] = "bottom 0s";
+        this.bullet['style']['bottom'] = "18px";
+    }
 };
 
 dragCtrl.init();
+gunCtrl.init();

@@ -19,7 +19,7 @@ h1 {
 
 #container {
     position: relative;
-    width: 600px;
+    width: 400px;
     height: 500px;
     margin: 0 auto;
 }
@@ -29,6 +29,9 @@ h1 {
     width: 40px;
     height: 10px;
     background-color: #333;
+    -webkit-transform: 80px;
+       -moz-transform: 80px;
+            transform: 80px;
 }
 
 .gun-inner {
@@ -37,7 +40,19 @@ h1 {
     height: 20px;
     background-color: #333;
     left: 15px;
-    top: -20px;
+    top: -19px;
+}
+
+.gun-bullet {
+    width: 8px;
+    height: 12px;
+    background-color: #333;
+    position: absolute;
+    left: 16px;
+    -webkit-transition: bottom 1.5s;
+       -moz-transition: bottom 1.5s;
+            transition: bottom 1.5s;
+    bottom: 18px;
 }
 
 .drag-scope {
