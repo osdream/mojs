@@ -1,0 +1,107 @@
+body {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    margin: 0;
+    padding: 10px 0px;
+    text-align: center;
+    font-weight: bold;
+    opacity: 0.7;
+    position: relative;
+    font-size: 24px;
+    z-index: 3;
+  -webkit-text-shadow: 1px 1px 0 #fff,1px 1px 15px #333;
+     -moz-text-shadow: 1px 1px 0 #fff,1px 1px 15px #333;
+          text-shadow: 1px 1px 0 #fff,1px 1px 15px #333;
+}
+#score {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    color: #000;
+    font-weight: bold;
+    font-size: 14px;
+    opacity: 0.7;
+  -webkit-text-shadow: 1px 1px 0 #fff,1px 1px 5px #333;
+     -moz-text-shadow: 1px 1px 0 #fff,1px 1px 5px #333;
+          text-shadow: 1px 1px 0 #fff,1px 1px 5px #333;
+    z-index: 4;
+}
+#container {
+    position: relative;
+    width: 320px;
+    height: 360px;
+    overflow: hidden;
+    margin: 0 auto;
+    border: 1px solid #ddd;
+}
+
+#bird {
+    position: absolute;
+    bottom: 230px;
+    -webkit-border-radius: 30px;
+       -moz-border-radius: 30px;
+            border-radius: 30px;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    z-index: 2;
+    background: #42d692;
+    left: 100px;
+  -webkit-box-shadow: 0 0 9px #555;
+     -moz-box-shadow: 0 0 9px #555;
+          box-shadow: 0 0 9px #555;
+    border: 1px solid #555;
+}
+
+#bg {
+    position: absolute;
+    z-index: 1;
+    left: 320px;
+    top: 0;
+    width: 2000px;
+    height: 360px;
+    background-color: #eee;
+}
+
+.wall {
+    position: relative;
+    float: left;
+    top: 0;
+    width: 30px;
+    margin-right: 100px;
+    height: 360px;
+    background-color: #555;
+}
+
+.wall-gap {
+    position: absolute;
+    left: 0;
+    width: 30px;
+    height: 120px;
+    background-color: #eee;
+}
+#replay {
+    display: none;
+    position: absolute;
+    z-index: 5;
+    font-size: 18px;
+    color: #0c0;
+    font-weight: bold;
+    left: 100px;
+    top: 150px;
+    width: 120px;
+    height: 50px;
+    text-align: center;
+    line-height: 50px;
+    border: 1px solid #0c0;
+    background-color: #fff;
+    opacity: 0.7;
+    -webkit-border-radius: 3px;
+       -moz-border-radius: 3px;
+            border-radius: 3px;
+}
