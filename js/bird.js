@@ -64,8 +64,14 @@ hammertime.on("touch", function(ev) {
             target = touches[t].target;
             if(bg.replay == target) {
                 bg.replay.style.display = "none";
-                birdCtrl.reset();
-                bg.reset();
+                if("START" == bg.replay.innerHTML) {
+                    bg.replay.innerHTML = "REPLAY";
+                    birdCtrl.start();
+                    bg.start();
+                } else {
+                    birdCtrl.reset();
+                    bg.reset();
+                }
                 return;
             }
         }
@@ -82,12 +88,15 @@ var birdCtrl = {
         this.left = 100;
         this.moveInterTime = 50;
         this.startV = -40;
+    },
+    start: function() {
         this.curBottom = this.getBottomVal();
         this.initBottom = this.curBottom;
+        this.curV = 0;
         this.jump();
     },
     reset: function() {
-        this.bird.innerHTML = "鸟";
+        this.bird.className = "live";
         this.curBottom = this.initBottom;
         this.bird.style.bottom = this.curBottom + "px";
         this.bird.style.width = "30px";
@@ -105,13 +114,16 @@ var birdCtrl = {
         var me = this;
         var calculInter = this.moveInterTime / 130;
         this.curV = this.curV + this.g * calculInter;
+        this.bird.style[transformAttr] = "rotate(" + this.curV + "deg)";
         var toBottom = this.curBottom - this.curV * calculInter;
         if(toBottom <= 0) {
             toBottom = 1;
-            clearTimeout(this.downInter);
         }
         this.setBottomVal(toBottom);
         if(1 >= toBottom) {
+            this.die();
+            bg.stop();
+            bg.isDie = true;
             return;
         }
         this.downInter = setTimeout(function() {
@@ -127,17 +139,19 @@ var birdCtrl = {
     },
     die: function() {
         clearTimeout(this.downInter);
-        this.bird.innerHTML = "死鸟";
-        this.bird.style.width = "50px";
-        this.bird.style.height = "50px";
+        this.bird.className = "die";
         bg.replay.style.display = "block";
     }
-}
+};
 
 var bg = {
     init: function() {
         this.bg = util.getEl("bg");
         this.scoreDom = util.getEl("score");
+        this.hScoreDom = util.getEl("highest-score");
+        this.titleDom = util.getEl("title");
+        this.highestScore = localStorage.getItem('bird-highest-score') || 0;
+        this.hScoreDom.innerHTML = "hightest score: " + this.highestScore;
         this.replay = util.getEl("replay");
         this.curPos = this.getLeft();
         this.initPos = this.curPos;
@@ -149,14 +163,19 @@ var bg = {
         this.moveDis = 2;
         this.moveInterTime = 22;
         this.buildTimes = 0;
+        this.isDie = true;
+    },
+    start: function() {
+        this.isDie = false;
         this.buildWalls();
         this.wallMove();
-        this.isDie = false;
+        this.titleDom.style.display = "none";
     },
     reset: function () {
         this.isDie = false;
         this.bg.style.left = this.initPos + "px";
         this.scoreDom.innerHTML = "score: 0";
+        this.titleDom.style.display = "none";
         this.wallMove();
         this.buildTimes = 0;
     },
@@ -221,7 +240,7 @@ var bg = {
 
 
         if(this.curWall) {
-            this.curWall.style.backgroundColor = "#555";
+            this.curWall.style.backgroundColor = "#b73771";
         }
         this.curWall = this.walls[leftWalls];
 
@@ -229,24 +248,31 @@ var bg = {
         var gapTop = this.gapsTop[leftWalls];
 
         if(curWallMov >= 60) {
-            this.curWall.style.backgroundColor = "#555";
+            this.curWall.style.backgroundColor = "#b73771";
             return false;
         } else {
-            this.curWall.style.backgroundColor = "#777";
+            this.curWall.style.backgroundColor = "#de3e87";
         }
 
         if(birdTop < gapTop - 6 || birdTop > gapTop + 94) {
             return true;
         } else {
-            this.scoreDom.innerHTML = "score: " + (leftWalls + this.buildTimes * this.initWallNum + 1);
+            var toScore = leftWalls + this.buildTimes * this.initWallNum + 1;
+            this.scoreDom.innerHTML = "score: " + toScore;
+            if(toScore > this.highestScore) {
+                this.highestScore = toScore;
+                localStorage.setItem('bird-highest-score', toScore);
+                this.hScoreDom.innerHTML = "hightest score: " + toScore;
+            }
             return false;
         }
 
     },
     stop: function() {
         clearTimeout(this.moveTimer);
+        this.titleDom.style.display = "block";
     }
-}
+};
 
 birdCtrl.init();
 bg.init();
