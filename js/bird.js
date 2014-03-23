@@ -26,6 +26,37 @@ var transformAttr = prefix('transform');
 var transformOriginAttr = prefix('transformOrigin');
 var transitionAttr = prefix('transition');
 
+//智能设备的性能比想像的差很多
+var birdInterTime;
+var bgInterTime;
+if((/android|iphone|ipad/gi).test(navigator.appVersion)) {
+    var nextFrame = (function() {
+        return function(callback) {
+                return setTimeout(callback, 1000 / 60);
+        };
+    })();
+    var cancelFrame = (function() {
+        return clearTimeout;
+    })();
+    birdInterTime = 50;
+    bgInterTime = 4;
+} else {
+    var nextFrame = (function() {
+        return window.requestAnimationFrame ||
+            window[vender + 'RequestAnimationFrame'] ||
+            function(callback) {
+                return setTimeout(callback, 1000 / 60);
+        };
+    })();
+    var cancelFrame = (function() {
+        return window.cancelRequestAnimationFrame ||
+            window.webkitCancelAnimationFrame ||
+            window[vender + 'CancelRequestAnimationFrame'] ||
+            clearTimeout;
+    })();
+}
+
+
 //utils
 var util = {
     getEl: function(id) {
@@ -33,14 +64,6 @@ var util = {
     },
     getElPos: function(el) {
         return [parseInt(el.offsetLeft, 10), parseInt(el.offsetTop, 10)];
-    },
-    /*计算直角边*/
-    calculPy: function(l, w) {
-        return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
-    },
-    /*计算两点间距离*/
-    calculDis: function(pos1x, pos1y, pos2x, pos2y) {
-        return this.calculPy(pos1x - pos2x, pos1y - pos2y);
     },
     getComputedStyle: function(dom, styleAttr) {
         return window.getComputedStyle(dom)[styleAttr];
@@ -86,7 +109,7 @@ var birdCtrl = {
         this.bird = util.getEl('bird');
         this.g = 9.8;
         this.left = 100;
-        this.moveInterTime = 50;
+        this.moveInterTime = birdInterTime || 16.66;
         this.startV = -40;
     },
     start: function() {
@@ -104,7 +127,8 @@ var birdCtrl = {
         this.jump();
     },
     jump: function(ev) {
-        clearTimeout(this.downInter);
+        this.requestID && cancelFrame(this.requestID);
+        this.requestID = null;
         this.curBottom = this.getBottomVal();
         this.jumpTime = new Date().getTime();
         this.curV = this.startV;
@@ -112,7 +136,7 @@ var birdCtrl = {
     },
     down: function() {
         var me = this;
-        var calculInter = this.moveInterTime / 130;
+        var calculInter = this.moveInterTime / 120;
         this.curV = this.curV + this.g * calculInter;
         this.bird.style[transformAttr] = "rotate(" + this.curV + "deg)";
         var toBottom = this.curBottom - this.curV * calculInter;
@@ -126,9 +150,9 @@ var birdCtrl = {
             bg.isDie = true;
             return;
         }
-        this.downInter = setTimeout(function() {
+        this.requestID = nextFrame(function() {
             me.down();
-        }, me.moveInterTime);
+        });
     },
     getBottomVal: function() {
         return parseInt(util.getComputedStyle(this.bird, "bottom"), 10);
@@ -138,7 +162,7 @@ var birdCtrl = {
         this.bird.style.bottom = val + "px";
     },
     die: function() {
-        clearTimeout(this.downInter);
+        cancelFrame(this.requestID);
         this.bird.className = "die";
         bg.replay.style.display = "block";
     }
@@ -160,8 +184,7 @@ var bg = {
         this.initWallNum = 6;
         this.wallDis = 100;
         this.wallWidth = 30;
-        this.moveDis = 2;
-        this.moveInterTime = 22;
+        this.moveDis = bgInterTime || 2;
         this.buildTimes = 0;
         this.isDie = true;
     },
@@ -181,10 +204,10 @@ var bg = {
     },
     buildWalls: function() {
         for(var i = 0, l = this.initWallNum; i < l; i++) {
-           this.buildWall(i);
+           this.buildWall();
         }
     },
-    buildWall: function(i) {
+    buildWall: function() {
         var wall = util.createDom("div", "wall");
         var gap = util.createDom("div", "wall-gap");
         var gapTop = parseInt(100 * Math.random()) + 80;
@@ -216,12 +239,12 @@ var bg = {
             me.buildWalls();
         }
         me.bg.style.left = me.getLeft() - me.moveDis + "px";
-        me.moveTimer = setTimeout(function() {
+        me.requestID = nextFrame(function() {
             if(me.isDie) {
                 return;
             }
             me.wallMove();
-        }, me.moveInterTime);
+        });
     },
     getLeft: function(dom) {
         if(dom) {
@@ -269,7 +292,8 @@ var bg = {
 
     },
     stop: function() {
-        clearTimeout(this.moveTimer);
+        cancelFrame(this.requestID);
+        this.requestID = null;
         this.titleDom.style.display = "block";
     }
 };
