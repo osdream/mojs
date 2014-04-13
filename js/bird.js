@@ -29,10 +29,10 @@ var transitionAttr = prefix('transition');
 //智能设备的性能比想像的差很多
 var birdInterTime;
 var bgInterTime;
-if((/android|iphone|ipad/gi).test(navigator.appVersion)) {
+if ((/android|iphone|ipad/gi).test(navigator.appVersion)) {
     var nextFrame = (function() {
         return function(callback) {
-                return setTimeout(callback, 1000 / 60);
+            return setTimeout(callback, 1000 / 60);
         };
     })();
     var cancelFrame = (function() {
@@ -76,18 +76,20 @@ var util = {
 };
 
 var container = util.getEl("container");
-var hammertime = new Hammer(container, { drag_max_touches: 1 });
+var hammertime = new Hammer(container, {
+    drag_max_touches: 1
+});
 hammertime.on("touch", function(ev) {
-    if(bg.isDie) {
+    if (bg.isDie) {
         var touches = ev.gesture.touches;
 
         ev.gesture.preventDefault();
 
-        for(var t = 0, len = touches.length; t < len; t++) {
+        for (var t = 0, len = touches.length; t < len; t++) {
             target = touches[t].target;
-            if(bg.replay == target) {
+            if (bg.replay == target) {
                 bg.replay.style.display = "none";
-                if("START" == bg.replay.innerHTML) {
+                if ("START" == bg.replay.innerHTML) {
                     bg.replay.innerHTML = "REPLAY";
                     birdCtrl.start();
                     bg.start();
@@ -113,23 +115,20 @@ var birdCtrl = {
         this.startV = -40;
     },
     start: function() {
-        this.curBottom = this.getBottomVal();
+        this.curBottom = parseInt(util.getComputedStyle(this.bird, "bottom"), 10);
         this.initBottom = this.curBottom;
         this.curV = 0;
         this.jump();
     },
     reset: function() {
         this.bird.className = "live";
-        this.curBottom = this.initBottom;
-        this.bird.style.bottom = this.curBottom + "px";
-        this.bird.style.width = "30px";
-        this.bird.style.height = "30px";
+        this.bird.style.cssText += ";bottom: " + this.curBottom +
+            ": px;width: 30px;height: 30px;";
         this.jump();
     },
     jump: function(ev) {
         this.requestID && cancelFrame(this.requestID);
         this.requestID = null;
-        this.curBottom = this.getBottomVal();
         this.jumpTime = new Date().getTime();
         this.curV = this.startV;
         this.down();
@@ -140,11 +139,11 @@ var birdCtrl = {
         this.curV = this.curV + this.g * calculInter;
         this.bird.style[transformAttr] = "rotate(" + this.curV + "deg)";
         var toBottom = this.curBottom - this.curV * calculInter;
-        if(toBottom <= 0) {
+        if (toBottom <= 0) {
             toBottom = 1;
         }
         this.setBottomVal(toBottom);
-        if(1 >= toBottom) {
+        if (1 >= toBottom) {
             this.die();
             bg.stop();
             bg.isDie = true;
@@ -153,9 +152,6 @@ var birdCtrl = {
         this.requestID = nextFrame(function() {
             me.down();
         });
-    },
-    getBottomVal: function() {
-        return parseInt(util.getComputedStyle(this.bird, "bottom"), 10);
     },
     setBottomVal: function(val) {
         this.curBottom = val;
@@ -177,13 +173,14 @@ var bg = {
         this.highestScore = localStorage.getItem('bird-highest-score') || 0;
         this.hScoreDom.innerHTML = "hightest score: " + this.highestScore;
         this.replay = util.getEl("replay");
-        this.curPos = this.getLeft();
-        this.initPos = this.curPos;
+        this.curLeft = parseInt(util.getComputedStyle(this.bg, "left"), 10);
+        this.initPos = this.curLeft;
         this.walls = [];
         this.gapsTop = [];
         this.initWallNum = 6;
         this.wallDis = 100;
         this.wallWidth = 30;
+        this.wallStep = this.wallDis + this.wallWidth;
         this.moveDis = bgInterTime || 2;
         this.buildTimes = 0;
         this.isDie = true;
@@ -194,17 +191,18 @@ var bg = {
         this.wallMove();
         this.titleDom.style.display = "none";
     },
-    reset: function () {
+    reset: function() {
         this.isDie = false;
-        this.bg.style.left = this.initPos + "px";
+        this.curLeft = this.initPos;
+        this.bg.style.left = this.curLeft + "px";
         this.scoreDom.innerHTML = "score: 0";
         this.titleDom.style.display = "none";
         this.wallMove();
         this.buildTimes = 0;
     },
     buildWalls: function() {
-        for(var i = 0, l = this.initWallNum; i < l; i++) {
-           this.buildWall();
+        for (var i = 0, l = this.initWallNum; i < l; i++) {
+            this.buildWall();
         }
     },
     buildWall: function() {
@@ -219,50 +217,45 @@ var bg = {
     },
     wallMove: function() {
         var me = this;
-        var curLeft = me.getLeft();
+        var curLeft = me.curLeft;
         me.isDie = me.chkCurWall(curLeft);
-        if(me.isDie) {
+        if (me.isDie) {
             birdCtrl.die();
             this.stop();
             return;
         }
-        if(0 == curLeft) {
+        if (0 == curLeft) {
             me.buildWalls();
         }
-        if(- (me.wallDis + me.wallWidth) * me.initWallNum >= curLeft) {
+        if (- me.wallStep * me.initWallNum >= curLeft) {
             for (var i = me.initWallNum - 1; i >= 0; i--) {
                 me.gapsTop.shift();
                 me.bg.removeChild(me.walls.shift());
             };
-            me.bg.style.left = curLeft + me.initWallNum * (me.wallDis + me.wallWidth) + "px";
+            me.curLeft = curLeft + me.initWallNum * me.wallStep;
             this.buildTimes = this.buildTimes + 1;
             me.buildWalls();
         }
-        me.bg.style.left = me.getLeft() - me.moveDis + "px";
+        me.curLeft = me.curLeft - me.moveDis;
+        me.bg.style.left = me.curLeft + "px";
         me.requestID = nextFrame(function() {
-            if(me.isDie) {
+            if (me.isDie) {
                 return;
             }
             me.wallMove();
         });
     },
-    getLeft: function(dom) {
-        if(dom) {
-            return parseInt(util.getComputedStyle(dom, "left"), 10);
-        }
-        return parseInt(util.getComputedStyle(this.bg, "left"), 10);
-    },
     chkCurWall: function(curLeft) {
-        if(curLeft > 130) {
+        if (curLeft > 130) {
             return false;
         }
         var moveWidth = Math.abs(130 - curLeft);
 
-        var leftWalls = Math.floor(moveWidth / (this.wallDis + this.wallWidth));
-        var curWallMov = moveWidth % (this.wallDis + this.wallWidth);
+        var leftWalls = Math.floor(moveWidth / this.wallStep);
+        var curWallMov = moveWidth % this.wallStep;
 
 
-        if(this.curWall) {
+        if (this.curWall) {
             this.curWall.style.backgroundColor = "#b73771";
         }
         this.curWall = this.walls[leftWalls];
@@ -270,19 +263,19 @@ var bg = {
         var birdTop = 360 - 32 - birdCtrl.curBottom;
         var gapTop = this.gapsTop[leftWalls];
 
-        if(curWallMov >= 60) {
+        if (curWallMov >= 60) {
             this.curWall.style.backgroundColor = "#b73771";
             return false;
         } else {
             this.curWall.style.backgroundColor = "#de3e87";
         }
 
-        if(birdTop < gapTop - 6 || birdTop > gapTop + 94) {
+        if (birdTop < gapTop - 6 || birdTop > gapTop + 94) {
             return true;
         } else {
             var toScore = leftWalls + this.buildTimes * this.initWallNum + 1;
             this.scoreDom.innerHTML = "score: " + toScore;
-            if(toScore > this.highestScore) {
+            if (toScore > this.highestScore) {
                 this.highestScore = toScore;
                 localStorage.setItem('bird-highest-score', toScore);
                 this.hScoreDom.innerHTML = "hightest score: " + toScore;
