@@ -1,0 +1,193 @@
+<html>
+<head>
+    <title>SHAKE</title>
+    <meta http-equiv="content-type" content="text/html;charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+<body>
+
+
+<!--<audio controls="controls">-->
+  <!--<source src='http://ecma.bdimg.com/adtest/f06980ffce81cdd370d027fba562d734.mp3' type="audio/ogg" />-->
+<!--Your browser does not support the audio element.-->
+<!--</audio>-->
+摇一摇
+
+<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+<script type="text/javascript">
+
+//var audio = new Audio('http://ecma.bdimg.com/adtest/f06980ffce81cdd370d027fba562d734.mp3');
+                //audio.play();
+
+var times = 0;
+var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+var token = matches && matches.length >= 2 ? matches[1] : null;
+
+(function (window, document) {
+
+
+    function _log(s){
+        $('body').prepend(s);
+        $('body').prepend("<br>");
+    }
+    if (token) {
+        _log("from token:" + token + "<br>");
+    }
+    require.config({
+        paths: {
+            'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+        }
+    });
+
+    // var token = 'llmkcK8eVOvsuIye2Ja70Vpbn97/ZMq7b/XFUYpmhYg=';
+    // 加载Connect模块
+    require(['muses/connect'], function(Connect) {
+        // 创建一个连接实例
+        window.connect = new Connect();
+        //window.connect = new Connect("http://osdream.com:8080/interact/");
+
+        // 连接指定token(可以认为是房间号，如何获取：1. 创建 - 见API 2. 通过二维码等从他处获取)
+        connect.connectWith(token)
+            .then(function() {
+                // 连接成功了，此处就可以发送消息了，当然房间有没有人不确定
+                _log('[INFO] connect successfully with token: ' + token);
+            })
+            .then(function() {
+                // 这里表示房间肯定有除自己以外的人存在，可以对话了
+                _log('[INFO] I am sure that there is someone in this room');
+                // 发送第一条消息
+                connect.send('Hello World!')
+                    .fail(function(err) {
+                        _log('[ERROR] 发送消息失败' + (err ? ', ' + err : ''));
+                    });
+
+                // 接收来自房间的消息
+                connect.onMessage = function(actions) {
+                    //_log('[INFO] received message: ' + (typeof msg == 'object' ? JSON.stringify(msg) : msg));
+                    _log(actions['act']);
+                };
+            })
+            .fail(function(err) {
+                _log('[ERROR] 连接房间失败' + (err ? '，' + err : ''));
+            });
+    });
+
+
+    function Shake() {
+
+        this.hasDeviceMotion = 'ondevicemotion' in window;
+
+        console.log("has devicemotion: " + this.hasDeviceMotion );
+        this.threshold = 10;
+        this.timeInterval = 800;
+
+        this.lastTime = new Date();
+
+        this.lastX = null;
+        this.lastY = null;
+        this.lastZ = null;
+
+        if (typeof document.CustomEvent === "function") {
+            this.event = new document.CustomEvent('shake', {
+                bubbles: true,
+                cancelable: true
+            });
+        } else if (typeof document.createEvent === "function") {
+            this.event = document.createEvent('Event');
+            this.event.initEvent('shake', true, true);
+        } else {
+          return false;
+        }
+    }
+
+    Shake.prototype.reset = function () {
+        this.lastTime = new Date();
+        this.lastX = null;
+        this.lastY = null;
+        this.lastZ = null;
+    };
+
+    Shake.prototype.start = function () {
+        this.reset();
+        if (this.hasDeviceMotion) { window.addEventListener('devicemotion', this, false); }
+    };
+
+    Shake.prototype.stop = function () {
+
+        if (this.hasDeviceMotion) { window.removeEventListener('devicemotion', this, false); }
+        this.reset();
+    };
+
+    Shake.prototype.devicemotion = function (e) {
+
+        var current = e.accelerationIncludingGravity,
+            currentTime,
+            timeDifference,
+            deltaX = 0,
+            deltaY = 0,
+            deltaZ = 0;
+
+        if ((this.lastX === null) && (this.lastY === null) && (this.lastZ === null)) {
+            this.lastX = current.x;
+            this.lastY = current.y;
+            this.lastZ = current.z;
+            return;
+        }
+
+        deltaX = Math.abs(this.lastX - current.x);
+        deltaY = Math.abs(this.lastY - current.y);
+        deltaZ = Math.abs(this.lastZ - current.z);
+
+
+        //if (((deltaX > this.threshold) && (deltaY > this.threshold)) || ((deltaX > this.threshold) && (deltaZ > this.threshold)) || ((deltaY > this.threshold) && (deltaZ > this.threshold))) {
+        if ( (deltaX > this.threshold) || (deltaY > this.threshold) || (deltaZ > this.threshold) ) {
+            currentTime = new Date();
+            timeDifference = currentTime.getTime() - this.lastTime.getTime();
+
+            if (timeDifference > this.timeInterval) {
+                window.dispatchEvent(this.event);
+                this.lastTime = new Date();
+                var isShake = (deltaX > this.threshold) || (deltaY > this.threshold) || (deltaZ > this.threshold);
+                //_log(deltaX+" "+deltaY+" "+deltaZ + isShake.toString()+timeDifference);
+                _log("send 1 request-----------"+(times++));
+            }
+        }
+
+        this.lastX = current.x;
+        this.lastY = current.y;
+        this.lastZ = current.z;
+
+    };
+
+    Shake.prototype.handleEvent = function (e) {
+
+        if (typeof (this[e.type]) === 'function') {
+            return this[e.type](e);
+        }
+    };
+
+    var myShakeEvent = new Shake();
+    myShakeEvent && myShakeEvent.start();
+
+}(window, document));
+</script>
+
+<script type="text/javascript">
+window.onload = function() {
+    window.addEventListener('shake', shakeEventDidOccur, false);
+    function shakeEventDidOccur () {
+        //$('body').append(new Date() + "<br/>");
+        //put your own code here etc.
+        // if (confirm("Undo?")) {
+
+        // }
+      connect.send(times);
+
+    }
+};
+</script>
+
+</body>
+</html>
+

@@ -14,6 +14,19 @@ var link = document.getElementById('link');
 var linkAdr = '/marker?location=40.047669,116.313082&title=我的位置&content=百度奎科大厦&src=baidu';
 var isAndroid = (/android/gi).test(navigator.appVersion);
 var isIDevice = (/iphone|ipad/gi).test(navigator.appVersion);
+if (window.navigator.geolocation) {
+    var options = {
+        enableHighAccuracy: true
+    };
+    window.navigator.geolocation.getCurrentPosition(handleSuccess, handleError, options);
+} else {
+    alert('浏览器不支持html5来获取地理位置信息！');
+}
+function handleSuccess(position) {
+    alert('你的经纬度是：' + position.coords.longitude + ':' + position.coords.latitude);
+}
+function handleError(err) {
+}
 
 var goURI = function(type, url ,cb) {
 if(url) {
@@ -29,10 +42,14 @@ if(url) {
 };
 
 if(isAndroid)  {
-alert('is Android');
-linkAdr = 'bdapp1://map' + linkAdr;
+linkAdr = 'bdapp://map' + linkAdr;
+alert('baidu app');
+//linkAdr = 'http://api.map.baidu.com' + linkAdr;
 var script = document.createElement('script');
 script.src = "http://127.0.0.1:6259/getpackageinfo?callback=getinfo&packagename=com.baidu.BaiduMap";
+script.onload = function() {
+  alert('app opened');
+}
 script.onerror = function() {
   alert('app Error');
   goURI("android", url, function() {
@@ -42,17 +59,17 @@ script.onerror = function() {
 document.head.appendChild(script);
 }
 if(isIDevice) {
-alert('is IOS');
-linkAdr = 'baidumap://map' + linkAdr;
+linkAdrPrev = 'baidumap://map';
+alert('is IOS baidu map');
+link.addEventLisenter('click', function() {
+    location.href =
+    }, 350);
 }
 if(!isAndroid && !isIDevice) {
-linkAdr = 'http://api.map.baidu.com' + linkAdr;
-window.getinfo = function(res) {
-  alert(res);
-};
+linkAdrPrev = 'http://api.map.baidu.com';
 }
 
-link.setAttribute('href', linkAdr);
+link.setAttribute('href', linkAdrPrev + rinkAdr);
 
 </script>
 </html>

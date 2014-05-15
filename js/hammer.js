@@ -1466,6 +1466,7 @@ Hammer.gestures.Transform = {
     }
   }
 };
+window.Hammer = Hammer;
 
 // AMD export
 if(typeof define == 'function' && define.amd) {
