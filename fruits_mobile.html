@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Fruits Mobile</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+    <style type="text/css" media="screen">
+        html,body {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+        }
+        #controller {
+            position: relative;
+            background: #ddd;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #ball {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            -webkit-border-radius: 12px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            background-color: #999;
+            left: 0;
+            top: 0;
+        }
+        #info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-size: 6px;
+            padding: 2px;
+            height: 150px;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            opacity: 0.2;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="controller">
+        <div id="ball">
+
+        </div>
+        <div id="info">
+
+        </div>
+    </div>
+<script type="text/javascript" charset="utf-8">
+(function (window, document) {
+var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+var token = matches && matches.length >= 2 ? matches[1] : null;
+var controlDom = $('#controller');
+var infoDom = $('#info');
+function _log(s, dom) {
+    var logDom = dom || infoDom;
+    if(logDom.logL ) {
+        if(logDom.logL > 20) {
+            logDom.logL = 0;
+            logDom.html('');
+        }
+    } else {
+        logDom.logL = 0;
+    }
+    logDom.logL++;
+    logDom.prepend("<br>");
+    logDom.prepend(s);
+}
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
+
+// 加载Connect模块
+require(['muses/connect'], function(Connect) {
+    window.connect = new Connect();
+    connect.connectWith(token)
+        .then(function() {
+            _log('[INFO] 连接成功，token: ' + token);
+            var motion = new Motion();
+            motion.start();
+        })
+        .then(function() {
+            connect.send('Game Start!')
+                .fail(function(err) {
+                    _log('[ERROR] 游戏启动失败，' + (err ? err : ''));
+                });
+
+            connect.onMessage = function(actions) {
+                _log(actions);
+            }
+        });
+})
+
+function Motion() {
+    this.hasDeviceMotion = 'ondevicemotion' in window;
+    this.hasDeviceOrientation = 'ondeviceorientation' in window;
+
+    this.threshold = 0.5;
+    this.timeInterval = 100;
+
+    this.lastTime = new Date();
+    this.lastOrientationTime = new Date();
+
+    this.lastX = null;
+    this.lastY = null;
+    this.lastZ = null;
+}
+
+Motion.prototype.reset = function() {
+    this.lastTime = new Date();
+
+    this.lastX = null;
+    this.lastY = null;
+    this.lastZ = null;
+}
+
+Motion.prototype.start = function() {
+    this.reset();
+    if (this.hasDeviceOrientation) { window.addEventListener('deviceorientation', this, false); }
+    //if (this.hasDeviceMotion) { window.addEventListener('devicemotion', this, false); }
+};
+
+Motion.prototype.stop = function () {
+    if (this.hasDeviceOrientation) { window.removeEventListener('deviceorientation', this, false); }
+    //if (this.hasDeviceMotion) { window.removeEventListener('devicemotion', this, false); }
+    this.reset();
+};
+
+Motion.prototype.devicemotion = function(e) {
+    var current = e.accelerationIncludingGravity;
+    var currentTime;
+    var timeDifference;
+    var deltaX = 0;
+    var deltaY = 0;
+    var deltaZ = 0;
+    if ((this.lastX === null) && (this.lastY === null) && (this.lastZ === null)) {
+        this.lastX = current.x;
+        this.lastY = current.y;
+        this.lastZ = current.z;
+        return;
+    }
+
+    deltaX = Math.abs(this.lastX - current.x);
+    deltaY = Math.abs(this.lastY - current.y);
+    deltaZ = Math.abs(this.lastZ - current.z);
+
+    if ( (deltaX > this.threshold) || (deltaY > this.threshold) || (deltaZ > this.threshold) ) {
+        currentTime = new Date();
+        timeDifference = currentTime.getTime() - this.lastTime.getTime();
+
+        if (timeDifference > this.timeInterval) {
+            this.lastTime = new Date();
+            connect.send([this.lastX, this.lastY, this.lastZ]);
+        }
+    }
+
+    this.lastX = current.x;
+    this.lastY = current.y;
+    this.lastZ = current.z;
+};
+Motion.prototype.deviceorientation = function(e) {
+    var currentTime = new Date();
+    timeDifference = currentTime.getTime() - this.lastOrientationTime.getTime();
+    if(timeDifference > this.timeInterval) {
+        this.lastOrientationTime = new Date();
+        connect.send([e.alpha, e.beta, e.gamma]);
+        theBall.moveLeft(e.gamma / 4);
+        theBall.moveTop(e.beta / 4);
+    }
+};
+
+Motion.prototype.handleEvent = function(e) {
+    if ('function' === typeof (this[e.type])) {
+        return this[e.type](e);
+    }
+};
+
+function Ball(cont, ball) {
+    this.cont = $(cont);
+    this.ball = $(ball);
+    this.contW = this.cont.width();
+    this.contH = this.cont.height();
+    this.ballX = this.ball.position()['left'];
+    this.ballY = this.ball.position()['top'];
+    this.ballW = this.ball.width();
+    this.ballH = this.ball.height();
+    this.maxX = this.contW - this.ballW;
+    this.maxY = this.contH - this.ballH;
+}
+
+Ball.prototype.moveLeft = function(dis) {
+    var toL = this.ballX + dis;
+    toL = toL < 0 ? 0 : toL;
+    toL = toL > this.maxX ? this.maxX : toL;
+    _log('toX:' + toL + ', contW: ' + this.contW + ', ballW: ' + this.ballW);
+    this.ballX = toL;
+    this.ball.css('left', toL + 'px');
+}
+
+Ball.prototype.moveTop = function(dis) {
+    var toT = this.ballY + dis;
+    toT = toT < 0 ? 0 : toT;
+    toT = toT > this.maxY ? this.maxY : toT;
+    _log('toY:' + toT + ', contH: ' + this.contH + ', ballH: ' + this.ballH);
+    this.ballY = toT;
+    this.ball.css('top', toT + 'px');
+}
+var theBall = new Ball('#controller', '#ball');
+})(window, document);
+</script>
+</body>
+</html>

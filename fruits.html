@@ -7,10 +7,158 @@
     <title>Fruits</title>
     <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+    <style type="text/css" media="screen">
+        html {
+            height: 100%;
+        }
+        body {
+            position: relative;
+            height: 100%;
+        }
+        #basket {
+            position: absolute;
+            top: 400px;
+            width: 50px;
+            height: 50px;
+            left: 100px;
+            background: #999;
+            border: 2px solid #333;
+            -webkit-border-radius: 50px;
+            border-radius: 50px;
+        }
+        #playground {
+            height: 500px;
+            width: 1000px;
+            font-size: 11px;
+            color: #333;
+            overflow: hidden;
+        }
+        #info {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 300px;
+            height: 200px;
+            background: #555;
+            color: #eee;
+            border: 1px solid #222;
+            border-width: 0 1px 1px 0;
+            padding: 5px;
+            font-size: 10px;
+        }
+        #qr {
+            position: absolute;
+            left: 15px;
+            bottom: 20px;
+        }
+    </style>
 </head>
 <body>
+    <div id="playground">
 
-    <script type="text/javascript" charset="utf-8">
-    </script>
+    </div>
+    <div id="info">
+
+    </div>
+    <div id="basket">
+
+    </div>
+<script type="text/javascript" charset="utf-8">
+(function (window, document) {
+var pDom = $('#playground');
+var infoDom = $('#info');
+function _log(s, dom) {
+    var logDom = dom || infoDom;
+    if(logDom.logL ) {
+        if(logDom.logL > 20) {
+            logDom.logL = 0;
+            logDom.html('');
+        }
+    } else {
+        logDom.logL = 0;
+    }
+    logDom.logL++;
+    logDom.prepend("<br>");
+    logDom.prepend(s);
+}
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
+
+function makeQR(token) {
+    require(['muses/tool'], function(tool) {
+        var QRCode = tool.QRCode;
+        $("body").append($('<div id="qr"></div>'));
+        var qrcode = new QRCode('qr', {
+            text: "http://dev046.baidu.com:8092/fruits_mobile.html?muses_scepter=" + token,
+            width: 120,
+            height: 120,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.L
+        });
+    });
+}
+
+function formatFloat(src, pos) {
+    return Math.round(src*Math.pow(10, pos))/Math.pow(10, pos);
+}
+
+// 加载Connect模块
+require(['muses/connect'], function(Connect) {
+    window.connect = new Connect();
+    connect.createToken()
+        .then(function(token) {
+            makeQR(token);
+            connectToken(token, false);
+        });
+    function connectToken(token) {
+        connect.connectWith(token)
+            .then(function() {
+                _log('[INFO] 连接成功，token: ' + token);
+            })
+            .then(function() {
+                connect.send('Game Start!')
+                    .fail(function(err) {
+                        _log('[ERROR] 游戏启动失败，' + (err ? err : ''));
+                    });
+
+                connect.onMessage = function(actions) {
+                    if('string' == typeof actions) {
+                        _log(actions);
+                    } else if(actions instanceof Array) {
+                        var msgArr = [];
+                        actions.forEach(function(item) {
+                            msgArr.push(formatFloat(item, 0));
+                        });
+                        _log(msgArr.join(' : '), pDom);
+                        basket.goX(msgArr[2]/5);
+                    }
+                }
+            });
+    }
+});
+
+function Bascket(basSel) {
+    this.basket = $(basSel);
+    this.maxX = 950;
+    this.curLeft = this.basket.position()['left'];
+}
+Bascket.prototype.goX = function(dis) {
+    var toX = this.curLeft + dis;
+    if(toX < 0) {
+        toX = 0;
+    }
+    if(toX > this.maxX) {
+        toX = this.maxX;
+    }
+    this.curLeft = toX;
+    this.basket.css('left', toX + 'px');
+}
+var basket = new Bascket('#basket');
+})(window, document);
+</script>
 </body>
 </html>
