@@ -14,24 +14,31 @@
         body {
             position: relative;
             height: 100%;
+            padding: 0;
+            margin: 0;
         }
         #basket {
             position: absolute;
             top: 400px;
-            width: 50px;
-            height: 50px;
-            left: 100px;
-            background: #999;
-            border: 2px solid #333;
-            -webkit-border-radius: 50px;
-            border-radius: 50px;
+            width: 20px;
+            height: 20px;
+            left: 0;
+            background: #eee;
+            border: 2px solid #bbb;
+            -webkit-border-radius: 20px;
+            border-radius: 20px;
         }
         #playground {
+            position: absolute;
+            right: 5px;
+            top: 220px;
             height: 500px;
-            width: 1000px;
+            padding: 5px;
+            width: 300px;
             font-size: 11px;
-            color: #333;
+            color: #666;
             overflow: hidden;
+            background-color: #ddd;
         }
         #info {
             position: absolute;
@@ -51,14 +58,34 @@
             left: 15px;
             bottom: 20px;
         }
+        #speedWrap {
+            position: absolute;
+            right: 5px;
+            top: 700px;
+            font-size: 10px;
+            color: #333;
+        }
+        #speedWrap input {
+            width: 50px;
+        }
     </style>
 </head>
 <body>
+    <object id="testFlashObj" width="538" height="335" type="application/x-shockwave-flash" data="http://ecma.bdimg.com/adtest/140520/basket.swf">
+        <param value="http://ecma.bdimg.com/adtest/140520/basket.swf" name="movie" />
+        <param value="always" name="allowScriptAccess" />
+        <param value="high" name="quality" />
+    </object>
     <div id="playground">
 
     </div>
     <div id="info">
 
+    </div>
+    <div id="speedWrap">
+        <label>移动速度：<span>5</span>(范围：1 - 20)</label>
+        <input id="speed" type="test" />
+        <button>生效</button>
     </div>
     <div id="basket">
 
@@ -67,6 +94,14 @@
 (function (window, document) {
 var pDom = $('#playground');
 var infoDom = $('#info');
+var flash = getSwfObj('testFlashObj');
+function getSwfObj(movieName) {
+    if (navigator.appName.indexOf("Microsoft") != -1) {
+        return window[movieName] ;
+    }else{
+        return document[movieName] ;
+    }
+};
 function _log(s, dom) {
     var logDom = dom || infoDom;
     if(logDom.logL ) {
@@ -109,11 +144,24 @@ function formatFloat(src, pos) {
 // 加载Connect模块
 require(['muses/connect'], function(Connect) {
     window.connect = new Connect();
-    connect.createToken()
-        .then(function(token) {
-            makeQR(token);
-            connectToken(token, false);
-        });
+    connect.onTokenExpired = function() {
+        _log('Expired~');
+        connect.destroy()
+            .then(function() {
+                makeConnect();
+            });
+    };
+    function makeConnect() {
+        connect.createToken()
+            .then(function(token) {
+                makeQR(token);
+                connectToken(token, false);
+            })
+            .fail(function(err) {
+                _log('[ERROR] 创建游戏失败，' + (err ? err : ''));
+            });
+    }
+    makeConnect();
     function connectToken(token) {
         connect.connectWith(token)
             .then(function() {
@@ -133,8 +181,8 @@ require(['muses/connect'], function(Connect) {
                         actions.forEach(function(item) {
                             msgArr.push(formatFloat(item, 0));
                         });
-                        _log(msgArr.join(' : '), pDom);
-                        basket.goX(msgArr[2]/5);
+                        _log('x: ' + msgArr[2] + ', y: ' + msgArr[1] + ', z: ' + msgArr[0], pDom);
+                        basket.goX(msgArr[2]/4);
                     }
                 }
             });
@@ -143,10 +191,21 @@ require(['muses/connect'], function(Connect) {
 
 function Bascket(basSel) {
     this.basket = $(basSel);
-    this.maxX = 950;
+    this.speedSel = $('#speed');
+    this.speedTip = $('#speedWrap span');
+    this.curSpeed = 5;
+    this.maxX = 500;
     this.curLeft = this.basket.position()['left'];
 }
+Bascket.prototype.start = function() {
+    var self = this;
+    $('#speedWrap button').click(function() {
+        self.curSpeed = self.speedSel.val();
+        self.speedTip.html(self.curSpeed);
+    });
+}
 Bascket.prototype.goX = function(dis) {
+    var dis = dis * this.curSpeed;
     var toX = this.curLeft + dis;
     if(toX < 0) {
         toX = 0;
@@ -156,9 +215,12 @@ Bascket.prototype.goX = function(dis) {
     }
     this.curLeft = toX;
     this.basket.css('left', toX + 'px');
+    flash.callFlashmcrun(toX);
 }
 var basket = new Bascket('#basket');
+basket.start();
 })(window, document);
 </script>
 </body>
 </html>
+

@@ -12,6 +12,8 @@
             padding: 0;
             margin: 0;
             height: 100%;
+            font-size: 10px;
+            color: #333;
         }
         #controller {
             position: relative;
@@ -29,20 +31,56 @@
             border: 1px solid #333;
             background-color: #999;
             left: 0;
-            top: 0;
+            top: 100px;
         }
         #info {
             position: absolute;
             bottom: 0;
             left: 0;
-            font-size: 6px;
+            font-size: 10px;
             padding: 2px;
-            height: 150px;
+            height: 140px;
             width: 100%;
             background-color: #333;
             color: #fff;
             opacity: 0.2;
             overflow: hidden;
+        }
+        .drag-scope {
+            position: absolute;
+            left: 20px;
+            top: 200px;
+            z-index: 1;
+            width: 360px;
+            height: 100px;
+            -webkit-border-radius: 80px;
+               -moz-border-radius: 80px;
+                    border-radius: 80px;
+
+            background-color: #888;
+          -webkit-box-shadow: 0 0 5px #555 inset;
+             -moz-box-shadow: 0 0 5px #555 inset;
+                  box-shadow: 0 0 5px #555 inset;
+            border: 1px solid #444;
+        }
+
+        .drag {
+            position: absolute;
+            top: 200px;
+            -webkit-border-radius: 50px;
+               -moz-border-radius: 50px;
+                    border-radius: 50px;
+            width: 100px;
+            height: 100px;
+            line-height: 100px;
+            text-align: center;
+            z-index: 2;
+            background: #42d692;
+            left: 150px;
+          -webkit-box-shadow: 0 0 5px #555;
+             -moz-box-shadow: 0 0 5px #555;
+                  box-shadow: 0 0 5px #555;
+            border: 1px solid #555;
         }
     </style>
 </head>
@@ -54,6 +92,9 @@
         <div id="info">
 
         </div>
+    <div id="drag-scope" class="drag-scope"></div>
+    <div id="drag" class="drag">手柄</div>
+    <button id="ctlType">使用手柄</button>
     </div>
 <script type="text/javascript" charset="utf-8">
 (function (window, document) {
@@ -61,6 +102,8 @@ var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
 var token = matches && matches.length >= 2 ? matches[1] : null;
 var controlDom = $('#controller');
 var infoDom = $('#info');
+//firefox的角度偏转是反的
+var isFirefox = /firefox/i.test(navigator.userAgent);
 function _log(s, dom) {
     var logDom = dom || infoDom;
     if(logDom.logL ) {
@@ -75,6 +118,7 @@ function _log(s, dom) {
     logDom.prepend("<br>");
     logDom.prepend(s);
 }
+controlDom.append('<div>' + navigator.userAgent + '</div>');
 require.config({
     paths: {
         'muses': 'http://ecma.bdimg.com/lego-mat/muses'
@@ -99,6 +143,9 @@ require(['muses/connect'], function(Connect) {
             connect.onMessage = function(actions) {
                 _log(actions);
             }
+        })
+        .fail(function(err) {
+            _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
         });
 })
 
@@ -108,6 +155,8 @@ function Motion() {
 
     this.threshold = 0.5;
     this.timeInterval = 100;
+    this.typeDom = $('#ctlType');
+    this.ctlType = "orientation";
 
     this.lastTime = new Date();
     this.lastOrientationTime = new Date();
@@ -126,9 +175,25 @@ Motion.prototype.reset = function() {
 }
 
 Motion.prototype.start = function() {
+    if(!this.hasDeviceOrientation) {
+        _log('[FAIL] 你的手机不支持与电脑的互动。');
+        return;
+    }
     this.reset();
-    if (this.hasDeviceOrientation) { window.addEventListener('deviceorientation', this, false); }
+    window.addEventListener('deviceorientation', this, false);
     //if (this.hasDeviceMotion) { window.addEventListener('devicemotion', this, false); }
+    var self = this;
+    this.typeDom.click(function() {
+        if('orientation' == self.ctlType) {
+            self.ctlType = "handler";
+            self.typeDom.html('使用翻转');
+            self.stop();
+        } else {
+            self.ctlType = "orientation";
+            self.typeDom.html('使用手柄');
+            self.start();
+        }
+    });
 };
 
 Motion.prototype.stop = function () {
@@ -137,6 +202,7 @@ Motion.prototype.stop = function () {
     this.reset();
 };
 
+//暂不用devicemotion
 Motion.prototype.devicemotion = function(e) {
     var current = e.accelerationIncludingGravity;
     var currentTime;
@@ -174,9 +240,12 @@ Motion.prototype.deviceorientation = function(e) {
     timeDifference = currentTime.getTime() - this.lastOrientationTime.getTime();
     if(timeDifference > this.timeInterval) {
         this.lastOrientationTime = new Date();
-        connect.send([e.alpha, e.beta, e.gamma]);
-        theBall.moveLeft(e.gamma / 4);
-        theBall.moveTop(e.beta / 4);
+        var a = isFirefox ? -e.alpha : e.alpha;
+        var b = isFirefox ? -e.beta  : e.beta;
+        var g = isFirefox ? -e.gamma : e.gamma;
+        connect.send([a, b, g]);
+        theBall.moveLeft(g / 4);
+        theBall.moveTop(b / 4);
     }
 };
 
@@ -196,28 +265,195 @@ function Ball(cont, ball) {
     this.ballW = this.ball.width();
     this.ballH = this.ball.height();
     this.maxX = this.contW - this.ballW;
-    this.maxY = this.contH - this.ballH;
+    this.maxY = this.contH - this.ballH - 150;
 }
 
 Ball.prototype.moveLeft = function(dis) {
     var toL = this.ballX + dis;
     toL = toL < 0 ? 0 : toL;
     toL = toL > this.maxX ? this.maxX : toL;
-    _log('toX:' + toL + ', contW: ' + this.contW + ', ballW: ' + this.ballW);
+    _log('toX:' + toL);
     this.ballX = toL;
     this.ball.css('left', toL + 'px');
-}
+};
 
 Ball.prototype.moveTop = function(dis) {
     var toT = this.ballY + dis;
     toT = toT < 0 ? 0 : toT;
     toT = toT > this.maxY ? this.maxY : toT;
-    _log('toY:' + toT + ', contH: ' + this.contH + ', ballH: ' + this.ballH);
+    _log('toY:' + toT);
     this.ballY = toT;
     this.ball.css('top', toT + 'px');
-}
+};
 var theBall = new Ball('#controller', '#ball');
 })(window, document);
 </script>
+<script type="text/javascript" src="http://ecma.bdimg.com/adtest/140520/js/hammer.js">
+</script>
+<script type="text/javascript" charset="utf-8">
+(function (window, document) {
+    //browser detect
+    function prefix(style) {
+        if (vender === '') return style;
+
+        style = style.charAt(0).toUpperCase() + style.substr(1);
+        return vender + style;
+    }
+
+    var dummyStyle = document.createElement('div').style;
+    var vender = (function() {
+        var vendors = 't,webkitT,MozT,msT,OT'.split(','),
+            t,
+            i = 0,
+            l = vendors.length;
+
+        for (; i < l; i++) {
+            t = vendors[i] + 'ransform';
+            if (t in dummyStyle) {
+                return vendors[i].substr(0, vendors[i].length - 1);
+            }
+        }
+
+        return false;
+    })();
+    var transformAttr = prefix('transform');
+    var transformOriginAttr = prefix('transformOrigin');
+    var transitionAttr = prefix('transition');
+
+    //utils
+    var util = {
+        getEl: function(id) {
+            return document.getElementById(id);
+        },
+        getElPos: function(el) {
+            return [parseInt(el.offsetLeft, 10), parseInt(el.offsetTop, 10)];
+        },
+        /*计算直角边*/
+        calculPy: function(l, w) {
+            return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
+        },
+        /*计算两点间距离*/
+        calculDis: function(pos1x, pos1y, pos2x, pos2y) {
+            return this.calculPy(pos1x - pos2x, pos1y - pos2y);
+        }
+    };
+
+    var container = document.body;
+    var hammertime = new Hammer(container, { drag_max_touches: 0 });
+    hammertime.on("touch", function(ev) {
+        dragCtrl.catchEvt(ev, true);
+    });
+    hammertime.on("drag", function(ev) {
+        dragCtrl.catchEvt(ev);
+    });
+    hammertime.on("touchend dragend", function(ev) {
+         var touches = ev.gesture.touches;
+
+         ev.gesture.preventDefault();
+
+         for(var t = 0, len = touches.length; t < len; t++) {
+             target = touches[t].target;
+             if(target.className.indexOf("drag") < 0) {
+                 return;
+             }
+            dragCtrl.resetPos();
+            connect.send('reset');
+         }
+    });
+
+    var dragCtrl = {
+        init: function(options) {
+            this.container = container;
+            this.dragScope = util.getEl("drag-scope");
+            this.dragEl = util.getEl("drag");
+            this.fireEl = util.getEl("fire");
+            this.scopePos = util.getElPos(this.dragScope);
+            this.dragInitPos = util.getElPos(this.dragEl);
+
+            options = options || {};
+            this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
+            this.positionListener = options['positionListener'] || function() {
+                var moLeft = this.moLeft;
+                var moTop = this.moTop;
+                console.log(moLeft);
+                if(moLeft >= 0) {
+                    var multi = Math.floor((moLeft + 4) / 8);
+                    connect.send([multi, 0]);
+                } else {
+                    var multi = Math.floor((Math.abs(moLeft) + 5) / 10);
+                    connect.send([-multi, 0]);
+                }
+            };//位移监听回调
+        },
+        resetPos: function() {
+            this.holding = false;
+            clearTimeout(this.positionEmitter);
+            this.setDragPos(this.dragInitPos[0], this.dragInitPos[1]);
+            this.initTouchOffsetX = 0;
+            this.initTouchOffsetY = 0;
+        },
+        move: function(toLeft, toTop) {
+            var moLeft = toLeft - this.initTouchX;
+
+            var initLeft = this.dragInitPos[0];
+            var initTop = this.dragInitPos[1];
+            var moTop = initTop;
+
+            var dis = util.calculPy(moLeft, moTop);
+
+            if(dis > 130) {
+                moLeft = moLeft * 130 / dis;
+            }
+
+            tarLeft = initLeft + moLeft;
+            tarTop = initTop;
+
+            this.moLeft = moLeft;
+            this.moTop = moTop;
+            this.setDragPos(tarLeft, tarTop);
+            connect.send([tarLeft, tarTop]);
+        },
+        setDragPos: function(tarLeft, tarTop) {
+            this.dragEl.style.left = tarLeft + "px";
+            this.dragEl.style.top = tarTop + "px";
+        },
+        catchEvt: function(ev, isTouch) {
+            var touches = ev.gesture.touches;
+
+            ev.gesture.preventDefault();
+
+            for(var t = 0, len = touches.length; t < len; t++) {
+                var touchEvt = touches[t];
+                var target = touchEvt.target;
+                if(target.className.indexOf("drag") < 0) {
+                    return;
+                }
+                var proxyX = touchEvt.pageX;
+                var proxyY = touchEvt.pageY;
+                if(isTouch) {
+                    this.initTouchX = proxyX;
+                    this.initTouchY = proxyY;
+                    this.holding = true;
+                    this.tickTack();
+                }
+                dragCtrl.move(proxyX, proxyY);
+            }
+        },
+        tickTack: function() {
+            var me = this;
+            if(!me.holding) {
+                return;
+            }
+            me.positionEmitter = setTimeout(function() {
+                me.positionListener.call(me);
+                me.tickTack.call(me);
+            }, me.positionEmitInter);
+        }
+    };
+
+    dragCtrl.init();
+})(window, document);
+</script>
+
 </body>
 </html>
