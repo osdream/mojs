@@ -24,6 +24,7 @@
         }
         #ball {
             position: absolute;
+            display: none;
             width: 20px;
             height: 20px;
             -webkit-border-radius: 12px;
@@ -48,11 +49,12 @@
         }
         .drag-scope {
             position: absolute;
-            left: 20px;
-            top: 200px;
+            display: none;
+            left: 10px;
+            top: 120px;
             z-index: 1;
-            width: 360px;
-            height: 100px;
+            width: 300px;
+            height: 60px;
             -webkit-border-radius: 80px;
                -moz-border-radius: 80px;
                     border-radius: 80px;
@@ -66,7 +68,8 @@
 
         .drag {
             position: absolute;
-            top: 200px;
+            display: none;
+            top: 100px;
             -webkit-border-radius: 50px;
                -moz-border-radius: 50px;
                     border-radius: 50px;
@@ -76,11 +79,19 @@
             text-align: center;
             z-index: 2;
             background: #42d692;
-            left: 150px;
+            left: 110px;
           -webkit-box-shadow: 0 0 5px #555;
              -moz-box-shadow: 0 0 5px #555;
                   box-shadow: 0 0 5px #555;
             border: 1px solid #555;
+        }
+        #ctlType {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 100px;
+            height: 30px;
+            line-height: 30px;
         }
     </style>
 </head>
@@ -92,10 +103,12 @@
         <div id="info">
 
         </div>
-    <div id="drag-scope" class="drag-scope"></div>
-    <div id="drag" class="drag">手柄</div>
-    <button id="ctlType">使用手柄</button>
+        <div id="drag-scope" class="drag-scope"></div>
+        <div id="drag" class="drag">手柄</div>
     </div>
+    <button id="ctlType">使用手柄</button>
+<script type="text/javascript" src="http://ecma.bdimg.com/adtest/140520/js/hammer.js">
+</script>
 <script type="text/javascript" charset="utf-8">
 (function (window, document) {
 var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
@@ -131,7 +144,6 @@ require(['muses/connect'], function(Connect) {
     connect.connectWith(token)
         .then(function() {
             _log('[INFO] 连接成功，token: ' + token);
-            var motion = new Motion();
             motion.start();
         })
         .then(function() {
@@ -155,8 +167,6 @@ function Motion() {
 
     this.threshold = 0.5;
     this.timeInterval = 100;
-    this.typeDom = $('#ctlType');
-    this.ctlType = "orientation";
 
     this.lastTime = new Date();
     this.lastOrientationTime = new Date();
@@ -180,26 +190,16 @@ Motion.prototype.start = function() {
         return;
     }
     this.reset();
+    theBall.ball.show();
     window.addEventListener('deviceorientation', this, false);
     //if (this.hasDeviceMotion) { window.addEventListener('devicemotion', this, false); }
-    var self = this;
-    this.typeDom.click(function() {
-        if('orientation' == self.ctlType) {
-            self.ctlType = "handler";
-            self.typeDom.html('使用翻转');
-            self.stop();
-        } else {
-            self.ctlType = "orientation";
-            self.typeDom.html('使用手柄');
-            self.start();
-        }
-    });
 };
 
 Motion.prototype.stop = function () {
     if (this.hasDeviceOrientation) { window.removeEventListener('deviceorientation', this, false); }
     //if (this.hasDeviceMotion) { window.removeEventListener('devicemotion', this, false); }
     this.reset();
+    theBall.ball.hide();
 };
 
 //暂不用devicemotion
@@ -286,172 +286,152 @@ Ball.prototype.moveTop = function(dis) {
     this.ball.css('top', toT + 'px');
 };
 var theBall = new Ball('#controller', '#ball');
-})(window, document);
-</script>
-<script type="text/javascript" src="http://ecma.bdimg.com/adtest/140520/js/hammer.js">
-</script>
-<script type="text/javascript" charset="utf-8">
-(function (window, document) {
-    //browser detect
-    function prefix(style) {
-        if (vender === '') return style;
+var motion = new Motion();
 
-        style = style.charAt(0).toUpperCase() + style.substr(1);
-        return vender + style;
+//utils
+var util = {
+    getEl: function(id) {
+        return document.getElementById(id);
+    },
+    getElPos: function(el) {
+        return [parseInt(el.offsetLeft, 10), parseInt(el.offsetTop, 10)];
+    },
+    /*计算直角边*/
+    calculPy: function(l, w) {
+        return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
+    },
+    /*计算两点间距离*/
+    calculDis: function(pos1x, pos1y, pos2x, pos2y) {
+        return this.calculPy(pos1x - pos2x, pos1y - pos2y);
     }
+};
 
-    var dummyStyle = document.createElement('div').style;
-    var vender = (function() {
-        var vendors = 't,webkitT,MozT,msT,OT'.split(','),
-            t,
-            i = 0,
-            l = vendors.length;
+var container = document.body;
+var hammertime = new Hammer(container, { drag_max_touches: 0 });
+hammertime.on("touch", function(ev) {
+    dragCtrl.catchEvt(ev, true);
+});
+hammertime.on("drag", function(ev) {
+    dragCtrl.catchEvt(ev);
+});
+hammertime.on("touchend dragend", function(ev) {
+    if(ev.target == dragCtrl.typeDom[0]) {
+        dragCtrl.setType();
+    }
+    var touches = ev.gesture ? ev.gesture.touches : ev.touches;
+    ev.gesture && ev.gesture.preventDefault();
 
-        for (; i < l; i++) {
-            t = vendors[i] + 'ransform';
-            if (t in dummyStyle) {
-                return vendors[i].substr(0, vendors[i].length - 1);
-            }
+    for(var t = 0, len = touches.length; t < len; t++) {
+       target = touches[t].target;
+       if(target.className.indexOf("drag") < 0) {
+           return;
+       }
+      dragCtrl.resetPos();
+    }
+});
+
+var dragCtrl = {
+    init: function(options) {
+        this.container = container;
+        this.dragScope = util.getEl("drag-scope");
+        this.dragEl = util.getEl("drag");
+        this.fireEl = util.getEl("fire");
+        this.dragInitPos = [110, 100];
+        this.typeDom = $('#ctlType');
+        this.ctlType = "orientation";
+        this.dragScope = $('#drag-scope');
+        this.dragDom = $('#drag');
+
+        options = options || {};
+        this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
+        this.positionListener = options['positionListener'] || function() {
+            var moLeft = this.moLeft;
+            var moTop = this.moTop;
+            connect.send([moLeft, 0]);
+        };//位移监听回调
+    },
+    setType: function() {
+        if('orientation' == this.ctlType) {
+            this.ctlType = "handler";
+            this.typeDom.html('使用翻转');
+            motion.stop();
+            this.dragDom.show();
+            this.dragScope.show();
+        } else {
+            this.ctlType = "orientation";
+            this.typeDom.html('使用手柄');
+            motion.start();
+            this.dragDom.hide();
+            this.dragScope.hide();
+        }
+    },
+    resetPos: function() {
+        this.holding = false;
+        clearTimeout(this.positionEmitter);
+        this.setDragPos(this.dragInitPos[0], this.dragInitPos[1]);
+        this.initTouchOffsetX = 0;
+        this.initTouchOffsetY = 0;
+    },
+    move: function(toLeft, toTop) {
+        var moLeft = toLeft - this.initTouchX;
+
+        var initLeft = this.dragInitPos[0];
+        var initTop = this.dragInitPos[1];
+        var moTop = initTop;
+
+        if(moLeft < -100) {
+            moLeft = -100;
+        }
+        if(moLeft > 100) {
+            moLeft = 100;
         }
 
-        return false;
-    })();
-    var transformAttr = prefix('transform');
-    var transformOriginAttr = prefix('transformOrigin');
-    var transitionAttr = prefix('transition');
+        tarLeft = initLeft + moLeft;
+        tarTop = initTop;
 
-    //utils
-    var util = {
-        getEl: function(id) {
-            return document.getElementById(id);
-        },
-        getElPos: function(el) {
-            return [parseInt(el.offsetLeft, 10), parseInt(el.offsetTop, 10)];
-        },
-        /*计算直角边*/
-        calculPy: function(l, w) {
-            return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
-        },
-        /*计算两点间距离*/
-        calculDis: function(pos1x, pos1y, pos2x, pos2y) {
-            return this.calculPy(pos1x - pos2x, pos1y - pos2y);
-        }
-    };
+        this.moLeft = moLeft;
+        this.moTop = moTop;
+        this.setDragPos(tarLeft, tarTop);
+    },
+    setDragPos: function(tarLeft, tarTop) {
+        this.dragEl.style.left = tarLeft + "px";
+        this.dragEl.style.top = tarTop + "px";
+    },
+    catchEvt: function(ev, isTouch) {
+        var touches = ev.gesture.touches;
 
-    var container = document.body;
-    var hammertime = new Hammer(container, { drag_max_touches: 0 });
-    hammertime.on("touch", function(ev) {
-        dragCtrl.catchEvt(ev, true);
-    });
-    hammertime.on("drag", function(ev) {
-        dragCtrl.catchEvt(ev);
-    });
-    hammertime.on("touchend dragend", function(ev) {
-         var touches = ev.gesture.touches;
+        ev.gesture.preventDefault();
 
-         ev.gesture.preventDefault();
-
-         for(var t = 0, len = touches.length; t < len; t++) {
-             target = touches[t].target;
-             if(target.className.indexOf("drag") < 0) {
-                 return;
-             }
-            dragCtrl.resetPos();
-            connect.send('reset');
-         }
-    });
-
-    var dragCtrl = {
-        init: function(options) {
-            this.container = container;
-            this.dragScope = util.getEl("drag-scope");
-            this.dragEl = util.getEl("drag");
-            this.fireEl = util.getEl("fire");
-            this.scopePos = util.getElPos(this.dragScope);
-            this.dragInitPos = util.getElPos(this.dragEl);
-
-            options = options || {};
-            this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
-            this.positionListener = options['positionListener'] || function() {
-                var moLeft = this.moLeft;
-                var moTop = this.moTop;
-                console.log(moLeft);
-                if(moLeft >= 0) {
-                    var multi = Math.floor((moLeft + 4) / 8);
-                    connect.send([multi, 0]);
-                } else {
-                    var multi = Math.floor((Math.abs(moLeft) + 5) / 10);
-                    connect.send([-multi, 0]);
-                }
-            };//位移监听回调
-        },
-        resetPos: function() {
-            this.holding = false;
-            clearTimeout(this.positionEmitter);
-            this.setDragPos(this.dragInitPos[0], this.dragInitPos[1]);
-            this.initTouchOffsetX = 0;
-            this.initTouchOffsetY = 0;
-        },
-        move: function(toLeft, toTop) {
-            var moLeft = toLeft - this.initTouchX;
-
-            var initLeft = this.dragInitPos[0];
-            var initTop = this.dragInitPos[1];
-            var moTop = initTop;
-
-            var dis = util.calculPy(moLeft, moTop);
-
-            if(dis > 130) {
-                moLeft = moLeft * 130 / dis;
-            }
-
-            tarLeft = initLeft + moLeft;
-            tarTop = initTop;
-
-            this.moLeft = moLeft;
-            this.moTop = moTop;
-            this.setDragPos(tarLeft, tarTop);
-            connect.send([tarLeft, tarTop]);
-        },
-        setDragPos: function(tarLeft, tarTop) {
-            this.dragEl.style.left = tarLeft + "px";
-            this.dragEl.style.top = tarTop + "px";
-        },
-        catchEvt: function(ev, isTouch) {
-            var touches = ev.gesture.touches;
-
-            ev.gesture.preventDefault();
-
-            for(var t = 0, len = touches.length; t < len; t++) {
-                var touchEvt = touches[t];
-                var target = touchEvt.target;
-                if(target.className.indexOf("drag") < 0) {
-                    return;
-                }
-                var proxyX = touchEvt.pageX;
-                var proxyY = touchEvt.pageY;
-                if(isTouch) {
-                    this.initTouchX = proxyX;
-                    this.initTouchY = proxyY;
-                    this.holding = true;
-                    this.tickTack();
-                }
-                dragCtrl.move(proxyX, proxyY);
-            }
-        },
-        tickTack: function() {
-            var me = this;
-            if(!me.holding) {
+        for(var t = 0, len = touches.length; t < len; t++) {
+            var touchEvt = touches[t];
+            var target = touchEvt.target;
+            if(target.className.indexOf("drag") < 0) {
                 return;
             }
-            me.positionEmitter = setTimeout(function() {
-                me.positionListener.call(me);
-                me.tickTack.call(me);
-            }, me.positionEmitInter);
+            var proxyX = touchEvt.pageX;
+            var proxyY = touchEvt.pageY;
+            if(isTouch) {
+                this.initTouchX = proxyX;
+                this.initTouchY = proxyY;
+                this.holding = true;
+                this.tickTack();
+            }
+            dragCtrl.move(proxyX, proxyY);
         }
-    };
+    },
+    tickTack: function() {
+        var me = this;
+        if(!me.holding) {
+            return;
+        }
+        me.positionEmitter = setTimeout(function() {
+            me.positionListener.call(me);
+            me.tickTack.call(me);
+        }, me.positionEmitInter);
+    }
+};
 
-    dragCtrl.init();
+dragCtrl.init();
 })(window, document);
 </script>
 

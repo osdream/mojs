@@ -105,7 +105,7 @@ function getSwfObj(movieName) {
 function _log(s, dom) {
     var logDom = dom || infoDom;
     if(logDom.logL ) {
-        if(logDom.logL > 20) {
+        if(logDom.logL > 30) {
             logDom.logL = 0;
             logDom.html('');
         }
@@ -127,6 +127,7 @@ function makeQR(token) {
         var QRCode = tool.QRCode;
         $("body").append($('<div id="qr"></div>'));
         var qrcode = new QRCode('qr', {
+            //text: "http://ecma.bdimg.com/adtest/140520/fruits_mobile.html?muses_scepter=" + token,
             text: "http://dev046.baidu.com:8092/fruits_mobile.html?muses_scepter=" + token,
             width: 120,
             height: 120,
@@ -178,11 +179,19 @@ require(['muses/connect'], function(Connect) {
                         _log(actions);
                     } else if(actions instanceof Array) {
                         var msgArr = [];
+                        var xPos;
                         actions.forEach(function(item) {
                             msgArr.push(formatFloat(item, 0));
                         });
-                        _log('x: ' + msgArr[2] + ', y: ' + msgArr[1] + ', z: ' + msgArr[0], pDom);
-                        basket.goX(msgArr[2]/4);
+                        if(3 == msgArr.length) {
+                            _log('x: ' + msgArr[2] + ', y: ' + msgArr[1] + ', z: ' + msgArr[0], pDom);
+                            xPos = msgArr[2]/4;
+                        }
+                        if(2 == msgArr.length) {
+                            _log('x: ' + msgArr[0] + ', y: ' + msgArr[1], pDom);
+                            xPos = msgArr[0]/5;
+                        }
+                        basket.goX(xPos);
                     }
                 }
             });
