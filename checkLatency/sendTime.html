@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>Fruits Mobile</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+    <style type="text/css" media="screen">
+        html,body {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            font-size: 10px;
+            color: #333;
+        }
+        #controller {
+            position: relative;
+            background: #ddd;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        #info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-size: 12px;
+            padding: 2px;
+            height: 200px;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            overflow: hidden;
+        }
+        #send {
+            position: absolute;
+            top: 100px;
+            left: 80px;
+            width: 120px;
+            height: 34px;
+            line-height: 34px;
+            border: 1px solid #333;
+            text-align: center;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controller">
+        <div id="ball">
+
+        </div>
+        <div id="info">
+
+        </div>
+        <div id="send">发送</div>
+    </div>
+<script type="text/javascript" charset="utf-8">
+(function (window, document) {
+var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+var token = matches && matches.length >= 2 ? matches[1] : null;
+var sendDom = $('#send');
+var infoDom = $('#info');
+var controlDom= $('#controller');
+function _log(s, dom) {
+    var logDom = dom || infoDom;
+    if(logDom.logL ) {
+        if(logDom.logL > 20) {
+            logDom.logL = 0;
+            logDom.html('');
+        }
+    } else {
+        logDom.logL = 0;
+    }
+    logDom.logL++;
+    logDom.prepend("<br>");
+    logDom.prepend(s);
+}
+controlDom.append('<div>' + navigator.userAgent + '</div>');
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
+
+// 加载Connect模块
+require(['muses/connect'], function(Connect) {
+    window.connect = new Connect();
+    connect.connectWith(token)
+        .then(function() {
+            _log('[INFO] 连接成功，token: ' + token);
+            sendDom.click(function() {
+                connect.send('[mobile.sendTime: ' + new Date().getTime() + ']');
+            });
+        })
+        .then(function() {
+            connect.send('Game Start!')
+                .fail(function(err) {
+                    _log('[ERROR] 游戏启动失败，' + (err ? err : ''));
+                });
+
+            connect.onMessage = function(actions) {
+                var curTime = new Date().getTime();
+                var late = curTime - parseInt(/\[PC\.sendTime:\s(\d+)\]/g.exec(actions)[1]);
+                _log(actions + ', [mobile.getTime: ' + curTime + '], [latency:' + late + ']');
+            }
+        })
+        .fail(function(err) {
+            _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
+        });
+});
+})(window, document);
+</script>
+
+</body>
+</html>

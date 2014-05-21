@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-    <title>Fruits</title>
+    <title>Times</title>
     <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
     <style type="text/css" media="screen">
@@ -17,95 +17,42 @@
             padding: 0;
             margin: 0;
         }
-        #basket {
-            position: absolute;
-            top: 400px;
-            width: 20px;
-            height: 20px;
-            left: 0;
-            background: #eee;
-            border: 2px solid #bbb;
-            -webkit-border-radius: 20px;
-            border-radius: 20px;
-        }
-        #playground {
-            position: absolute;
-            right: 5px;
-            top: 220px;
-            height: 500px;
-            padding: 5px;
-            width: 300px;
-            font-size: 11px;
-            color: #666;
-            overflow: hidden;
-            background-color: #ddd;
-        }
         #info {
             position: absolute;
             top: 5px;
-            right: 5px;
-            width: 300px;
-            height: 200px;
-            background: #555;
+            left: 5px;
+            width: 1200px;
+            height: 800px;
+            background: #777;
             color: #eee;
             border: 1px solid #222;
             border-width: 0 1px 1px 0;
             padding: 5px;
-            font-size: 10px;
+            font-size: 14px;
+            overflow: hidden;
+            z-index: 1;
         }
         #qr {
             position: absolute;
             left: 15px;
             bottom: 20px;
-        }
-        #speedWrap {
-            position: absolute;
-            right: 5px;
-            top: 700px;
-            font-size: 10px;
-            color: #333;
-        }
-        #speedWrap input {
-            width: 50px;
+            z-index: 2;
+            padding: 20px;
+            background: #fff;
         }
     </style>
 </head>
 <body>
-    <object id="testFlashObj" width="538" height="335" type="application/x-shockwave-flash" data="http://ecma.bdimg.com/adtest/140520/basket.swf">
-        <param value="http://ecma.bdimg.com/adtest/140520/basket.swf" name="movie" />
-        <param value="always" name="allowScriptAccess" />
-        <param value="high" name="quality" />
-    </object>
-    <div id="playground">
-
-    </div>
     <div id="info">
-
-    </div>
-    <div id="speedWrap">
-        <label>移动速度：<span>5</span>(范围：1 - 20)</label>
-        <input id="speed" type="test" />
-        <button>生效</button>
-    </div>
-    <div id="basket">
 
     </div>
 <script type="text/javascript" charset="utf-8">
 (function (window, document) {
-var pDom = $('#playground');
 var infoDom = $('#info');
-var flash = getSwfObj('testFlashObj');
-function getSwfObj(movieName) {
-    if (navigator.appName.indexOf("Microsoft") != -1) {
-        return window[movieName] ;
-    }else{
-        return document[movieName] ;
-    }
-};
 function _log(s, dom) {
     var logDom = dom || infoDom;
     if(logDom.logL ) {
-        if(logDom.logL > 30) {
+        if(logDom.logL > 80) {
             logDom.logL = 0;
             logDom.html('');
         }
@@ -127,8 +74,7 @@ function makeQR(token) {
         var QRCode = tool.QRCode;
         $("body").append($('<div id="qr"></div>'));
         var qrcode = new QRCode('qr', {
-            //text: "http://ecma.bdimg.com/adtest/140520/fruits_mobile2.html?muses_scepter=" + token,
-            text: "http://dev046.baidu.com:8092/fruits_mobile.html?muses_scepter=" + token,
+            text: "http://dev046.baidu.com:8092/checkLatency/sendTime.html?muses_scepter=" + token,
             width: 120,
             height: 120,
             colorDark: '#000000',
@@ -176,7 +122,10 @@ require(['muses/connect'], function(Connect) {
 
                 connect.onMessage = function(actions) {
                     if('string' == typeof actions) {
-                        _log(actions + ', time: ' + new Date().getTime());
+                        var curTime = new Date().getTime();
+                        var late = curTime - parseInt(/\[mobile\.sendTime:\s(\d+)\]/g.exec(actions)[1]);
+                        _log(actions + ', [PC.getTime: ' + curTime + '], [latency:' + late + ']');
+                        connect.send('[PC.sendTime: ' + curTime + ']');
                     } else if(actions instanceof Array) {
                         var msgArr = [];
                         var xPos;
@@ -198,49 +147,7 @@ require(['muses/connect'], function(Connect) {
     }
 });
 
-function Bascket(basSel) {
-    this.basket = $(basSel);
-    this.speedSel = $('#speed');
-    this.speedTip = $('#speedWrap span');
-    this.curSpeed = 5;
-    this.maxX = 500;
-    this.curLeft = this.basket.position()['left'];
-    this.interVal = null;
-    this.interTime = 100;
-}
-Bascket.prototype.start = function() {
-    var self = this;
-    $('#speedWrap button').click(function() {
-        self.curSpeed = self.speedSel.val();
-        self.speedTip.html(self.curSpeed);
-    });
-}
-Bascket.prototype.goX = function(dis, isInter) {
-    if(!isInter) {
-        clearTimeout(this.interVal);
-    }
-    var fdis = dis * this.curSpeed;
-    var toX = this.curLeft + fdis;
-    if(toX < 0) {
-        toX = 0;
-    }
-    if(toX > this.maxX) {
-        toX = this.maxX;
-    }
-    this.curLeft = toX;
-    this.basket.css('left', toX + 'px');
-    flash.callFlashmcrun(toX);
-    var self = this;
-    this.interVal = setTimeout(function() {
-        console.log(dis);
-        if(dis > -3 && dis < 3) {dis = 0};
-        self.goX(dis, true);
-    }, this.interTime);
-}
-var basket = new Bascket('#basket');
-basket.start();
 })(window, document);
 </script>
 </body>
 </html>
-

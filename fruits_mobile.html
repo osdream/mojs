@@ -186,7 +186,7 @@ Motion.prototype.reset = function() {
 
 Motion.prototype.start = function() {
     if(!this.hasDeviceOrientation) {
-        _log('[FAIL] 你的手机不支持与电脑的互动。');
+        _log('[FAIL] 你的手机不支持通过手机翻转与电脑的互动。');
         return;
     }
     this.reset();
@@ -243,6 +243,17 @@ Motion.prototype.deviceorientation = function(e) {
         var a = isFirefox ? -e.alpha : e.alpha;
         var b = isFirefox ? -e.beta  : e.beta;
         var g = isFirefox ? -e.gamma : e.gamma;
+        var deltaZ = 0;
+        if (this.lastZ === null) {
+            this.lastZ = g;
+            return;
+        }
+
+        deltaZ = Math.abs(this.lastZ - g);
+        this.lastZ = g;
+        if(deltaZ < 5) {
+            return;
+        }
         connect.send([a, b, g]);
         theBall.moveLeft(g / 4);
         theBall.moveTop(b / 4);
@@ -341,12 +352,21 @@ var dragCtrl = {
         this.ctlType = "orientation";
         this.dragScope = $('#drag-scope');
         this.dragDom = $('#drag');
+        this.lastLeft = null;
 
         options = options || {};
         this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
         this.positionListener = options['positionListener'] || function() {
             var moLeft = this.moLeft;
             var moTop = this.moTop;
+            if(!this.lastLeft) {
+                this.lastLeft = moLeft;
+            }
+            var deltaLeft = Math.abs(moLeft - this.lastLeft);
+            if(deltaLeft <= 5) {
+                return;
+            }
+            this.lastLeft = moLeft;
             connect.send([moLeft, 0]);
         };//位移监听回调
     },
@@ -368,6 +388,7 @@ var dragCtrl = {
     resetPos: function() {
         this.holding = false;
         clearTimeout(this.positionEmitter);
+        connect.send([0, 0]);
         this.setDragPos(this.dragInitPos[0], this.dragInitPos[1]);
         this.initTouchOffsetX = 0;
         this.initTouchOffsetY = 0;
