@@ -68,6 +68,17 @@
         #speedWrap input {
             width: 50px;
         }
+        #latencyTime {
+            position: absolute;
+            right: 5px;
+            top: 750px;
+            font-size: 18px;
+            line-height: 28px;
+            color: #0aa;
+            width: 300px;
+            padding: 0 5px;
+            background-color: #eee;
+        }
     </style>
 </head>
 <body>
@@ -90,10 +101,14 @@
     <div id="basket">
 
     </div>
+    <div id="latencyTime">
+
+    </div>
 <script type="text/javascript" charset="utf-8">
 (function (window, document) {
 var pDom = $('#playground');
 var infoDom = $('#info');
+var latencyDom = $('#latencyTime');
 var flash = getSwfObj('testFlashObj');
 function getSwfObj(movieName) {
     if (navigator.appName.indexOf("Microsoft") != -1) {
@@ -145,6 +160,8 @@ function formatFloat(src, pos) {
 // 加载Connect模块
 require(['muses/connect'], function(Connect) {
     window.connect = new Connect();
+    var lastLatencyTime = null;
+    var lastGetLatency = null;
     connect.onTokenExpired = function() {
         _log('Expired~');
         connect.destroy()
@@ -169,29 +186,42 @@ require(['muses/connect'], function(Connect) {
                 _log('[INFO] 连接成功，token: ' + token);
             })
             .then(function() {
-                connect.send('Game Start!')
+                connect.send(['msg', 'Game Start!'])
                     .fail(function(err) {
                         _log('[ERROR] 游戏启动失败，' + (err ? err : ''));
                     });
 
                 connect.onMessage = function(actions) {
+                    var msgTime = new Date().getTime();
                     if('string' == typeof actions) {
-                        _log(actions + ', time: ' + new Date().getTime());
+                        _log(actions + ', get time: ' + msgTime);
                     } else if(actions instanceof Array) {
-                        var msgArr = [];
-                        var xPos;
-                        actions.forEach(function(item) {
-                            msgArr.push(formatFloat(item, 0));
-                        });
-                        if(3 == msgArr.length) {
-                            _log('x: ' + msgArr[2] + ', y: ' + msgArr[1] + ', z: ' + msgArr[0], pDom);
-                            xPos = msgArr[2]/4;
+                        var connId = actions[0];
+                        if(!lastGetLatency || msgTime - lastGetLatency > 3000) {//3秒测一次延迟
+                            connect.send(['late', connId]);
+                            lastGetLatency = msgTime;
                         }
-                        if(2 == msgArr.length) {
-                            _log('x: ' + msgArr[0] + ', y: ' + msgArr[1], pDom);
-                            xPos = msgArr[0]/5;
+                        var sendTime = actions[1];
+                        var type = actions[2]
+                        var dataArr = actions[3];
+                        var latencyTime = actions[4];
+                        switch(type) {
+                            case 'msg':
+                                _log('Message: ' + dataArr + ', get time: ' + msgTime);
+                                break;
+                            case 'ori':
+                                _log('DeviceOrientation: x: ' + dataArr[2] + ', y: ' + dataArr[1] + ', z: ' + dataArr[0], pDom);
+                                basket.goX(dataArr[2]/4);
+                                break;
+                            case 'han':
+                                _log('HandlerPos: x: ' + dataArr[0] + ', y: ' + dataArr[1], pDom);
+                                basket.goX(dataArr[0]/5);
+                                break;
+
                         }
-                        basket.goX(xPos);
+                        if(!!latencyTime && latencyDom != lastLatencyTime) {
+                            latencyDom.html('网络延迟：<b>' + latencyTime + '</b>毫秒');
+                        }
                     }
                 }
             });
