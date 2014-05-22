@@ -1,4 +1,4 @@
-<!DOCTYPE html5>
+<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -114,15 +114,9 @@
 </script>
 <script type="text/javascript" charset="utf-8">
 (function (window, document) {
-var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
-var token = matches && matches.length >= 2 ? matches[1] : null;
-var controlDom = $('#controller');
-var infoDom = $('#info');
-//firefox的角度偏转是反的
-var isFirefox = /firefox/i.test(navigator.userAgent);
 function _log(s, dom) {
-    var logDom = dom || infoDom;
-    if(logDom.logL ) {
+    var logDom = dom || $('#info');
+    if(logDom.logL) {
         if(logDom.logL > 20) {
             logDom.logL = 0;
             logDom.html('');
@@ -134,7 +128,9 @@ function _log(s, dom) {
     logDom.prepend("<br>");
     logDom.prepend(s);
 }
-controlDom.append('<div>' + navigator.userAgent + '</div>');
+//firefox的角度偏转是反的
+var isFirefox = /firefox/i.test(navigator.userAgent);
+$('#controller').append('<div>' + navigator.userAgent + '</div>');
 
 require.config({
     paths: {
@@ -144,7 +140,9 @@ require.config({
 
 // 加载Connect模块
 require(['muses/connect'], function(Connect) {
-    window.connect = new Connect();
+    var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+    var token = matches && matches.length >= 2 ? matches[1] : null;
+    var connect = new Connect();
     conn.init(connect);
     connect.connectWith(token)
         .then(function() {
@@ -288,7 +286,8 @@ Motion.prototype.deviceorientation = function(e) {
         }
 
         deltaZ = Math.abs(this.lastZ - g);
-        if(deltaZ < 5) {
+        //+(conn.connId > 1) for send latencyTime to PC ASAP
+        if(deltaZ < 5 && conn.connId > 1) {
             return;
         }
         this.lastZ = g;
@@ -359,7 +358,8 @@ var dragCtrl = {
                 this.lastLeft = moLeft;
             }
             var deltaLeft = Math.abs(moLeft - this.lastLeft);
-            if(deltaLeft <= 5) {
+            //+(conn.connId > 1) for send latencyTime to PC ASAP
+            if(deltaLeft <= 5 && conn.connId > 1) {
                 return;
             }
             this.lastLeft =Math.round(moLeft);
