@@ -45,7 +45,7 @@
             width: 100%;
             background-color: #333;
             color: #fff;
-            opacity: 0.2;
+            opacity: 0.8;
             overflow: hidden;
         }
         .drag-scope {
@@ -200,8 +200,7 @@ connectHandler.prototype.get= function(data) {
 
 function Motion() {
     this.hasDeviceMotion = 'ondevicemotion' in window;
-    //this.hasDeviceOrientation = 'ondeviceorientation' in window;
-    this.hasDeviceOrientation = false;
+    this.hasDeviceOrientation = 'ondeviceorientation' in window;
 
     this.threshold = 0.5;
     this.timeInterval = 100;
@@ -366,7 +365,7 @@ var dragCtrl = {
             this.lastLeft =Math.round(moLeft);
             conn.send('han', [moLeft, 0]);
         };//位移监听回调
-        this.ctlType.click(function() {
+        this.typeDom.click(function() {
             dragCtrl.setType();
         });
     },
@@ -407,15 +406,15 @@ var dragCtrl = {
             this.ctlType = 'handler';
         }
         if('orientation' == this.ctlType) {
+            if(!this.hammerInited) {
+                this.initHammer();
+            }
             this.ctlType = "handler";
             this.typeDom.html('使用翻转');
             motion.stop();
             this.dragDom.show();
             this.dragScope.show();
         } else {
-            if(!this.hammerInited) {
-                this.initHammer();
-            }
             this.ctlType = "orientation";
             this.typeDom.html('使用手柄');
             motion.start();
