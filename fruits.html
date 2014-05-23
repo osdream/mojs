@@ -142,7 +142,7 @@ function makeQR(token) {
         var QRCode = tool.QRCode;
         $("body").append($('<div id="qr"></div>'));
         var qrcode = new QRCode('qr', {
-            //text: "http://ecma.bdimg.com/adtest/140522/fruits_mobile4.html?muses_scepter=" + token,
+            //text: "http://ecma.bdimg.com/adtest/140523/fruits_mobile2.html?muses_scepter=" + token,
             text: "http://dev046.baidu.com:8092/fruits_mobile.html?muses_scepter=" + token,
             //text: "http://192.168.10.102:8001/fruits_mobile.html?muses_scepter=" + token,
             width: 120,
@@ -261,10 +261,13 @@ Bascket.prototype.goX = function(dis, isInter) {
     this.curLeft = toX;
     this.basket.css('left', toX + 'px');
     flash.callFlashmcrun(toX);
+    if(0 === toX || this.maxX === toX) {
+       return;
+    }
     var self = this;
     this.interVal = setTimeout(function() {
         console.log(dis);
-        if(dis > -3 && dis < 3) {dis = 0};
+        if(dis > -3 && dis < 3) {return;};
         self.goX(dis, true);
     }, this.interTime);
 }

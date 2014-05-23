@@ -365,7 +365,11 @@ var dragCtrl = {
             this.lastLeft =Math.round(moLeft);
             conn.send('han', [moLeft, 0]);
         };//位移监听回调
+        var self = this;
         this.typeDom.click(function() {
+            if(self.hammerInited) {
+                return;
+            }
             dragCtrl.setType();
         });
     },
