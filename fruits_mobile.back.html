@@ -6,7 +6,6 @@
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
     <title>Centrum Fruits</title>
     <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
-    <script src="http://ecma.bdimg.com/public01/js/jquery.imgpreload.min.js"></script>
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
     <style type="text/css" media="screen">
         html,body {
@@ -23,45 +22,33 @@
             height: 100%;
             overflow: hidden;
         }
-        #frame1 {
-            display: none;
+        #ball {
             position: absolute;
-            top: 50px;
-            left: 0;
-            width: 100%;
-            background: #fff;
-            text-align: center;
-        }
-        #startGame{
-            display: block;
-            width: 200px;
-            height: 50px;
-            line-height: 50px;
-            font-size: 20px;
-            background: #ccc;
-            margin: 0 auto;
-        }
-        #frame2 {
             display: none;
+            width: 20px;
+            height: 20px;
+    -webkit-border-radius: 12px;
+       -moz-border-radius: 12px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            background-color: #999;
+            left: 0;
+            top: 100px;
+        }
+        #info {
             position: absolute;
+            bottom: 0;
             left: 0;
-            right: 0;
+            font-size: 10px;
+            padding: 2px;
+            height: 140px;
             width: 100%;
-            height: 100%;
+            background-color: #333;
+            color: #fff;
+            opacity: 0.8;
+            overflow: hidden;
         }
-        #orientWrap {
-            display: none;
-            padding: 50px 10px 0;
-            background-color: #eee;
-        }
-        #dragWrap {
-            display: none;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-        }
-        #dragScope {
+        .drag-scope {
             position: absolute;
             display: none;
             left: 10px;
@@ -79,7 +66,8 @@
                   box-shadow: 0 0 5px #555 inset;
             border: 1px solid #444;
         }
-        #drag {
+
+        .drag {
             position: absolute;
             display: none;
             top: 100px;
@@ -106,45 +94,22 @@
             height: 30px;
             line-height: 30px;
         }
-        #info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            font-size: 10px;
-            padding: 2px;
-            height: 140px;
-            width: 100%;
-            background-color: #333;
-            color: #fff;
-            opacity: 0.8;
-            overflow: hidden;
-        }
     </style>
 </head>
 <body>
     <div id="controller">
-        <div id="frame1">
-            已经连接成功了，点击开始游戏。
-            <span id="startGame">
-                Start
-            </span>
-        </div>
-        <div id="frame2">
-            <div id="orientWrap">
-                我是orientation用的图片
-            </div>
-            <div id="dragWrap">
-                <div id="dragScope"></div>
-                <div id="drag">手柄</div>
-            </div>
-            <button id="ctlType">使用手柄</button>
+        <div id="ball">
+
         </div>
         <div id="info">
 
         </div>
+        <div id="drag-scope" class="drag-scope"></div>
+        <div id="drag" class="drag">手柄</div>
         <!--for ios test-->
         <!--<audio src="separation.mp3" onended="this.play();" controls="controls" autobuffer autoplay="true"></audio>-->
     </div>
+    <button id="ctlType">使用手柄</button>
 <script type="text/javascript" src="http://ecma.bdimg.com/adtest/140520/js/hammer.js">
 </script>
 <script type="text/javascript" charset="utf-8">
@@ -166,81 +131,40 @@ function _log(s, dom) {
 
 //firefox的角度偏转是反的
 var isFirefox = /firefox/i.test(navigator.userAgent);
-var pageCtl = {
-  ctlDom: $('#controller'),
-  frame1: $('#frame1'),
-  frame2: $('#frame2'),
-  frame3: $('#frame3'),
-  oriWrap: $('#orientWrap'),
-  dragWrap: $('#dragWrap'),
-  preImages: ['http://www.baidu.com/img/baidu_sylogo1.gif'],
-  init: function() {
-    //test
-    this.ctlDom.append('<div>' + navigator.userAgent + '</div>');
+$('#controller').append('<div>' + navigator.userAgent + '</div>');
 
-    //预加载图片
-    $.imgpreload(this.preImages, {
-      all: function() {
-          conn.prepare();
-      }
-    });
-  },
-  start: function() {
-    this.frame1.show();
-    this.frame1.click(function() {
-      var isOri = orientation.start();
-      conn.send('msg', 'start');
-      pageCtl.frame1.hide();
-      pageCtl.frame2.show();
-      pageCtl.control(isOri);
-    });
-  },
-  control: function(isOri) {
-      if(isOri) {
-          this.oriWrap.show();
-          this.dragWrap.hide();
-      } else {
-          this.oriWrap.hide();
-          this.dragWrap.show();
-      }
-  },
-  finish: function() {
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
 
-  }
-};
+// 加载Connect模块
+require(['muses/connect'], function(Connect) {
+    var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+    var token = matches && matches.length >= 2 ? matches[1] : null;
+    var connect = new Connect();
+    conn.init(connect);
+    connect.connectWith(token)
+        .then(function() {
+            _log('[INFO] 连接成功，token: ' + token);
+            motion.start();
+            conn.send('msg', ['Game Start!']);
 
+            connect.onMessage = function(actions) {
+                conn.get(actions);
+            }
 
+        })
+        .fail(function(err) {
+            _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
+        });
+});
 var connectHandler = function() {
     this.connCache = {};
     this.connId = 0;
     this.lastLateConnId = -1;
     this.latencyTime = null;
-};
-connectHandler.prototype.prepare = function() {
-    require.config({
-        paths: {
-            'muses': 'http://ecma.bdimg.com/lego-mat/muses'
-        }
-    });
-    // 加载Connect模块
-    require(['muses/connect'], function(Connect) {
-        var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
-        var token = matches && matches.length >= 2 ? matches[1] : null;
-        var connect = new Connect();
-        conn.init(connect);
-        connect.connectWith(token)
-            .then(function() {
-                _log('[INFO] 连接成功，token: ' + token);
-                conn.send('msg', 'open');
-                pageCtl.start();
-                connect.onMessage = function(actions) {
-                    conn.get(actions);
-                }
-            })
-            .fail(function(err) {
-                _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
-            });
-    });
 };
 connectHandler.prototype.init = function(connect) {
     this.connect = connect;
@@ -273,7 +197,8 @@ connectHandler.prototype.get= function(data) {
     }
 }
 
-function Orientation() {
+function Motion() {
+    this.hasDeviceMotion = 'ondevicemotion' in window;
     this.hasDeviceOrientation = 'ondeviceorientation' in window;
 
     this.threshold = 0.5;
@@ -287,7 +212,7 @@ function Orientation() {
     this.lastZ = null;
 }
 
-Orientation.prototype.reset = function() {
+Motion.prototype.reset = function() {
     this.lastTime = new Date();
 
     this.lastX = null;
@@ -295,27 +220,59 @@ Orientation.prototype.reset = function() {
     this.lastZ = null;
 }
 
-/**
- * 开始手机翻转互动
- * @return {boolean} true: 支持并使用手机翻转, false: 不支持手机翻转
- */
-Orientation.prototype.start = function() {
+Motion.prototype.start = function() {
     if(!this.hasDeviceOrientation) {
         _log('[INFO] 你的手机不支持通过手机翻转与电脑的互动，将使用控制杆操作。');
         dragCtrl.setType('handler');
-        return false;
+        return;
     }
     this.reset();
+    theBall.ball.show();
     window.addEventListener('deviceorientation', this, false);
-    return true;
+    //if (this.hasDeviceMotion) { window.addEventListener('devicemotion', this, false); }
 };
 
-Orientation.prototype.stop = function () {
+Motion.prototype.stop = function () {
     if (this.hasDeviceOrientation) { window.removeEventListener('deviceorientation', this, false); }
+    //if (this.hasDeviceMotion) { window.removeEventListener('devicemotion', this, false); }
     this.reset();
+    theBall.ball.hide();
 };
 
-Orientation.prototype.deviceorientation = function(e) {
+//暂不用devicemotion
+Motion.prototype.devicemotion = function(e) {
+    var current = e.accelerationIncludingGravity;
+    var currentTime;
+    var timeDifference;
+    var deltaX = 0;
+    var deltaY = 0;
+    var deltaZ = 0;
+    if ((this.lastX === null) && (this.lastY === null) && (this.lastZ === null)) {
+        this.lastX = Math.round(current.x);
+        this.lastY = Math.round(current.y);
+        this.lastZ = Math.round(current.z);
+        return;
+    }
+
+    deltaX = Math.abs(this.lastX - current.x);
+    deltaY = Math.abs(this.lastY - current.y);
+    deltaZ = Math.abs(this.lastZ - current.z);
+
+    if ( (deltaX > this.threshold) || (deltaY > this.threshold) || (deltaZ > this.threshold) ) {
+        currentTime = new Date();
+        timeDifference = currentTime.getTime() - this.lastTime.getTime();
+
+        if (timeDifference > this.timeInterval) {
+            this.lastTime = new Date();
+            conn.send('mot', [this.lastX, this.lastY, this.lastZ]);
+        }
+    }
+
+    this.lastX = Math.round(current.x);
+    this.lastY = Math.round(current.y);
+    this.lastZ = Math.round(current.z);
+};
+Motion.prototype.deviceorientation = function(e) {
     var currentTime = new Date();
     timeDifference = currentTime.getTime() - this.lastOrientationTime.getTime();
     if(timeDifference > this.timeInterval) {
@@ -336,27 +293,60 @@ Orientation.prototype.deviceorientation = function(e) {
         }
         this.lastZ = g;
         conn.send('ori', [a, b, g]);
+        theBall.moveLeft(g / 4);
+        theBall.moveTop(b / 4);
     }
 };
 
-Orientation.prototype.handleEvent = function(e) {
+Motion.prototype.handleEvent = function(e) {
     if ('function' === typeof (this[e.type])) {
         return this[e.type](e);
     }
 };
 
+function Ball(cont, ball) {
+    this.cont = $(cont);
+    this.ball = $(ball);
+    this.contW = this.cont.width();
+    this.contH = this.cont.height();
+    this.ballX = this.ball.position()['left'];
+    this.ballY = this.ball.position()['top'];
+    this.ballW = this.ball.width();
+    this.ballH = this.ball.height();
+    this.maxX = this.contW - this.ballW;
+    this.maxY = this.contH - this.ballH - 150;
+}
+
+Ball.prototype.moveLeft = function(dis) {
+    var toL = this.ballX + dis;
+    toL = toL < 0 ? 0 : toL;
+    toL = toL > this.maxX ? this.maxX : toL;
+    //_log('toX:' + toL);
+    this.ballX = toL;
+    this.ball.css('left', toL + 'px');
+};
+
+Ball.prototype.moveTop = function(dis) {
+    var toT = this.ballY + dis;
+    toT = toT < 0 ? 0 : toT;
+    toT = toT > this.maxY ? this.maxY : toT;
+    //_log('toY:' + toT);
+    this.ballY = toT;
+    this.ball.css('top', toT + 'px');
+};
 var conn = new connectHandler();
-var orientation = new Orientation();
-pageCtl.init();
+var theBall = new Ball('#controller', '#ball');
+var motion = new Motion();
+
 
 var dragCtrl = {
     init: function(options) {
         this.hammerInited = false;
-        this.dragScope = $("#dragScope");
+        this.dragScope = $("#drag-scope");
         this.dragInitPos = [110, 100];
         this.typeDom = $('#ctlType');
         this.ctlType = "orientation";
-        this.dragScope = $('#dragScope');
+        this.dragScope = $('#drag-scope');
         this.dragDom = $('#drag');
         this.lastLeft = null;
 
@@ -420,20 +410,22 @@ var dragCtrl = {
         if(type && 'orientation' === type) {
             this.ctlType = 'handler';
         }
-        var isOri = ('orientation' == this.ctlType);
-        if(isOri) {
+        if('orientation' == this.ctlType) {
             if(!this.hammerInited) {
                 this.initHammer();
             }
             this.ctlType = "handler";
             this.typeDom.html('使用翻转');
-            orientation.stop();
+            motion.stop();
+            this.dragDom.show();
+            this.dragScope.show();
         } else {
             this.ctlType = "orientation";
             this.typeDom.html('使用手柄');
-            orientation.start();
+            motion.start();
+            this.dragDom.hide();
+            this.dragScope.hide();
         }
-        pageCtl.control(isOri);
     },
     resetPos: function() {
         this.holding = false;
@@ -508,4 +500,3 @@ dragCtrl.init();
 
 </body>
 </html>
-
