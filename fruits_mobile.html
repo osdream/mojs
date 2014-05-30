@@ -9,135 +9,201 @@
     <script src="http://ecma.bdimg.com/public01/js/jquery.imgpreload.min.js"></script>
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
     <style type="text/css" media="screen">
+        * {
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        }
         html,body {
             padding: 0;
             margin: 0;
             height: 100%;
+        }
+        body {
             font-size: 10px;
             color: #333;
+            background: url(http://bs.baidu.com/adtest/centrum140528bg.jpg);
         }
         #controller {
             position: relative;
-            background: #ddd;
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 14px;
+            width: 58px;
+            height: 51px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528logo.png) 0 0 no-repeat;
+        }
+        .bg-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 102px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528topc.png) 50% 10px no-repeat;
+        }
+        .bg-bottom {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 265px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528bottomc.png) 50% 0 no-repeat;
+        }
         #frame1 {
             display: none;
             position: absolute;
-            top: 50px;
+            bottom: 10px;
             left: 0;
             width: 100%;
-            background: #fff;
+            height: 319px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528start.png) 50% 0 no-repeat;
             text-align: center;
         }
         #startGame{
-            display: block;
-            width: 200px;
-            height: 50px;
-            line-height: 50px;
-            font-size: 20px;
-            background: #ccc;
-            margin: 0 auto;
+            position: absolute;
+            width: 132px;
+            height: 133px;
+            margin-left: -64px;
+            left: 50%;
+            top: 144px;
         }
         #frame2 {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528oritip.png) 50% 58px no-repeat;
+        }
+        #orientWrap {
+            display: none;
+            position: absolute;
+            width: 100%;
+            left: 0;
+            bottom: 12px;
+            height: 58px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528oribtn.png) 50% 0 no-repeat;
+        }
+        #dragWrap {
+            display: none;
+            position: absolute;
+            left: 0;
+            bottom: 12px;
+            width: 100%;
+            height: 100%;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528hanbtn.png) 50% bottom no-repeat;
+        }
+        #drag {
+            position: absolute;
+            top: 163px;
+            left: 50%;
+            margin-left: -33px;
+            width: 66px;
+            height: 66px;
+            z-index: 2;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528handler.png) no-repeat;
+        }
+        #frame2Score1, #frame2Score2 {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            margin-left: 18px;
+            width: 27px;
+            height: 26px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528num.png) 0 26px no-repeat;
+        }
+        #frame2Score2 {
+            margin-left: 45px;
+        }
+        #ctlType {
+            position: absolute;
+            left: 50%;
+            bottom: 37px;
+            width: 113px;
+            height: 33px;
+            margin-left: -57px;
+        }
+        #frame3 {
             display: none;
             position: absolute;
             left: 0;
             right: 0;
             width: 100%;
             height: 100%;
+            padding: 10px;
+            font-size: 20px;
+            background-color: #fefefe;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528endbgtop.png) 50% top no-repeat;
         }
-        #orientWrap {
-            display: none;
-            padding: 50px 10px 0;
-            background-color: #eee;
-        }
-        #dragWrap {
-            display: none;
+        #scoreType {
             position: absolute;
+            top: 40px;
             left: 0;
-            top: 0;
             width: 100%;
+            height: 142px;
+            background-position: 50% 0;
+            background-repeat: no-repeat;
         }
-        #dragScope {
+        #frame3Num {
             position: absolute;
-            display: none;
-            left: 10px;
-            top: 120px;
-            z-index: 1;
-            width: 300px;
-            height: 60px;
-            -webkit-border-radius: 80px;
-               -moz-border-radius: 80px;
-                    border-radius: 80px;
-
-            background-color: #888;
-          -webkit-box-shadow: 0 0 5px #555 inset;
-             -moz-box-shadow: 0 0 5px #555 inset;
-                  box-shadow: 0 0 5px #555 inset;
-            border: 1px solid #444;
+            top: 72px;
+            left: 50%;
+            margin-left: -30px;
+            color: #ea5404;
+            font: bold 38px/38px Verdana,arial,sans-serif;
         }
-        #drag {
+        #frame3 .tipbottom {
+            width: 100%;
             position: absolute;
-            display: none;
-            top: 100px;
-            -webkit-border-radius: 50px;
-               -moz-border-radius: 50px;
-                    border-radius: 50px;
-            width: 100px;
-            height: 100px;
-            line-height: 100px;
-            text-align: center;
-            z-index: 2;
-            background: #42d692;
-            left: 110px;
-          -webkit-box-shadow: 0 0 5px #555;
-             -moz-box-shadow: 0 0 5px #555;
-                  box-shadow: 0 0 5px #555;
-            border: 1px solid #555;
-        }
-        #ctlType {
-            position: absolute;
-            right: 10px;
-            bottom: 10px;
-            width: 100px;
-            height: 30px;
-            line-height: 30px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 191px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528endbgbottom.png) 50% 5px no-repeat;
         }
         #info {
             position: absolute;
             bottom: 0;
             left: 0;
-            font-size: 10px;
+            font-size: 8px;
             padding: 2px;
             height: 140px;
-            width: 100%;
+            width: 40%;
             background-color: #333;
             color: #fff;
-            opacity: 0.8;
+            opacity: 0.4;
             overflow: hidden;
         }
     </style>
 </head>
 <body>
     <div id="controller">
+        <div class="logo"></div>
+        <div class="bg-top"></div>
+        <div class="bg-bottom"></div>
         <div id="frame1">
-            已经连接成功了，点击开始游戏。
-            <span id="startGame">
-                Start
-            </span>
+            <span id="startGame"></span>
         </div>
         <div id="frame2">
-            <div id="orientWrap">
-                我是orientation用的图片
-            </div>
+            <div id="orientWrap"></div>
             <div id="dragWrap">
-                <div id="dragScope"></div>
-                <div id="drag">手柄</div>
+                <div id="drag" class="drag"></div>
             </div>
-            <button id="ctlType">使用手柄</button>
+            <span id="frame2Score1"></span>
+            <span id="frame2Score2"></span>
+            <span id="ctlType"></span>
+        </div>
+        <div id="frame3">
+            <div id="scoreType"></div>
+            <span id="frame3Num"></span>
+            <div class="tipbottom"></div>
         </div>
         <div id="info">
 
@@ -166,50 +232,82 @@ function _log(s, dom) {
 
 //firefox的角度偏转是反的
 var isFirefox = /firefox/i.test(navigator.userAgent);
+//页面控制
 var pageCtl = {
-  ctlDom: $('#controller'),
-  frame1: $('#frame1'),
-  frame2: $('#frame2'),
-  frame3: $('#frame3'),
-  oriWrap: $('#orientWrap'),
-  dragWrap: $('#dragWrap'),
-  preImages: ['http://www.baidu.com/img/baidu_sylogo1.gif'],
-  init: function() {
-    //test
-    this.ctlDom.append('<div>' + navigator.userAgent + '</div>');
-
-    //预加载图片
-    $.imgpreload(this.preImages, {
-      all: function() {
-          conn.prepare();
-      }
-    });
-  },
-  start: function() {
-    this.frame1.show();
-    this.frame1.click(function() {
-      var isOri = orientation.start();
-      conn.send('msg', 'start');
-      pageCtl.frame1.hide();
-      pageCtl.frame2.show();
-      pageCtl.control(isOri);
-    });
-  },
-  control: function(isOri) {
-      if(isOri) {
-          this.oriWrap.show();
-          this.dragWrap.hide();
-      } else {
-          this.oriWrap.hide();
-          this.dragWrap.show();
-      }
-  },
-  finish: function() {
-
-  }
+    ctlDom: $('#controller'),
+    frame1: $('#frame1'),
+    startBtn: $('#startGame'),
+    frame2: $('#frame2'),
+    oriWrap: $('#orientWrap'),
+    dragWrap: $('#dragWrap'),
+    score1: $('#frame2Score1'),
+    score2: $('#frame2Score2'),
+    frame3: $('#frame3'),
+    scoreType: $('#scoreType'),
+    frame3Num: $('#frame3Num'),
+    preImages: ['http://bs.baidu.com/adtest/centrum140528bg.jpg', 'http://ecma.bdimg.com/adtest/centrum140528topc.png',
+      'http://ecma.bdimg.com/adtest/centrum140528topm.png', 'http://ecma.bdimg.com/adtest/centrum140528bottomm.png',
+      'http://ecma.bdimg.com/adtest/centrum140528bottomc.png', 'http://ecma.bdimg.com/adtest/centrum140528start.png',
+      'http://ecma.bdimg.com/adtest/centrum140528num.png', 'http://ecma.bdimg.com/adtest/centrum140528oritip.png',
+      'http://ecma.bdimg.com/adtest/centrum140528oribtn.png', 'http://ecma.bdimg.com/adtest/centrum140528hantip.png',
+      'http://ecma.bdimg.com/adtest/centrum140528hanbtn.png', 'http://ecma.bdimg.com/adtest/centrum140528handler.png',
+      'http://ecma.bdimg.com/adtest/centrum140528endbgtop.png', 'http://ecma.bdimg.com/adtest/centrum140528endbgtop.png',
+      'http://ecma.bdimg.com/adtest/centrum140528endtype1.png', 'http://ecma.bdimg.com/adtest/centrum140528endtype2.png',
+      'http://ecma.bdimg.com/adtest/centrum140528endtype3.png'],
+    init: function() {
+        //预加载图片
+        $.imgpreload(this.preImages, {
+            all: function() {
+                conn.prepare();
+            }
+        });
+    },
+    start: function() {
+        this.frame1.show();
+        this.startBtn.click(function() {
+            var isOri = orientation.start();
+            conn.send('msg', 'start');
+            pageCtl.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
+            pageCtl.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
+            pageCtl.frame1.hide();
+            pageCtl.frame2.show();
+            pageCtl.control(isOri);
+        });
+    },
+    control: function(isOri) {
+        if(isOri) {
+            this.frame2.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528oritip.png)');
+            this.oriWrap.show();
+            this.dragWrap.hide();
+        } else {
+            this.frame2.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528hantip.png)');
+            this.oriWrap.hide();
+            this.dragWrap.show();
+            dragCtrl.dragInitX = dragCtrl.dragDom.position()['left'];
+        }
+    },
+    setScore: function(score) {
+        var score = parseInt(score);
+        var ten = parseInt(score / 10);
+        var one = score - ten * 10;
+        this.score1.css('background-position-y', '-' + (ten * 26) + 'px');
+        this.score2.css('background-position-y', '-' + (one * 26) + 'px');
+    },
+    finish: function(data) {
+        this.frame2.hide();
+        this.frame3.show();
+        this.frame3Num.text(data);
+        if(data <= 5) {
+            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype1.png)');
+        } else if (data <= 8) {
+            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype2.png)');
+        } else {
+            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype3.png)');
+        }
+    }
 };
 
-
+//WebSocket连接处理
 var connectHandler = function() {
     this.connCache = {};
     this.connId = 0;
@@ -261,6 +359,9 @@ connectHandler.prototype.get= function(data) {
     if('msg' == type) {
         _log(data);
     }
+    if('end' == type) {
+        this.destroy(data);
+    }
     if('late' == type) {
         var curTime = new Date().getTime();
         if(this.lastLateConnId < data && this.connCache[data]) {
@@ -271,7 +372,15 @@ connectHandler.prototype.get= function(data) {
             delete this.connCache[data];
         }
     }
-}
+    if('score' == type) {
+        pageCtl.setScore(data);
+    }
+};
+connectHandler.prototype.destroy = function(data) {
+    pageCtl.finish(data);
+    this.connect.destroy();
+    orientation.stop();
+};
 
 function Orientation() {
     this.hasDeviceOrientation = 'ondeviceorientation' in window;
@@ -282,18 +391,14 @@ function Orientation() {
     this.lastTime = new Date();
     this.lastOrientationTime = new Date();
 
-    this.lastX = null;
-    this.lastY = null;
     this.lastZ = null;
-}
+};
 
 Orientation.prototype.reset = function() {
     this.lastTime = new Date();
 
-    this.lastX = null;
-    this.lastY = null;
     this.lastZ = null;
-}
+};
 
 /**
  * 开始手机翻转互动
@@ -349,22 +454,21 @@ var conn = new connectHandler();
 var orientation = new Orientation();
 pageCtl.init();
 
+//滑块控制
 var dragCtrl = {
     init: function(options) {
         this.hammerInited = false;
-        this.dragScope = $("#dragScope");
-        this.dragInitPos = [110, 100];
+        this.dragInitX = 159;
         this.typeDom = $('#ctlType');
         this.ctlType = "orientation";
-        this.dragScope = $('#dragScope');
         this.dragDom = $('#drag');
         this.lastLeft = null;
 
         options = options || {};
         this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
+        //位移监听回调
         this.positionListener = options['positionListener'] || function() {
             var moLeft = this.moLeft;
-            var moTop = this.moTop;
             if(!this.lastLeft) {
                 this.lastLeft = moLeft;
             }
@@ -375,7 +479,7 @@ var dragCtrl = {
             }
             this.lastLeft =Math.round(moLeft);
             conn.send('han', [moLeft, 0]);
-        };//位移监听回调
+        };
         var self = this;
         this.typeDom.click(function() {
             if(self.hammerInited) {
@@ -393,14 +497,14 @@ var dragCtrl = {
         var hammertime = new Hammer(container, { drag_max_touches: 0 });
         hammertime.on("touch", function(ev) {
             dragCtrl.catchEvt(ev, true);
+            if(ev.target == dragCtrl.typeDom[0]) {
+                dragCtrl.setType();
+            }
         });
         hammertime.on("drag", function(ev) {
             dragCtrl.catchEvt(ev);
         });
         hammertime.on("touchend dragend", function(ev) {
-            if(ev.target == dragCtrl.typeDom[0]) {
-                dragCtrl.setType();
-            }
             var touches = ev.gesture ? ev.gesture.touches : ev.touches;
             ev.gesture && ev.gesture.preventDefault();
 
@@ -420,35 +524,29 @@ var dragCtrl = {
         if(type && 'orientation' === type) {
             this.ctlType = 'handler';
         }
-        var isOri = ('orientation' == this.ctlType);
-        if(isOri) {
+        var fromOri = ('orientation' == this.ctlType);
+        if(fromOri) {
             if(!this.hammerInited) {
                 this.initHammer();
             }
             this.ctlType = "handler";
-            this.typeDom.html('使用翻转');
             orientation.stop();
         } else {
             this.ctlType = "orientation";
-            this.typeDom.html('使用手柄');
             orientation.start();
         }
-        pageCtl.control(isOri);
+        pageCtl.control(!fromOri);
     },
     resetPos: function() {
         this.holding = false;
         clearTimeout(this.positionEmitter);
         conn.send('han', [0, 0]);
-        this.setDragPos(this.dragInitPos[0], this.dragInitPos[1]);
-        this.initTouchOffsetX = 0;
-        this.initTouchOffsetY = 0;
+        this.setDragPos(this.dragInitX);
     },
-    move: function(toLeft, toTop) {
+    move: function(toLeft) {
         var moLeft = toLeft - this.initTouchX;
 
-        var initLeft = this.dragInitPos[0];
-        var initTop = this.dragInitPos[1];
-        var moTop = initTop;
+        var initLeft = this.dragInitX;
 
         if(moLeft < -100) {
             moLeft = -100;
@@ -458,15 +556,12 @@ var dragCtrl = {
         }
 
         tarLeft = initLeft + moLeft;
-        tarTop = initTop;
 
         this.moLeft = moLeft;
-        this.moTop = moTop;
-        this.setDragPos(tarLeft, tarTop);
+        this.setDragPos(tarLeft);
     },
-    setDragPos: function(tarLeft, tarTop) {
+    setDragPos: function(tarLeft) {
         this.dragDom.css('left', tarLeft + "px");
-        this.dragDom.css('top', tarTop + "px");
     },
     catchEvt: function(ev, isTouch) {
         var touches = ev.gesture.touches;
@@ -480,14 +575,12 @@ var dragCtrl = {
                 return;
             }
             var proxyX = touchEvt.pageX;
-            var proxyY = touchEvt.pageY;
             if(isTouch) {
                 this.initTouchX = proxyX;
-                this.initTouchY = proxyY;
                 this.holding = true;
                 this.tickTack();
             }
-            dragCtrl.move(proxyX, proxyY);
+            dragCtrl.move(proxyX);
         }
     },
     tickTack: function() {
@@ -508,4 +601,3 @@ dragCtrl.init();
 
 </body>
 </html>
-
