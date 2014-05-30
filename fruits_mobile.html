@@ -13,6 +13,10 @@
     -webkit-user-select: none;
        -moz-user-select: none;
         }
+        *, *:focus, *:active {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            outline: none;
+        }
         html,body {
             padding: 0;
             margin: 0;
@@ -21,7 +25,7 @@
         body {
             font-size: 10px;
             color: #333;
-            background: url(http://bs.baidu.com/adtest/centrum140528bg.png);
+            background: url(http://bs.baidu.com/adtest/centrum140528bg.png) repeat-x #f7f7f7;
         }
         body.loading {
             background: url(http://bs.baidu.com/adtest/centrum140528loading.gif) 50% 100px no-repeat;
@@ -268,6 +272,32 @@ function _log(s, dom) {
     logDom.prepend(s);
 }
 
+//browser detect
+function prefix(style) {
+    if (vender === '') return style;
+
+    style = style.charAt(0).toUpperCase() + style.substr(1);
+    return vender + style;
+}
+
+var dummyStyle = document.createElement('div').style;
+var vender = (function() {
+    var vendors = 't,webkitT,MozT,msT,OT'.split(','),
+        t,
+        i = 0,
+        l = vendors.length;
+
+    for (; i < l; i++) {
+        t = vendors[i] + 'ransform';
+        if (t in dummyStyle) {
+            return vendors[i].substr(0, vendors[i].length - 1);
+        }
+    }
+
+    return false;
+})();
+var transformAttr = prefix('transform');
+
 //firefox的角度偏转是反的
 var isFirefox = /firefox/i.test(navigator.userAgent);
 //页面控制
@@ -312,10 +342,6 @@ var pageCtl = {
             pageCtl.frame2.show();
             pageCtl.control(isOri);
         });
-        $(window).resize(function() {
-            dragCtrl.dragDom.css('left', '');
-            dragCtrl.dragInitX = dragCtrl.dragDom.position()['left'];
-        });
     },
     control: function(isOri) {
         if(isOri) {
@@ -326,7 +352,6 @@ var pageCtl = {
             this.frame2.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528hantip.png)');
             this.oriWrap.hide();
             this.dragWrap.show();
-            dragCtrl.dragInitX = dragCtrl.dragDom.position()['left'];
         }
     },
     setScore: function(score) {
@@ -406,6 +431,7 @@ connectHandler.prototype.get= function(data) {
         this.destroy(data);
     }
     if('late' == type) {
+        return;
         var curTime = new Date().getTime();
         if(this.lastLateConnId < data && this.connCache[data]) {
             this.lastLateConnId = data;
@@ -429,7 +455,7 @@ function Orientation() {
     this.hasDeviceOrientation = 'ondeviceorientation' in window;
 
     this.threshold = 0.5;
-    this.timeInterval = 100;
+    this.timeInterval = 300;
 
     this.lastTime = new Date();
     this.lastOrientationTime = new Date();
@@ -501,10 +527,9 @@ pageCtl.init();
 var dragCtrl = {
     init: function(options) {
         this.hammerInited = false;
-        this.dragInitX = 159;
         this.typeDom = $('#ctlType');
         this.ctlType = "orientation";
-        this.dragDom = $('#drag');
+        this.dragDom = $('#drag')[0];
         this.lastLeft = null;
 
         options = options || {};
@@ -513,7 +538,7 @@ var dragCtrl = {
         this.positionListener = options['positionListener'] || function() {
             var moLeft = this.moLeft;
             if(!this.lastLeft) {
-                this.lastLeft = moLeft;
+                this.lastLeft = 0;
             }
             var deltaLeft = Math.abs(moLeft - this.lastLeft);
             //+(conn.connId > 1) for send latencyTime to PC ASAP
@@ -539,25 +564,19 @@ var dragCtrl = {
         var container = document.body;
         var hammertime = new Hammer(container, { drag_max_touches: 0 });
         hammertime.on("touch", function(ev) {
-            dragCtrl.catchEvt(ev, true);
             if(ev.target == dragCtrl.typeDom[0]) {
                 dragCtrl.setType();
+            }
+            if(ev.target == dragCtrl.dragDom) {
+                dragCtrl.holding = true;
+                dragCtrl.catchEvt(ev, true);
             }
         });
         hammertime.on("drag", function(ev) {
             dragCtrl.catchEvt(ev);
         });
         hammertime.on("touchend dragend", function(ev) {
-            var touches = ev.gesture ? ev.gesture.touches : ev.touches;
-            ev.gesture && ev.gesture.preventDefault();
-
-            for(var t = 0, len = touches.length; t < len; t++) {
-               target = touches[t].target;
-               if(target.className.indexOf("drag") < 0) {
-                   return;
-               }
-              dragCtrl.resetPos();
-            }
+            dragCtrl.resetPos();
         });
     },
     setType: function(type) {
@@ -584,12 +603,10 @@ var dragCtrl = {
         this.holding = false;
         clearTimeout(this.positionEmitter);
         conn.send('han', [0, 0]);
-        this.setDragPos(this.dragInitX);
+        this.setDragPos(0);
     },
     move: function(toLeft) {
         var moLeft = toLeft - this.initTouchX;
-
-        var initLeft = this.dragInitX;
 
         if(moLeft < -100) {
             moLeft = -100;
@@ -598,29 +615,25 @@ var dragCtrl = {
             moLeft = 100;
         }
 
-        tarLeft = initLeft + moLeft;
-
         this.moLeft = moLeft;
-        this.setDragPos(tarLeft);
+        this.setDragPos(moLeft);
     },
     setDragPos: function(tarLeft) {
-        this.dragDom.css('left', tarLeft + "px");
+        this.dragDom.style[transformAttr] = "translateX(" + tarLeft + "px)";
     },
     catchEvt: function(ev, isTouch) {
+        if(!this.holding) {
+            return;
+        }
         var touches = ev.gesture.touches;
 
         ev.gesture.preventDefault();
 
         for(var t = 0, len = touches.length; t < len; t++) {
             var touchEvt = touches[t];
-            var target = touchEvt.target;
-            if(target.className.indexOf("drag") < 0) {
-                return;
-            }
             var proxyX = touchEvt.pageX;
             if(isTouch) {
                 this.initTouchX = proxyX;
-                this.holding = true;
                 this.tickTack();
             }
             dragCtrl.move(proxyX);
