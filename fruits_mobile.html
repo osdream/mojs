@@ -21,7 +21,10 @@
         body {
             font-size: 10px;
             color: #333;
-            background: url(http://bs.baidu.com/adtest/centrum140528bg.jpg);
+            background: url(http://bs.baidu.com/adtest/centrum140528bg.png);
+        }
+        body.loading {
+            background: url(http://bs.baidu.com/adtest/centrum140528loading.gif) 50% 100px no-repeat;
         }
         #controller {
             position: relative;
@@ -36,13 +39,14 @@
             width: 58px;
             height: 51px;
             background: url(http://ecma.bdimg.com/adtest/centrum140528logo.png) 0 0 no-repeat;
+            z-index: 10;
         }
         .bg-top {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 102px;
+            height: 112px;
             background: url(http://ecma.bdimg.com/adtest/centrum140528topc.png) 50% 10px no-repeat;
         }
         .bg-bottom {
@@ -181,9 +185,43 @@
             opacity: 0.4;
             overflow: hidden;
         }
+        /*横屏*/
+        @media all and (orientation:landscape) {
+            #frame1 {
+                bottom: 0;
+            }
+            #frame2 {
+                background-position: 50% 8px;
+            }
+            #frame2Score1, #frame2Score2 {
+                top: 20px;
+            }
+            #drag {
+                top: 113px;
+            }
+            #orientWrap, #dragWrap {
+                background-position-x: right;
+            }
+            #ctlType {
+                left: auto;
+                right: 0;
+            }
+            #frame3 {
+                background-position-x: 50px;
+            }
+            #frame3Num {
+                left: 170px;
+            }
+            #scoreType {
+                background-position: 50px 0;
+            }
+            #frame3 .tipbottom {
+                background-position: 300px 0;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="loading">
     <div id="controller">
         <div class="logo"></div>
         <div class="bg-top"></div>
@@ -205,9 +243,7 @@
             <span id="frame3Num"></span>
             <div class="tipbottom"></div>
         </div>
-        <div id="info">
-
-        </div>
+        <!--<div id="info"></div>-->
         <!--for ios test-->
         <!--<audio src="separation.mp3" onended="this.play();" controls="controls" autobuffer autoplay="true"></audio>-->
     </div>
@@ -216,6 +252,8 @@
 <script type="text/javascript" charset="utf-8">
 (function (window, document) {
 function _log(s, dom) {
+    console && console.log(s);
+    return;
     var logDom = dom || $('#info');
     if(logDom.logL) {
         if(logDom.logL > 20) {
@@ -245,19 +283,20 @@ var pageCtl = {
     frame3: $('#frame3'),
     scoreType: $('#scoreType'),
     frame3Num: $('#frame3Num'),
-    preImages: ['http://bs.baidu.com/adtest/centrum140528bg.jpg', 'http://ecma.bdimg.com/adtest/centrum140528topc.png',
+    preImages: ['http://bs.baidu.com/adtest/centrum140528bg.png', 'http://ecma.bdimg.com/adtest/centrum140528topc.png',
       'http://ecma.bdimg.com/adtest/centrum140528topm.png', 'http://ecma.bdimg.com/adtest/centrum140528bottomm.png',
       'http://ecma.bdimg.com/adtest/centrum140528bottomc.png', 'http://ecma.bdimg.com/adtest/centrum140528start.png',
       'http://ecma.bdimg.com/adtest/centrum140528num.png', 'http://ecma.bdimg.com/adtest/centrum140528oritip.png',
       'http://ecma.bdimg.com/adtest/centrum140528oribtn.png', 'http://ecma.bdimg.com/adtest/centrum140528hantip.png',
       'http://ecma.bdimg.com/adtest/centrum140528hanbtn.png', 'http://ecma.bdimg.com/adtest/centrum140528handler.png',
-      'http://ecma.bdimg.com/adtest/centrum140528endbgtop.png', 'http://ecma.bdimg.com/adtest/centrum140528endbgtop.png',
+      'http://ecma.bdimg.com/adtest/centrum140528endbgtop.png', 'http://ecma.bdimg.com/adtest/centrum140528endbgbottom.png',
       'http://ecma.bdimg.com/adtest/centrum140528endtype1.png', 'http://ecma.bdimg.com/adtest/centrum140528endtype2.png',
       'http://ecma.bdimg.com/adtest/centrum140528endtype3.png'],
     init: function() {
         //预加载图片
         $.imgpreload(this.preImages, {
             all: function() {
+                $('body').removeClass('loading');
                 conn.prepare();
             }
         });
@@ -272,6 +311,10 @@ var pageCtl = {
             pageCtl.frame1.hide();
             pageCtl.frame2.show();
             pageCtl.control(isOri);
+        });
+        $(window).resize(function() {
+            dragCtrl.dragDom.css('left', '');
+            dragCtrl.dragInitX = dragCtrl.dragDom.position()['left'];
         });
     },
     control: function(isOri) {
