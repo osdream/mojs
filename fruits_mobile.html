@@ -158,7 +158,7 @@
             position: absolute;
             top: 32px;
             left: 50%;
-            margin-left: -34px;
+            margin-left: -38px;
             color: #ea5404;
             font: bold 38px/38px Verdana,arial,sans-serif;
         }
@@ -240,7 +240,7 @@
             }
             #frame3Num,
             .lowHeight #frame3Num {
-                left: 170px;
+                left: 175px;
             }
             #scoreType,
             .lowHeight #scoreType {
@@ -423,6 +423,9 @@ var pageCtl = {
         this.closeFrame1();
         this.frame2.hide();
         this.frame3.show();
+        if(score < 10) {
+            score = '0' + score;
+        }
         this.frame3Num.text(score);
         if(score <= 6) {
             this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype1.png)');
