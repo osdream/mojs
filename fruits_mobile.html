@@ -58,12 +58,12 @@
             bottom: 0;
             width: 100%;
             height: 265px;
-            background: url(http://ecma.bdimg.com/adtest/centrum140528bottomc.png) 50% 0 no-repeat;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528bottomc.png) 50% 0 repeat-x;
         }
         #frame1 {
             display: none;
             position: absolute;
-            bottom: 10px;
+            top: 100px;
             left: 0;
             width: 100%;
             height: 319px;
@@ -122,7 +122,7 @@
             margin-left: 18px;
             width: 27px;
             height: 26px;
-            background: url(http://ecma.bdimg.com/adtest/centrum140528num.png) 0 26px no-repeat;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528num.png) 0 0 no-repeat;
         }
         #frame2Score2 {
             margin-left: 45px;
@@ -142,17 +142,12 @@
             right: 0;
             width: 100%;
             height: 100%;
-            padding: 10px;
             font-size: 20px;
-            background-color: #fefefe;
-    -webkit-box-sizing: border-box;
-       -moz-box-sizing: border-box;
-            box-sizing: border-box;
-            background: url(http://ecma.bdimg.com/adtest/centrum140528endbgtop.png) 50% top no-repeat;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528endbgtop.png) 50% 40px no-repeat;
         }
         #scoreType {
             position: absolute;
-            top: 40px;
+            top: 80px;
             left: 0;
             width: 100%;
             height: 142px;
@@ -161,9 +156,9 @@
         }
         #frame3Num {
             position: absolute;
-            top: 72px;
+            top: 32px;
             left: 50%;
-            margin-left: -30px;
+            margin-left: -34px;
             color: #ea5404;
             font: bold 38px/38px Verdana,arial,sans-serif;
         }
@@ -175,6 +170,24 @@
             width: 100%;
             height: 191px;
             background: url(http://ecma.bdimg.com/adtest/centrum140528endbgbottom.png) 50% 5px no-repeat;
+        }
+        #frameFail {
+            display: none;
+            position: relative;
+            z-index: 8;
+            font-size: 20px;
+            font-weight: bold;
+            width: 200px;
+            margin: 80px auto;
+            color: #ff6445;
+            background: #fff;
+    -webkit-border-radius: 10px;
+       -moz-border-radius: 10px;
+            border-radius: 10px;
+    -webkit-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+       -moz-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+            padding: 10px 20px;
         }
         #info {
             position: absolute;
@@ -189,9 +202,20 @@
             opacity: 0.4;
             overflow: hidden;
         }
+        .lowHeight #frame1 {
+            top: auto;
+            bottom: 10px;
+        }
+        .lowHeight #frame3 {
+            background-position: 50% top;
+        }
+        .lowHeight #scoreType {
+            top: 40px;
+        }
         /*横屏*/
         @media all and (orientation:landscape) {
             #frame1 {
+                top: auto;
                 bottom: 0;
             }
             #frame2 {
@@ -210,13 +234,17 @@
                 left: auto;
                 right: 0;
             }
-            #frame3 {
-                background-position-x: 50px;
+            #frame3,
+            .lowHeight #frame3 {
+                background-position: 50px top;
             }
-            #frame3Num {
+            #frame3Num,
+            .lowHeight #frame3Num {
                 left: 170px;
             }
-            #scoreType {
+            #scoreType,
+            .lowHeight #scoreType {
+                top: 40px;
                 background-position: 50px 0;
             }
             #frame3 .tipbottom {
@@ -243,9 +271,13 @@
             <span id="ctlType"></span>
         </div>
         <div id="frame3">
-            <div id="scoreType"></div>
-            <span id="frame3Num"></span>
+            <div id="scoreType">
+                <span id="frame3Num"></span>
+            </div>
             <div class="tipbottom"></div>
+        </div>
+        <div id="frameFail">
+            与电脑连接失败，可尝试刷新电脑生成新的二维码重新连接。
         </div>
         <!--<div id="info"></div>-->
         <!--for ios test-->
@@ -302,6 +334,7 @@ var transformAttr = prefix('transform');
 var isFirefox = /firefox/i.test(navigator.userAgent);
 //页面控制
 var pageCtl = {
+    curScore: 0,
     ctlDom: $('#controller'),
     frame1: $('#frame1'),
     startBtn: $('#startGame'),
@@ -326,22 +359,40 @@ var pageCtl = {
         //预加载图片
         $.imgpreload(this.preImages, {
             all: function() {
-                $('body').removeClass('loading');
-                conn.prepare();
+                pageCtl.imageLoaded = true;
+                if(conn.connId > 0) {
+                    pageCtl.start();
+                }
             }
         });
+        this.detectViewport();
+        conn.prepare();
+    },
+    detectViewport: function() {
+        var vHeight = Math.max($('body').height(), $('body').width());
+        if (vHeight < 420) {
+            $('body').addClass('lowHeight');
+        }
     },
     start: function() {
+        if(!pageCtl.imageLoaded) {
+            setTimeout(function() {
+                pageCtl.start();
+            }, 1000);
+            return;
+        }
+        $('body').removeClass('loading');
         this.frame1.show();
         this.startBtn.click(function() {
             var isOri = orientation.start();
             conn.send('msg', 'start');
-            pageCtl.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
-            pageCtl.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
-            pageCtl.frame1.hide();
+            pageCtl.closeFrame1();
             pageCtl.frame2.show();
             pageCtl.control(isOri);
         });
+    },
+    fail: function() {
+        $('#frameFail').show();
     },
     control: function(isOri) {
         if(isOri) {
@@ -356,18 +407,26 @@ var pageCtl = {
     },
     setScore: function(score) {
         var score = parseInt(score);
+        this.curScore = score;
         var ten = parseInt(score / 10);
         var one = score - ten * 10;
         this.score1.css('background-position-y', '-' + (ten * 26) + 'px');
         this.score2.css('background-position-y', '-' + (one * 26) + 'px');
     },
-    finish: function(data) {
+    closeFrame1: function() {
+        pageCtl.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
+        pageCtl.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
+        pageCtl.frame1.hide();
+    },
+    finish: function() {
+        var score = this.curScore;
+        this.closeFrame1();
         this.frame2.hide();
         this.frame3.show();
-        this.frame3Num.text(data);
-        if(data <= 5) {
+        this.frame3Num.text(score);
+        if(score <= 6) {
             this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype1.png)');
-        } else if (data <= 8) {
+        } else if (score <= 10) {
             this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype2.png)');
         } else {
             this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype3.png)');
@@ -380,7 +439,7 @@ var connectHandler = function() {
     this.connCache = {};
     this.connId = 0;
     this.lastLateConnId = -1;
-    this.latencyTime = null;
+    //this.latencyTime = null;
 };
 connectHandler.prototype.prepare = function() {
     require.config({
@@ -404,18 +463,27 @@ connectHandler.prototype.prepare = function() {
                 }
             })
             .fail(function(err) {
+                conn.fail();
                 _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
             });
+        connect.onTokenExpired = function() {
+            conn.fail();
+        }
     });
 };
 connectHandler.prototype.init = function(connect) {
     this.connect = connect;
 };
+connectHandler.prototype.fail = function(connect) {
+    this.connect.destroy();
+    pageCtl.fail();
+};
 connectHandler.prototype.send = function(type, data) {
     var sendTime = new Date().getTime();
     this.connCache[this.connId] = sendTime;
-    var latencyTime = this.latencyTime || null;
-    this.connect.send([this.connId, sendTime, type, data, latencyTime]);
+    //var latencyTime = this.latencyTime || null;
+    //this.connect.send([this.connId, sendTime, type, data, latencyTime]);
+    this.connect.send([this.connId, sendTime, type, data]);
     this.connId++;
 };
 connectHandler.prototype.get= function(data) {
@@ -428,10 +496,10 @@ connectHandler.prototype.get= function(data) {
         _log(data);
     }
     if('end' == type) {
-        this.destroy(data);
+        this.destroy();
     }
     if('late' == type) {
-        return;
+        return;//no latencyTime check
         var curTime = new Date().getTime();
         if(this.lastLateConnId < data && this.connCache[data]) {
             this.lastLateConnId = data;
@@ -445,8 +513,8 @@ connectHandler.prototype.get= function(data) {
         pageCtl.setScore(data);
     }
 };
-connectHandler.prototype.destroy = function(data) {
-    pageCtl.finish(data);
+connectHandler.prototype.destroy = function() {
+    pageCtl.finish();
     this.connect.destroy();
     orientation.stop();
 };
@@ -505,7 +573,8 @@ Orientation.prototype.deviceorientation = function(e) {
 
         deltaZ = Math.abs(this.lastZ - g);
         //+(conn.connId > 1) for send latencyTime to PC ASAP
-        if(deltaZ < 5 && conn.connId > 1) {
+        //if(deltaZ < 5 && conn.connId > 1) {
+        if(deltaZ < 5) {
             return;
         }
         this.lastZ = g;
@@ -542,7 +611,8 @@ var dragCtrl = {
             }
             var deltaLeft = Math.abs(moLeft - this.lastLeft);
             //+(conn.connId > 1) for send latencyTime to PC ASAP
-            if(deltaLeft <= 5 && conn.connId > 1) {
+            //if(deltaLeft <= 5 && conn.connId > 1) {
+            if(deltaLeft <= 5) {
                 return;
             }
             this.lastLeft =Math.round(moLeft);
