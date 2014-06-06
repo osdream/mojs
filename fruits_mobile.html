@@ -212,6 +212,13 @@
         .lowHeight #scoreType {
             top: 40px;
         }
+        .fromShare #frame1 {
+            display: block;
+            background-image: url(http://ecma.bdimg.com/adtest/centrum140606share.png);
+        }
+        .fromShare #startGame {
+            display: none;
+        }
         /*横屏*/
         @media all and (orientation:landscape) {
             #frame1 {
@@ -287,6 +294,11 @@
 </script>
 <script type="text/javascript" charset="utf-8">
 (function (window, document) {
+var notFromShare = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)$/);
+if(!notFromShare) {
+    $('body').removeClass('loading').addClass('fromShare');
+    return;
+}
 function _log(s, dom) {
     console && console.log(s);
     return;
