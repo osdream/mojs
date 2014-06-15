@@ -19,6 +19,7 @@
             $("body").append($('<div id="qr"></div>'));
             var qrcode = new QRCode('qr', {
                 text: "http://dev046.baidu.com:8092/test.html?muses_scepter=" + token,
+                //text: "http://192.168.10.102:8001/test.html?muses_scepter=" + token,
                 width: 160,
                 height: 160,
                 colorDark: '#000000',
@@ -133,6 +134,14 @@
     var hammertime = new Hammer(container, { drag_max_touches: 0 });
     hammertime.on("touch", function(ev) {
         dragCtrl.catchEvt(ev, true);
+        var target = ev.target || window.event.srcElement;
+
+        if(target.className.indexOf("fire") < 0) {
+            return;
+        }
+        gunCtrl.fire();
+        connect.send('fire');
+        console.log('biang biang biang!');
     });
     hammertime.on("drag", function(ev) {
         dragCtrl.catchEvt(ev);
@@ -150,17 +159,6 @@
             dragCtrl.resetPos();
             connect.send('reset');
          }
-    });
-
-    hammertime.on("click", function(ev) {
-        var target = ev.target || window.event.srcElement;
-
-        if(target.className.indexOf("fire") < 0) {
-            return;
-        }
-        gunCtrl.fire();
-        connect.send('fire');
-        console.log('biang biang biang!');
     });
 
     var dragCtrl = {

@@ -439,7 +439,8 @@ var fruitsCtl = {
     },
     setPos: function(el, index, isStart) {
         if(isStart) {
-            var pos = this.originPos[this.fruits[index]- 1];
+            var elPos = this.fruits.indexOf(index + 1);
+            var pos = this.originPos[elPos];
         } else {
             var pos = this.targetPos[this.toFruits[index] - 1];
         }
@@ -485,7 +486,6 @@ var fruitsCtl = {
         this.gameRefreshed = false;
         if(isStart) {
             this.fruits = this.createSeq(this.fruits);
-            console.log(this.fruits);
             this.toFruits = this.fruits.slice();
             this.refreshPos(true);
         }
