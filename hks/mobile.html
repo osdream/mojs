@@ -9,11 +9,7 @@
     <script src="http://ecma.bdimg.com/public01/js/jquery.imgpreload.min.js"></script>
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
     <style type="text/css" media="screen">
-        * {
-    -webkit-user-select: none;
-       -moz-user-select: none;
-        }
-        *, *:focus, *:active {
+        *, *:active {
             -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
             outline: none;
         }
@@ -64,20 +60,121 @@
         #frame1 {
             display: none;
             position: absolute;
-            top: 100px;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 319px;
-            background: url(http://ecma.bdimg.com/adtest/hks140615start.png) 50% 0 no-repeat;
+            height: 100%;
             text-align: center;
+        }
+        .userWrap {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            width: 100%;
+            padding: 0 20px;
+            text-align: left;
+        }
+        .userWrap h3 {
+            font-size: 20px;
+            color: #ff6445;
+            font-weight: bold;
+            padding: 50px 0 10px;
+            text-align: center;
+            margin: 0;
+    -webkit-text-shadow: 1px 1px 2px #bbb;
+       -moz-text-shadow: 1px 1px 2px #bbb;
+            text-shadow: 1px 1px 2px #bbb;
+        }
+        .userWrap label {
+            display: block;
+            color: #111;
+            padding: 0 0 5px;
+            font-style: 14px;
+        }
+        .userWrap label.labelErr {
+            color: #f00;
+        }
+        #name {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            width: 100%;
+            height: 40px;
+            line-height: 18px;
+            border: 4px solid #666;
+            background-color: #ffe3c1;
+    -webkit-border-radius: 6px;
+       -moz-border-radius: 6px;
+            border-radius: 6px;
+    -webkit-box-shadow: 1px 2px 2px #bbb inset;
+       -moz-box-shadow: 1px 2px 2px #bbb inset;
+            box-shadow: 1px 2px 2px #bbb inset;
+            padding: 11px 5px;
+        }
+        .nameFocused h3 {
+            display: none;
+        }
+        .nameFocused label {
+            position: fixed;
+            left: 5px;
+            top: 55px;
+        }
+        .nameFocused #name {
+            position: fixed;
+            left: -0;
+            top: 0;
+            height: 50px;
+            line-height: 20px;
+            padding: 15px 5px;
+            background-color: #FFF;
+            border-color: #888;
         }
         #startGame{
             position: absolute;
-            width: 132px;
-            height: 133px;
-            margin-left: -64px;
+            width: 140px;
+            height: 40px;
+            line-height: 40px;
+            font-size: 20px;
+            border: 3px solid #ff6445;
+            background: #ff8c75;
+            color: #fff;
+            font-weight: bold;
+    -webkit-text-shadow: 1px 1px 2px #ba2103;
+       -moz-text-shadow: 1px 1px 2px #ba2103;
+       text-shadow: 1px 1px 2px #ba2103;
+    -webkit-box-shadow: 1px 2px 4px #bbb;
+       -moz-box-shadow: 1px 2px 4px #bbb;
+            box-shadow: 1px 2px 4px #bbb;
+            margin-left: -70px;
             left: 50%;
-            top: 144px;
+            top: 200px;
+        }
+        #startGame:active {
+    -webkit-box-shadow: none;
+       -moz-box-shadow: none;
+            box-shadow: none;
+        }
+        #frameSearch {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            padding-top: 100px;
+        }
+        #frameSearch .myName,
+        #frameSearch .oppoName {
+            display: block;
+            font-size: 24px;
+            color: #ff6445;
+            font-weight: bold;
+        }
+        #frameSearch .vs {
+            display: block;
+            padding: 50px;
+            font-size: 14px;
+            color: #ff6445;
         }
         #frame2 {
             display: none;
@@ -86,42 +183,50 @@
             width: 100%;
             height: 100%;
         }
-        #userName {
+        .myName {
             color: #ff6445;
             font-size: 18px;
             line-height: 20px;
         }
+        #oppoFruitWrap,
         #fruitWrap {
-            position: absolute;
-            top: 40px;
-            height: 400px;
+-webkit-box-sizing: border-box;
+   -moz-box-sizing: border-box;
+        box-sizing: border-box;
             width: 100%;
+            position: relative;
         }
+        #oppoFruitWrap .fruit01,
         #fruitWrap .fruit01 {
             left: 0;
             top: 0;
             background: url(http://ecma.bdimg.com/adtest/hks140615fruit01.png) no-repeat;
         }
+        #oppoFruitWrap .fruit02,
         #fruitWrap .fruit02 {
             left: 60px;
             top: 0;
             background: url(http://ecma.bdimg.com/adtest/hks140615fruit02.png) no-repeat;
         }
+        #oppoFruitWrap .fruit03,
         #fruitWrap .fruit03 {
             left: 120px;
             top: 0;
             background: url(http://ecma.bdimg.com/adtest/hks140615fruit03.png) no-repeat;
         }
+        #oppoFruitWrap .fruit04,
         #fruitWrap .fruit04 {
             left: 180px;
             top: 0;
             background: url(http://ecma.bdimg.com/adtest/hks140615fruit04.png) no-repeat;
         }
+        #oppoFruitWrap .fruit05,
         #fruitWrap .fruit05 {
             left: 240px;
             top: 0;
             background: url(http://ecma.bdimg.com/adtest/hks140615fruit05.png) no-repeat;
         }
+        #oppoFruitWrap .oppoFruits,
         #fruitWrap .fruits {
             position: absolute;
             width: 50px;
@@ -195,10 +300,6 @@
             opacity: 0.4;
             overflow: hidden;
         }
-        .lowheight #frame1 {
-            top: auto;
-            bottom: 10px;
-        }
         .fromShare #frame1 {
             display: block;
             background-image: url(http://ecma.bdimg.com/adtest/centrum140606share.png);
@@ -206,11 +307,21 @@
         .fromShare #startgame {
             display: none;
         }
+        #rotateScreen {
+            display: none;
+        }
         /*横屏*/
         @media all and (orientation:landscape) {
-            #frame1 {
-                top: auto;
-                bottom: 0;
+            #controller {
+                display: none;
+            }
+            #rotateScreen {
+                display: block;
+                text-align: center;
+                font-size: 30px;
+                color: #ff6445;
+                font-weight: bold;
+                line-height: 200px;
             }
         }
     </style>
@@ -221,13 +332,31 @@
         <div class="bg-top"></div>
         <div class="bg-bottom"></div>
         <div id="frame1">
-            <div><label for="name">用户名</label><input id="name" type="" value="hi" /></div>
-            <span id="startGame"></span>
+            <div class="userWrap">
+                <h3>欢迎参加善存营养大比拼</h3>
+                <label for="name">请输入用户名</label>
+                <input id="name" type="" value="" />
+            </div>
+            <span id="startGame">进入游戏</span>
+        </div>
+        <div id="frameSearch">
+            <span class="myName"></span>
+            <span class="vs">VS</span>
+            <span class="oppoName"></span>
         </div>
         <div id="frame2">
-            <span id="userName"></span>
-            <span id="waitTime"></span>
+            <div id="oppoFruitWrap">
+                <span class="oppoName"></span>
+                <span class="oppoFruits fruit01"></span>
+                <span class="oppoFruits fruit02"></span>
+                <span class="oppoFruits fruit03"></span>
+                <span class="oppoFruits fruit04"></span>
+                <span class="oppoFruits fruit05"></span>
+            </div>
+            <div id="scoreLine">记住下列水果的顺序3秒钟后按顺序点击</div>
             <div id="fruitWrap">
+                <span class="myName"></span>
+                <span id="waitTime"></span>
                 <span class="fruits fruit01"></span>
                 <span class="fruits fruit02"></span>
                 <span class="fruits fruit03"></span>
@@ -240,6 +369,7 @@
             与电脑连接失败，可尝试刷新电脑生成新的二维码重新连接。
         </div>
     </div>
+    <div id="rotateScreen">请在坚屏时玩游戏</div>
 <script type="text/javascript" src="http://ecma.bdimg.com/adtest/140520/js/hammer.js">
 </script>
 <script type="text/javascript" charset="utf-8">
@@ -280,8 +410,55 @@ var vender = (function() {
 
     return false;
 })();
+var cssPrefix = vender ? '-' + vender.toLowerCase() + '-' : '';
 var transformAttr = prefix('transform');
+var transitionProperty = prefix('transitionProperty');
+var transitionDuration = prefix('transitionDuration');
+var transitionDelay = prefix('transitionDelay');
+var hasTransition = false;
+if(transitionProperty in dummyStyle) {
+    hasTransition = true;
+}
 
+//工具
+var utils = {
+    cookie: function(name, value, expiredays) {
+        var dc = document.cookie;
+        var cs;
+        var ce;
+        if (null === value || "" === value) {
+            var exDate = new Date();
+            var cv = this.cookie(name);
+            exDate.setTime(Date.now() - 1);
+            if (cv) {
+                document.cookie = name + "=" + escape(cv) + ";expires=" + exDate.toGMTString();
+            }
+            return false;
+        }
+        if (arguments.length > 1) {
+            var exDate = new Date();
+            var days = expiredays || 3650;
+            exDate.setTime(Date.now() + days * 24 * 60 * 60 * 1000);
+            document.cookie = name + "=" + escape(value) + ";expires=" + exDate.toGMTString();
+        } else {
+            if (dc.length > 0) {
+                cs = dc.indexOf(name + "=");
+                if (-1 != cs) {
+                    cs += name.length + 1;
+                    ce = dc.indexOf(";", cs);
+                    if (-1 == ce) {
+                        ce = dc.length;
+                    }
+                    return unescape(dc.substring(cs, ce));
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+    }
+}
 //firefox的角度偏转是反的
 var isFirefox = /firefox/i.test(navigator.userAgent);
 //页面控制
@@ -289,15 +466,16 @@ var pageCtl = {
     curScore: 0,
     ctlDom: $('#controller'),
     frame1: $('#frame1'),
+    frameSearch: $('#frameSearch'),
     frame2: $('#frame2'),
+    oppoNameDom: $('.oppoName'),
     nameDom: $('#name'),
     startBtn: $('#startGame'),
     preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png', 'http://ecma.bdimg.com/adtest/centrum140528topc.png',
       'http://ecma.bdimg.com/adtest/centrum140528topm.png', 'http://ecma.bdimg.com/adtest/centrum140528bottomm.png',
-      'http://ecma.bdimg.com/adtest/centrum140528bottomc.png', 'http://ecma.bdimg.com/adtest/hks140615start.png',
-      'http://ecma.bdimg.com/adtest/hks140615fruit01.png', 'http://ecma.bdimg.com/adtest/hks140615fruit02.png',
-      'http://ecma.bdimg.com/adtest/hks140615fruit03.png', 'http://ecma.bdimg.com/adtest/hks140615fruit04.png',
-      'http://ecma.bdimg.com/adtest/hks140615fruit05.png'],
+      'http://ecma.bdimg.com/adtest/centrum140528bottomc.png', 'http://ecma.bdimg.com/adtest/hks140615fruit01.png',
+      'http://ecma.bdimg.com/adtest/hks140615fruit02.png', 'http://ecma.bdimg.com/adtest/hks140615fruit03.png',
+      'http://ecma.bdimg.com/adtest/hks140615fruit04.png', 'http://ecma.bdimg.com/adtest/hks140615fruit05.png'],
     init: function() {
         //预加载图片
         $.imgpreload(this.preImages, {
@@ -316,6 +494,7 @@ var pageCtl = {
         if (vHeight < 420) {
             $('body').addClass('lowheight');
         }
+        this.vHeight = vHeight;
     },
     start: function() {
         if(!pageCtl.imageLoaded) {
@@ -325,19 +504,76 @@ var pageCtl = {
             return;
         }
         $('body').removeClass('loading');
+        var cookieName = utils.cookie('player');
+        if(cookieName) {
+            this.nameDom.val(cookieName);
+        }
         this.frame1.show();
+        this.nameDom.focus(function() {
+            pageCtl.nameDom.parent().addClass('nameFocused');
+        }).blur(function() {
+            pageCtl.nameDom.parent().removeClass('nameFocused');
+        }).keypress(function(evt) {
+            if(13 === evt.keyCode) {
+                pageCtl.nameDom.parent().removeClass('nameFocused');
+                pageCtl.fireStart();
+            } else {
+                pageCtl.nameDom.parent().find('label').removeClass('labelErr');
+            }
+        });
         this.startBtn.click(function() {
-            //conn.send('msg', 'start');
-            pageCtl.userName = pageCtl.nameDom.val();
-            if('' == pageCtl.userName) {
-                alert('请输入用户名。');
-                pageCtl.nameDom.focus();
+            pageCtl.fireStart();
+        });
+    },
+    fireStart: function() {
+        //conn.send('msg', 'start');
+        this.userName = this.nameDom.val();
+        if('' == this.userName) {
+            this.nameDom.focus();
+            this.nameDom.parent().find('label').addClass('labelErr');
+            return;
+        }
+        utils.cookie('player', this.userName);
+        this.nameDom.blur();
+        this.closeFrame1();
+        $('.myName').html(this.userName);
+        this.findingOppo();
+    },
+    findingOppo: function() {
+        this.frameSearch.show();
+        this.oppoNameDom.text('搜寻对手中...');
+        this.isFinding = true;
+        this.findingAnimation();
+        //test
+        setTimeout(function() {
+            pageCtl.getOppo();
+        }, 3000);
+    },
+    findingAnimation: function() {
+        var dotNum = 3;
+        var me = this;
+        function _animate() {
+            if(!me.isFinding || !me.oppoNameDom[0]) {
                 return;
             }
-            pageCtl.closeFrame1();
-            $('#userName').html(pageCtl.userName + ',你好');
-            pageCtl.frame2.show();
-        });
+            dotNum = (dotNum + 1) % 4;
+            var dotStr = '';
+            for(var i = dotNum; i > 0; i--) {
+                dotStr += '-';
+            }
+            me.oppoNameDom.text(dotStr + '搜寻对手中' + dotStr);
+            setTimeout(_animate, 800);
+        }
+        _animate();
+    },
+    getOppo: function(oppoName) {
+        this.isFinding = false;
+        this.oppoNameDom.text(oppoName || '测试对手');
+        var me = this;
+        setTimeout(function() {
+            me.frameSearch.hide();
+            me.frame2.show();
+        }, 1000);
     },
     fail: function() {
         $('#frameFail').show();
@@ -353,7 +589,7 @@ var pageCtl = {
     closeFrame1: function() {
         pageCtl.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
         pageCtl.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
-        pageCtl.frame1.hide();
+        pageCtl.frame1.remove();
     },
     finish: function() {
         var score = this.curScore;
@@ -373,13 +609,15 @@ var pageCtl = {
         }
     }
 };
+pageCtl.init();
 
 var fruitsCtl = {
     startGame: false,
     fruitWrap: $('#fruitWrap '),
+    oppoFruitWrap: $('#oppoFruitWrap'),
     startBtn: $('#frame2 .start'),
     waitTime: $('#waitTime'),
-    readTime: 5000,
+    readTime: 3000,
     originPos: [[0, 0], [60, 0], [120, 0], [180, 0], [240, 0]],
     targetPos: [[20, 30], [40, 100], [100, 20], [140, 110], [160, 30]],
     init: function() {
@@ -405,6 +643,20 @@ var fruitsCtl = {
             }
             me.checkSeq($(this));
         });
+        this.initPos();
+    },
+    initPos: function() {
+        this.fruitWrap.height(pageCtl.vHeight / 2);
+        this.oppoFruitWrap.height(pageCtl.vHeight / 2);
+        if(hasTransition) {
+            [].forEach.call(this.fruitDoms, function(el, index) {
+                el.style[transitionProperty] = cssPrefix + 'transform';
+                el.style[transitionDuration] = '300ms';
+                el.style[transformAttr] = 'translate(' + getComputedStyle(el)['left'] + ', ' + getComputedStyle(el)['top'] + ')';
+                el.style['left'] = 0;
+                el.style['top'] = 0;
+            });
+        }
     },
     checkWaitTime: function(startTime) {
         var me = this;
@@ -444,9 +696,11 @@ var fruitsCtl = {
         } else {
             var pos = this.targetPos[this.toFruits[index] - 1];
         }
-        $(el).animate({left: pos[0], top: pos[1]});
-        //var toBg = this.bgPrefix + this.toFruits[index] + '.png';
-        //$(el).css('background-image', toBg);
+        if(hasTransition) {
+            el.style[transformAttr] = 'translate(' + pos[0] + 'px, ' + pos[1] + 'px)';
+        } else {
+            $(el).animate({left: pos[0], top: pos[1]});
+        }
     },
     checkSeq: function(ele) {
         if(!this.startGame) {
@@ -647,9 +901,8 @@ Orientation.prototype.handleEvent = function(e) {
     }
 };
 
-var conn = new connectHandler();
-var orientation = new Orientation();
-pageCtl.init();
+//var conn = new connectHandler();
+//var orientation = new Orientation();
 
 //滑块控制
 var dragCtrl = {
@@ -779,7 +1032,7 @@ var dragCtrl = {
         }, me.positionEmitInter);
     }
 };
-dragCtrl.init();
+//dragCtrl.init();
 
 })(window, document);
 </script>
