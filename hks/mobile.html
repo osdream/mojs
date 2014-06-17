@@ -190,9 +190,9 @@
         }
         #oppoFruitWrap,
         #fruitWrap {
--webkit-box-sizing: border-box;
-   -moz-box-sizing: border-box;
-        box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
             width: 100%;
             position: relative;
         }
@@ -309,6 +309,11 @@
         }
         #rotateScreen {
             display: none;
+            text-align: center;
+            font-size: 30px;
+            color: #ff6445;
+            font-weight: bold;
+            line-height: 200px;
         }
         /*横屏*/
         @media all and (orientation:landscape) {
@@ -317,11 +322,12 @@
             }
             #rotateScreen {
                 display: block;
-                text-align: center;
-                font-size: 30px;
-                color: #ff6445;
-                font-weight: bold;
-                line-height: 200px;
+            }
+            .enteringName #controller {
+                display: block;
+            }
+            .enteringName #rotateScreen {
+                display: none;
             }
         }
     </style>
@@ -508,6 +514,7 @@ var pageCtl = {
         if(cookieName) {
             this.nameDom.val(cookieName);
         }
+        $('body').addClass('enteringName');
         this.frame1.show();
         this.nameDom.focus(function() {
             pageCtl.nameDom.parent().addClass('nameFocused');
@@ -541,7 +548,7 @@ var pageCtl = {
     },
     findingOppo: function() {
         this.frameSearch.show();
-        this.oppoNameDom.text('搜寻对手中...');
+        this.oppoNameDom.text('搜寻对手中');
         this.isFinding = true;
         this.findingAnimation();
         //test
@@ -590,6 +597,7 @@ var pageCtl = {
         pageCtl.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
         pageCtl.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
         pageCtl.frame1.remove();
+        $('body').removeClass('enteringName');
     },
     finish: function() {
         var score = this.curScore;
