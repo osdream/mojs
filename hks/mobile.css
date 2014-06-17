@@ -1,0 +1,384 @@
+*, *:active {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+    outline: none;
+}
+html,body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+}
+body {
+    font-size: 10px;
+    color: #333;
+    background: url(http://bs.baidu.com/adtest/centrum140528bg.png) repeat-x #f7f7f7;
+}
+body.loading {
+    background: url(http://bs.baidu.com/adtest/centrum140528loading.gif) 50% 100px no-repeat;
+}
+#controller {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+.logo {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    width: 58px;
+    height: 51px;
+    background: url(http://ecma.bdimg.com/adtest/centrum140528logo.png) 0 0 no-repeat;
+    z-index: 10;
+    display: none;
+}
+.bg-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 112px;
+    background: url(http://ecma.bdimg.com/adtest/centrum140528topc.png) 50% 10px no-repeat;
+    opacity: 0.5;
+}
+.bg-bottom {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 265px;
+    background: url(http://ecma.bdimg.com/adtest/centrum140528bottomc.png) 50% 0 repeat-x;
+    opacity: 0.5;
+}
+#frame1 {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+.userWrap {
+-webkit-box-sizing: border-box;
+-moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0 20px;
+    text-align: left;
+}
+.userWrap h3 {
+    font-size: 20px;
+    color: #ff6445;
+    font-weight: bold;
+    padding: 50px 0 10px;
+    text-align: center;
+    margin: 0;
+-webkit-text-shadow: 1px 1px 2px #bbb;
+-moz-text-shadow: 1px 1px 2px #bbb;
+    text-shadow: 1px 1px 2px #bbb;
+}
+.userWrap label {
+    display: block;
+    color: #111;
+    padding: 0 0 5px;
+    font-size: 14px;
+}
+.userWrap label.labelErr {
+    color: #f00;
+}
+#name {
+-webkit-box-sizing: border-box;
+-moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    height: 40px;
+    line-height: 18px;
+    border: 4px solid #666;
+    background-color: #FFF;
+-webkit-border-radius: 6px;
+-moz-border-radius: 6px;
+    border-radius: 6px;
+-webkit-box-shadow: 1px 2px 2px #bbb inset;
+-moz-box-shadow: 1px 2px 2px #bbb inset;
+    box-shadow: 1px 2px 2px #bbb inset;
+    padding: 11px 5px;
+    font-size: 16px;
+}
+.nameFocused h3 {
+    display: none;
+}
+.nameFocused label {
+    position: fixed;
+    left: 5px;
+    top: 55px;
+}
+.nameFocused #name {
+    position: fixed;
+    left: -0;
+    top: 0;
+    height: 50px;
+    line-height: 20px;
+    padding: 15px 5px;
+    border-color: #888;
+    background-color: #ffe3c1;
+}
+#startGame{
+    position: absolute;
+    width: 140px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 20px;
+    border: 3px solid #ff6445;
+    background: #ff8c75;
+    color: #fff;
+    font-weight: bold;
+-webkit-text-shadow: 1px 1px 2px #ba2103;
+-moz-text-shadow: 1px 1px 2px #ba2103;
+text-shadow: 1px 1px 2px #ba2103;
+-webkit-box-shadow: 1px 2px 4px #bbb;
+-moz-box-shadow: 1px 2px 4px #bbb;
+    box-shadow: 1px 2px 4px #bbb;
+    margin-left: -70px;
+    left: 50%;
+    top: 200px;
+}
+#startGame:active {
+-webkit-box-shadow: none;
+-moz-box-shadow: none;
+    box-shadow: none;
+}
+.showHelp {
+    position: absolute;
+    right: 10px;
+    bottom: 30px;
+    font-size: 14px;
+}
+#gameHelp {
+    position: absolute;
+    text-align: center;
+    font-size: 18px;
+    color: #ff6445;
+    padding: 50px 20px;
+    background-color: #FFF;
+    z-index: 20;
+}
+.knowHelp {
+    position: absolute;
+    right: 10px;
+    bottom: 20px;
+}
+#frameSearch {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    padding-top: 100px;
+}
+#frameSearch .myName,
+#frameSearch .oppoName {
+    display: block;
+    font-size: 24px;
+    color: #ff6445;
+    font-weight: bold;
+}
+#frameSearch .vs {
+    display: block;
+    padding: 50px;
+    font-size: 14px;
+    color: #ff6445;
+}
+#frame2 {
+    display: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+.myName {
+    color: #ff6445;
+    font-size: 18px;
+    line-height: 20px;
+}
+#frame2 .oppoName {
+    font-size: 18px;
+}
+#scoreLine {
+    position: absolute;
+    width: 100%;
+    height: 0px;
+    border-top: 2px dashed #ff7255;
+    margin-top: -1px;
+}
+#scoreLine span {
+    position: absolute;
+    font-size: 16px;
+    width: 200px;
+    height: 34px;
+    left: 50%;
+    top: -17px;
+    margin-left: -100px;
+    text-align: center;
+    line-height: 17px;
+    background-color: #f7f7f7;
+}
+#oppoFruitWrap,
+#fruitWrap {
+-webkit-box-sizing: border-box;
+-moz-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    position: relative;
+}
+#oppoFruitWrap .oppoDish {
+    position: absolute;
+    left: -1000px;
+    bottom: 60px;
+    width: 210px;
+    height: 11px;
+    background: url(http://ecma.bdimg.com/adtest/hks140617dish.png) repeat-x;
+    background-size: auto 100%;
+}
+#fruitWrap .fruitDish {
+    position: absolute;
+    left: -1000px;
+    bottom: 60px;
+    height: 16px;
+    width: 310px;
+    background: url(http://ecma.bdimg.com/adtest/hks140617dish.png) repeat-x;
+    background-size: auto 100%;
+}
+#oppoFruitWrap .fruit01,
+#fruitWrap .fruit01 {
+    background: url(http://ecma.bdimg.com/adtest/hks140615fruit01.png) no-repeat;
+}
+#oppoFruitWrap .fruit02,
+#fruitWrap .fruit02 {
+    background: url(http://ecma.bdimg.com/adtest/hks140615fruit02.png) no-repeat;
+}
+#oppoFruitWrap .fruit03,
+#fruitWrap .fruit03 {
+    background: url(http://ecma.bdimg.com/adtest/hks140615fruit03.png) no-repeat;
+}
+#oppoFruitWrap .fruit04,
+#fruitWrap .fruit04 {
+    background: url(http://ecma.bdimg.com/adtest/hks140615fruit04.png) no-repeat;
+}
+#oppoFruitWrap .fruit05,
+#fruitWrap .fruit05 {
+    background: url(http://ecma.bdimg.com/adtest/hks140615fruit05.png) no-repeat;
+}
+#oppoFruitWrap .oppoFruits,
+#fruitWrap .fruits {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    left: 0;
+    top: 0;
+    background-size: 100% 100%;
+    border: 1px solid transparent;
+}
+#oppoFruitWrap .oppoFruits {
+    width: 35px;
+    height: 35px;
+}
+#fruitWrap .clicked {
+    border: 1px solid #0f0;
+}
+#fruitWrap .fruitErr {
+    color: #f00;
+    font-size: 40px;
+    border: 1px solid #f00;
+}
+#fruitWrap .fruitErr:after {
+    content: 'X';
+    position: absolute;
+    font-size: 20px;
+    color: #f00;
+    top: 0;
+    right: 0;
+}
+#frame2 .start {
+    position: absolute;
+    bottom: 10px;
+    width: 80px;
+    height: 24px;
+    line-height: 24px;
+    color: #ff6445;
+    font-size: 18px;
+    line-height: 20px;
+    left: 50%;
+    margin-left: -40px;
+    border: 2px solid #ff6445;
+    background: #fff;
+    text-align: center;
+    cursor: pointer;
+}
+#frame2 .disable {
+    color: #999;
+    border: 2px solid #999;
+}
+#frameFail {
+    display: none;
+    position: relative;
+    z-index: 8;
+    font-size: 20px;
+    font-weight: bold;
+    width: 200px;
+    margin: 80px auto;
+    color: #ff6445;
+    background: #fff;
+-webkit-border-radius: 10px;
+-moz-border-radius: 10px;
+    border-radius: 10px;
+-webkit-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+-moz-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+    padding: 10px 20px;
+}
+#info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    font-size: 8px;
+    padding: 2px;
+    height: 140px;
+    width: 40%;
+    background-color: #333;
+    color: #fff;
+    opacity: 0.4;
+    overflow: hidden;
+}
+.fromShare #frame1 {
+    display: block;
+    background-image: url(http://ecma.bdimg.com/adtest/centrum140606share.png);
+}
+.fromShare #startgame {
+    display: none;
+}
+#rotateScreen {
+    display: none;
+    text-align: center;
+    font-size: 30px;
+    color: #ff6445;
+    font-weight: bold;
+    line-height: 200px;
+}
+#gameHelp {
+
+}
+/*横屏*/
+@media all and (orientation:landscape) {
+    #controller {
+        display: none;
+    }
+    #rotateScreen {
+        display: block;
+    }
+    .enteringName #controller {
+        display: block;
+    }
+    .enteringName #rotateScreen {
+        display: none;
+    }
+}
