@@ -195,13 +195,28 @@ text-shadow: 1px 1px 2px #ba2103;
     width: 100%;
     height: 100%;
 }
-.myName {
+#frame2 .myName {
+    position: absolute;
+    left: 5px;
+    top: 20px;
     color: #ff6445;
     font-size: 18px;
     line-height: 20px;
 }
+#frame2 .useSeconds {
+    position: absolute;
+    right: 5px;
+    top: 20px;
+    font-size: 15px;
+    color: #333;
+}
 #frame2 .oppoName {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    color: #4a971e;
     font-size: 18px;
+    line-height: 20px;
 }
 #scoreLine {
     position: absolute;
@@ -233,20 +248,34 @@ text-shadow: 1px 1px 2px #ba2103;
 #oppoFruitWrap .oppoDish {
     position: absolute;
     left: -1000px;
-    bottom: 60px;
-    width: 210px;
+    top: 50px;
+    width: 205px;
     height: 11px;
     background: url(http://ecma.bdimg.com/adtest/hks140617dish.png) repeat-x;
-    background-size: auto 100%;
+    background-size: 20% 100%;
+    z-index: 0;
+}
+#fruitWrap #waitTime {
+    color: #ff7255;
+    width: 100px;
+    height: 20px;
+    line-height: 30px;
+    font-size: 30px;
+    position: absolute;
+    text-align: center;
+    top: 100px;
+    left: 50%;
+    margin-left: -50px;
 }
 #fruitWrap .fruitDish {
     position: absolute;
     left: -1000px;
     bottom: 60px;
     height: 16px;
-    width: 310px;
+    width: 300px;
     background: url(http://ecma.bdimg.com/adtest/hks140617dish.png) repeat-x;
-    background-size: auto 100%;
+    background-size: 20% 100%;
+    z-index: 0;
 }
 #oppoFruitWrap .fruit01,
 #fruitWrap .fruit01 {
@@ -276,24 +305,51 @@ text-shadow: 1px 1px 2px #ba2103;
     left: 0;
     top: 0;
     background-size: 100% 100%;
-    border: 1px solid transparent;
+    z-index: 1;
 }
 #oppoFruitWrap .oppoFruits {
     width: 35px;
     height: 35px;
 }
-#fruitWrap .clicked {
-    border: 1px solid #0f0;
+#fruitWrap .holding {
+    width: 70px;
+    height: 70px;
+    margin: -10px 0 0 -10px
+}
+#oppoFruitWrap .fruitRight:after {
+    content: '√';
+    position: absolute;
+    font-size: 25px;
+    color: #0f0;
+    top: 0;
+    right: 0;
+}
+#oppoFruitWrap .fruitErr {
+    opacity: 0.6;
+}
+#oppoFruitWrap .fruitErr:after {
+    content: '╳';
+    position: absolute;
+    font-size: 30px;
+    color: #f00;
+    top: 0;
+    right: 0;
+}
+#fruitWrap .fruitRight:after {
+    content: '√';
+    position: absolute;
+    font-size: 30px;
+    color: #0f0;
+    top: 0;
+    right: 0;
 }
 #fruitWrap .fruitErr {
-    color: #f00;
-    font-size: 40px;
-    border: 1px solid #f00;
+    opacity: 0.6;
 }
 #fruitWrap .fruitErr:after {
-    content: 'X';
+    content: '╳';
     position: absolute;
-    font-size: 20px;
+    font-size: 30px;
     color: #f00;
     top: 0;
     right: 0;

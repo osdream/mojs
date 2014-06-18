@@ -35,6 +35,13 @@ var vender = (function() {
 
     return false;
 })();
+var nextFrame = (function() {
+    return window.requestAnimationFrame ||
+        window[vender + 'RequestAnimationFrame'] ||
+        function(callback) {
+            return setTimeout(callback, 1000 / 60);
+    };
+})();
 var cssPrefix = vender ? '-' + vender.toLowerCase() + '-' : '';
 var transformAttr = prefix('transform');
 var transitionProperty = prefix('transitionProperty');
@@ -217,6 +224,10 @@ var pageCtl = {
     fail: function() {
         $('#frameFail').show();
     },
+    getOppoData: function(data) {
+        fruitsCtl.setOppoInfo(data);
+
+    },
     setScore: function(score) {
         var score = parseInt(score);
         this.curScore = score;
@@ -262,12 +273,13 @@ var fruitsCtl = {
     oppoFruitWrap: $('#oppoFruitWrap'),
     startBtn: $('#frame2 .start'),
     waitTime: $('#waitTime'),
-    readTime: 1000,
+    myTime: $('#fruitWrap .useSeconds'),
+    oppoTime: $('#oppoFruitWrap .oppoUseSeconds'),
+    readTime: 3000,
     originPos: [[0, 0], [60, 0], [120, 0], [180, 0], [240, 0]],
-    targetPos: [[40, 30], [80, 100], [120, 20], [160, 110], [200, 30]],
-    offset: [0, 0],
-    oppoOffset: [0, 0],
+    targetPos: [[40, 30], [80, 80], [120, 20], [160, 90], [200, 30]],
     oppoRatio: [2/3, 2/3],
+    oppoOffsetLeft: 0,
     fruitGap: 10,
     fruitWidth: 50,
     oppoFruitWidth: 35,
@@ -285,38 +297,43 @@ var fruitsCtl = {
             window.scrollTo(0, 1);
             me.reset(true);
             me.startGame = true;
-            me.lastCheckNum = 0;
             me.startBtn.addClass('disable');
             var startTime = new Date().getTime();
-            me.waitTime.text(Math.round(me.readTime/1000));
+            me.myTime.text('');
+            me.waitTime.show().text(Math.round(me.readTime/1000));
             me.checkWaitTime(startTime);
-        });
-        this.fruitWrap.on('click', '.fruits', function() {
-            if(true !== me.gameRefreshed) {
-                return;
-            }
-            me.checkSeq($(this));
         });
         this.initPos();
     },
     initPos: function() {
-        var halfH =  pageCtl.vHeight / 2;
-        this.fruitWrap.height(halfH);
-        this.oppoFruitWrap.height(halfH);
-        var restWidth = pageCtl.vWidth - this.fruitWidth * 5 - this.fruitGap * 4;
-        var offLeft = (restWidth > 0 ? restWidth / 2 : 0);
-        this.offset = [offLeft, halfH - this.dishHeight - this.fruitWidth];
-        var oppoRestWidth = pageCtl.vWidth - this.oppoFruitWidth * 5 - this.fruitGap * 4 * this.oppoRatio[0];
-        var oppoOffLeft = (oppoRestWidth > 0 ? oppoRestWidth / 2 : 0);
-        this.oppoOffset = [oppoOffLeft, halfH - this.dishHeight - this.oppoFruitWidth];
+        var fH = pageCtl.vHeight * 3 / 5;
+        var oH = pageCtl.vHeight * 2 / 5;
+        this.fruitWrap.height(fH);
+        this.oppoFruitWrap.height(oH);
+        var restWidth = pageCtl.vWidth - 300;
+        var offsetLeft = (restWidth > 0 ? restWidth / 2 + 5 : 0);
+        var offsetTop = fH - this.dishHeight - this.fruitWidth;
+        var oppoRestWidth = pageCtl.vWidth - 205;
+        var oppoOffsetLeft = (oppoRestWidth > 0 ? oppoRestWidth / 2 + 3 : 0);
+        this.oppoOffsetLeft = oppoOffsetLeft - restWidth / 2;
+        this.oppoOffsetTop = oH - 100;
         if(hasTransition) {
             [].forEach.call($('.fruits, .oppoFruits'), function(el, index) {
                 el.style[transitionProperty] = cssPrefix + 'transform';
                 el.style[transitionDuration] = '300ms';
             });
         }
-        this.fruitWrap.find('.fruitDish').css('left', offLeft - this.fruitGap / 2);
-        this.oppoFruitWrap.find('.oppoDish').css('left', oppoOffLeft - this.fruitGap * this.oppoRatio[0] / 2);
+        var me = this;
+        [].forEach.call(this.originPos, function(arr, index) {
+            me.originPos[index] = [arr[0] + offsetLeft, arr[1] + offsetTop];
+        });
+        [].forEach.call(this.targetPos, function(arr, index) {
+            me.targetPos[index] = [arr[0] + offsetLeft, arr[1]];
+        });
+        this.originPosTopline = this.originPos[0][1];
+
+        this.fruitWrap.find('.fruitDish').css('left', offsetLeft - this.fruitGap / 2);
+        this.oppoFruitWrap.find('.oppoDish').css('left', oppoOffsetLeft - this.fruitGap * this.oppoRatio[0] / 2);
         this.refreshPos(true);
     },
     checkWaitTime: function(startTime) {
@@ -325,7 +342,7 @@ var fruitsCtl = {
         var goTime = curTime - startTime;
         me.waitTime.text(Math.round((me.readTime - goTime)/1000));
         if(goTime >= me.readTime) {
-            me.waitTime.text('start');
+            me.waitTime.text('start').fadeOut(200);
             me.toFruits = me.createSeq(me.fruits);
             me.refreshPos();
             return;
@@ -345,6 +362,7 @@ var fruitsCtl = {
         var me = this;
         if(!isStart) {
             me.gameRefreshed = true;
+            me.gameStartTime = new Date().getTime();
         }
         [].forEach.call(this.fruitDoms, function(el, index) {
             me.setFruitPos(el, index, isStart);
@@ -352,6 +370,7 @@ var fruitsCtl = {
         [].forEach.call(this.oppoFruitDoms, function(el, index) {
             me.setFruitPos(el, index, isStart, true);
         });
+        this.dragRightNum = 0;
     },
     setFruitPos: function(el, index, isStart, isOppo) {
         if(isStart) {
@@ -361,56 +380,82 @@ var fruitsCtl = {
             var pos = this.targetPos[this.toFruits[index] - 1];
         }
         if(isOppo) {
-            pos = [pos[0] * this.oppoRatio[0] + this.oppoOffset[0], pos[1] * this.oppoRatio[1] + (isStart ? this.oppoOffset[1] : 20)];
+            pos = [pos[0] * this.oppoRatio[0] + this.oppoOffsetLeft, pos[1] * this.oppoRatio[1] + (isStart ? -this.oppoOffsetTop : 60)];
         } else {
-            pos = [pos[0] + this.offset[0], pos[1] + (isStart ? this.offset[1] : 10)];
+            pos = [pos[0], pos[1] + (isStart ? 0 : 10)];
+            $(el).data('pos', pos);
+            $(el).removeClass('droped');
         }
         this._setPos(el, pos);
-        $(el).data('pos', pos);
     },
     _setPos: function(el, pos) {
         if(hasTransition) {
-            el.style[transformAttr] = 'translate(' + pos[0] + 'px, ' + pos[1] + 'px)';
+            el.style[transformAttr] = 'translate3d(' + pos[0] + 'px, ' + pos[1] + 'px, 0)';
         } else {
             $(el).animate({left: pos[0], top: pos[1]});
         }
     },
-    checkSeq: function(ele) {
+    checkSeq: function(ele, index, isOppo) {
         if(!this.startGame) {
             return;
         }
         var curDom = $(ele);
-        if(curDom.hasClass('clicked')) {
+        if(curDom.hasClass('fruitRight')) {
             return;
         }
-        this.lastCheckNum++;
-        var oriFruit = this.fruits[this.lastCheckNum - 1];
+        var oriFruit = this.fruits[index];
         if(curDom.hasClass('fruit0' + oriFruit)) {
-            curDom.addClass('clicked');
+            curDom.addClass('fruitRight');
         } else {
-            this.checkFail(curDom);
-            return;
+            ele.addClass('fruitErr');
+            if(!isOppo) {
+                this.checkFail(curDom);
+                return;
+            }
         }
-        if(5 == this.lastCheckNum) {
+        if(!isOppo) {
+            this.dragRightNum++;
+        }
+        if(5 == this.dragRightNum && !isOppo) {
             this.checkOK();
         }
     },
     checkFail: function(ele) {
+        this.setSeconds();
         this.startGame = false;
+        this.gameRefreshed = false;
         this.startBtn.removeClass('disable');
         this.startBtn.text('重新开始');
-        ele.addClass('fruitErr');
     },
     checkOK: function() {
+        this.setSeconds();
         this.startGame = false;
+        this.gameRefreshed = false;
         this.startBtn.removeClass('disable');
         alert('COOL');
         this.startBtn.text('重新开始');
         this.reset();
     },
+    setSeconds: function() {
+        //test
+        pageCtl.getOppoData({fruits: [[3,1],[2,2],[0,4],[1,3],[4,0]], time: 23.445});
+        var now = new Date().getTime();
+        deltaTime = (now - this.gameStartTime) / 1000;
+        this.myTime.text(deltaTime + '秒');
+    },
+    setOppoInfo: function(data) {
+        var fruitsArr = data['fruits'];
+        var useTime = data['time'];
+        var me = this;
+        fruitsArr.forEach(function(arr, index) {
+            var el = me.oppoFruitDoms[arr[0]];
+            me.checkSeq(el, arr[1], true);
+            me.setFruitPos(el, arr[1], false, true);
+        });
+        this.oppoTime.text(useTime);
+    },
     reset: function(isStart) {
-        this.fruitDoms.removeClass('clicked').removeClass('fruitErr');
-        this.gameRefreshed = false;
+        this.fruitDoms.removeClass('fruitRight').removeClass('fruitErr');
         if(isStart) {
             this.fruits = this.createSeq(this.fruits);
             this.toFruits = this.fruits.slice();
@@ -502,91 +547,20 @@ connectHandler.prototype.get= function(data) {
 connectHandler.prototype.destroy = function() {
     pageCtl.finish();
     this.connect.destroy();
-    orientation.stop();
 };
-
-function Orientation() {
-    this.hasDeviceOrientation = 'ondeviceorientation' in window;
-
-    this.threshold = 0.5;
-    this.timeInterval = 300;
-
-    this.lastTime = new Date();
-    this.lastOrientationTime = new Date();
-
-    this.lastZ = null;
-};
-
-Orientation.prototype.reset = function() {
-    this.lastTime = new Date();
-
-    this.lastZ = null;
-};
-
-/**
- * 开始手机翻转互动
- * @return {boolean} true: 支持并使用手机翻转, false: 不支持手机翻转
- */
-Orientation.prototype.start = function() {
-    if(!this.hasDeviceOrientation) {
-        _log('[INFO] 你的手机不支持通过手机翻转与电脑的互动，将使用控制杆操作。');
-        dragCtrl.setType('handler');
-        return false;
-    }
-    this.reset();
-    window.addEventListener('deviceorientation', this, false);
-    return true;
-};
-
-Orientation.prototype.stop = function () {
-    if (this.hasDeviceOrientation) { window.removeEventListener('deviceorientation', this, false); }
-    this.reset();
-};
-
-Orientation.prototype.deviceorientation = function(e) {
-    var currentTime = new Date();
-    timeDifference = currentTime.getTime() - this.lastOrientationTime.getTime();
-    if(timeDifference > this.timeInterval) {
-        this.lastOrientationTime = new Date();
-        var a = isFirefox ? Math.round(-e.alpha) : Math.round(e.alpha);
-        var b = isFirefox ? Math.round(-e.beta)  : Math.round(e.beta);
-        var g = isFirefox ? Math.round(-e.gamma) : Math.round(e.gamma);
-        var deltaZ = 0;
-        if (this.lastZ === null) {
-            this.lastZ = g;
-            return;
-        }
-
-        deltaZ = Math.abs(this.lastZ - g);
-        //+(conn.connId > 1) for send latencyTime to PC ASAP
-        //if(deltaZ < 5 && conn.connId > 1) {
-        if(deltaZ < 5) {
-            return;
-        }
-        this.lastZ = g;
-        conn.send('ori', [a, b, g]);
-    }
-};
-
-Orientation.prototype.handleEvent = function(e) {
-    if ('function' === typeof (this[e.type])) {
-        return this[e.type](e);
-    }
-};
-
 //var conn = new connectHandler();
-//var orientation = new Orientation();
 
 //滑块控制
 var dragCtrl = {
+    catchDis: 25,//距离盘子多少被捕获
+    dragDropIndex: null,
     init: function(options) {
         this.hammerInited = false;
-        this.dragDom = $('#drag')[0];
         this.lastLeft = null;
         this.lastTop = null;
 
         options = options || {};
-        this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
+        this.positionEmitInter = options['positionEmitInter'] || 200; //发送位移时间间隔
         //位移监听回调
         this.positionListener = options['positionListener'] || function() {
             var moLeft = this.moLeft;
@@ -619,7 +593,7 @@ var dragCtrl = {
         var container = fruitsCtl.fruitWrap[0];
         var hammertime = new Hammer(container, { drag_max_touches: 0 });
         hammertime.on("touch", function(ev) {
-            if(ev.target.className.indexOf("fruits") >= 0) {
+            if(fruitsCtl.gameRefreshed && ev.target.className.indexOf("fruits") >= 0 && ev.target.className.indexOf("droped") < 0) {
                 dragCtrl.holding = true;
                 dragCtrl.catchEvt(ev, true);
             }
@@ -628,16 +602,26 @@ var dragCtrl = {
             dragCtrl.catchEvt(ev);
         });
         hammertime.on("touchend dragend", function(ev) {
-            dragCtrl.resetPos();
+            if(dragCtrl.holding) {
+                dragCtrl.resetPos();
+            }
         });
     },
     resetPos: function() {
         this.holding = false;
         clearTimeout(this.positionEmitter);
-        this.setDragPos(this.dragInitPos[0], this.dragInitPos[1]);
+        this.dragingDom.style[transitionProperty] = cssPrefix + 'transform';
+        if(null !== this.dragDropIndex) {
+            this.setDragPos(fruitsCtl.originPos[0], fruitsCtl.originPos[1], true);
+            fruitsCtl.checkSeq(this.dragingDom, this.dragDropIndex);
+            $(this.dragingDom).addClass('droped');
+        } else {
+            this.setDragPos(this.dragInitPos[0], this.dragInitPos[1], true);
+        }
+        $(this.dragingDom).removeClass('holding');
         this.initTouchX = 0;
         this.initTouchY = 0;
-        this.dragingDom = null;
+        this.dragDropIndex = null;
     },
     move: function(toLeft, toTop) {
         var moLeft = toLeft - this.initTouchX;
@@ -651,11 +635,37 @@ var dragCtrl = {
 
         this.moLeft = moLeft;
         this.moTop = moTop;
+        this.checkDragPos(tarLeft, tarTop);
+    },
+    //check if the fruit is near the dish
+    checkDragPos: function(tarLeft, tarTop) {
+        if(tarTop < fruitsCtl.originPosTopline - 25 || tarTop > fruitsCtl.originPosTopline + 25) {
+            this.setDragPos(tarLeft, tarTop);
+            return;
+        }
+        for(var i = 0, len = fruitsCtl.originPos.length; i < len; i++) {
+            var pos = fruitsCtl.originPos[i];
+            var dis = utils.calculPy(tarLeft - pos[0], tarTop - pos[1]);
+            if(dis < this.catchDis) {
+                this.dragDropIndex = i;
+                this.setDragPos(pos[0], pos[1]);
+                return;
+            }
+        }
+        this.dragDropIndex = null;
         this.setDragPos(tarLeft, tarTop);
     },
-    setDragPos: function(tarLeft, tarTop) {
-        _log([tarLeft, tarTop, 0]);
-        fruitsCtl._setPos(this.dragingDom, [tarLeft, tarTop]);
+    setDragPos: function(tarLeft, tarTop, isReset) {
+        var me = this;
+        nextFrame(function() {
+            if(me.dragingDom) {
+                me.dragingDom.style[transformAttr] = 'translate3D(' + tarLeft + 'px, ' + tarTop + 'px, 0)';
+            }
+            if(isReset) {
+                me.dragingDom = null;
+            }
+        });
+        //fruitsCtl._setPos(this.dragingDom, [tarLeft, tarTop]);
     },
     catchEvt: function(ev, isTouch) {
         if(!this.holding) {
@@ -677,9 +687,10 @@ var dragCtrl = {
                 this.initTouchX = proxyX;
                 this.initTouchY = proxyY;
                 this.dragInitPos = $(target).data('pos');
-                _log(this.dragInitPos);
+                $(target).addClass('holding');
                 this.holding = true;
                 this.dragingDom = target;
+                target.style[transitionProperty] = 'none';
                 this.tickTack();
             }
             dragCtrl.move(proxyX, proxyY);
