@@ -407,7 +407,7 @@ var fruitsCtl = {
         if(curDom.hasClass('fruit0' + oriFruit)) {
             curDom.addClass('fruitRight');
         } else {
-            ele.addClass('fruitErr');
+            curDom.addClass('fruitErr');
             if(!isOppo) {
                 this.checkFail(curDom);
                 return;
