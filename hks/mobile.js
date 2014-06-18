@@ -95,8 +95,6 @@ var utils = {
         return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
     }
 }
-//firefox的角度偏转是反的
-var isFirefox = /firefox/i.test(navigator.userAgent);
 //页面控制
 var pageCtl = {
     curScore: 0,
@@ -315,7 +313,7 @@ var fruitsCtl = {
         var offsetTop = fH - this.dishHeight - this.fruitWidth;
         var oppoRestWidth = pageCtl.vWidth - 205;
         var oppoOffsetLeft = (oppoRestWidth > 0 ? oppoRestWidth / 2 + 3 : 0);
-        this.oppoOffsetLeft = oppoOffsetLeft - restWidth / 2;
+        this.oppoOffsetLeft = oppoOffsetLeft - restWidth * this.oppoRatio[0] / 2;
         this.oppoOffsetTop = oH - 100;
         if(hasTransition) {
             [].forEach.call($('.fruits, .oppoFruits'), function(el, index) {
