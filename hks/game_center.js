@@ -25,6 +25,7 @@ function GameCenter(options) {
     this.hostToken = null;
     this.started = false;
     this.listeners = {};
+    this.roomData = null;
 }
 
 /**
@@ -60,6 +61,13 @@ GameCenter.prototype.getUrl = function(path) {
 };
 
 /**
+ * 获取房间信息
+ */
+GameCenter.prototype.getRoomData = function() {
+    return this.roomData;
+};
+
+/**
  * 创建本地房间
  *
  * @param {Function} callback
@@ -69,6 +77,7 @@ GameCenter.prototype.createLocalRoom = function(callback) {
     $.getJSON(url)
         .done(function(data) {
             if (data.success) {
+                me.roomData = data;
                 callback(null, data.result.token);
             }
             else {
@@ -239,6 +248,7 @@ GameCenter.prototype.tryEnterRoom = function(token, callback) {
     $.getJSON(url)
         .done(function(data) {
             if (data.success) {
+                me.roomData = data;
                 var isNeedInformHost = data.result.entered && data.result.full;
                 callback(null, token, isNeedInformHost);
             }
@@ -259,6 +269,7 @@ GameCenter.prototype.searchRandomRoom = function() {
     $.getJSON(url)
         .done(function(data) {
             if (data.success) {
+                me.roomData = data;
                 callback(null, data.result.token);
             }
             else {
