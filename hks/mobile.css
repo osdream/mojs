@@ -21,16 +21,6 @@ body.loading {
     height: 100%;
     overflow: hidden;
 }
-.logo {
-    position: absolute;
-    top: 10px;
-    left: 14px;
-    width: 58px;
-    height: 51px;
-    background: url(http://ecma.bdimg.com/adtest/centrum140528logo.png) 0 0 no-repeat;
-    z-index: 10;
-    display: none;
-}
 .bg-top {
     position: absolute;
     top: 0;
@@ -195,28 +185,38 @@ text-shadow: 1px 1px 2px #ba2103;
     width: 100%;
     height: 100%;
 }
-#frame2 .myName {
+#frame2 .myTime,
+#frame2 .oppoTime {
     position: absolute;
-    left: 5px;
-    top: 20px;
+    width: 90px;
+    height: 40px;
+    right: 5px;
+    top: -5px;
     color: #ff6445;
-    font-size: 18px;
+    font-size: 15px;
     line-height: 20px;
+    z-index: 10;
+    text-align: center;
+    background-color: #97c0fd;
+-webkit-border-radius: 5px;
+   -moz-border-radius: 5px;
+        border-radius: 5px;
+    border: 5px solid #fff;
+}
+#frame2 .myTime span,
+#frame2 .oppoTime span {
+    display: block;
 }
 #frame2 .useSeconds {
-    position: absolute;
-    right: 5px;
-    top: 20px;
-    font-size: 15px;
-    color: #333;
+    font-size: 14px;
 }
-#frame2 .oppoName {
-    position: absolute;
+#frame2 .oppoTime {
+    top: auto;
+    right: auto;
     left: 5px;
-    top: 5px;
+    bottom: -5px;
     color: #4a971e;
-    font-size: 18px;
-    line-height: 20px;
+    background-color: #de8cfa;
 }
 #scoreLine {
     position: absolute;
@@ -236,6 +236,7 @@ text-shadow: 1px 1px 2px #ba2103;
     text-align: center;
     line-height: 17px;
     background-color: #f7f7f7;
+    z-index: 1;
 }
 #oppoFruitWrap,
 #fruitWrap {
@@ -254,6 +255,14 @@ text-shadow: 1px 1px 2px #ba2103;
     background: url(http://ecma.bdimg.com/adtest/hks140617dish.png) repeat-x;
     background-size: 20% 100%;
     z-index: 0;
+}
+#oppoFruitWrap .oppoReady {
+    width: 100px;
+    height: 20px;
+    line-height: 20px;
+    font-size: 20px;
+    color: #ff7255;
+    text-align: center;
 }
 #fruitWrap #waitTime {
     color: #ff7255;
@@ -385,11 +394,11 @@ text-shadow: 1px 1px 2px #ba2103;
     color: #ff6445;
     background: #fff;
 -webkit-border-radius: 10px;
--moz-border-radius: 10px;
-    border-radius: 10px;
+   -moz-border-radius: 10px;
+        border-radius: 10px;
 -webkit-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
--moz-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
-    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+   -moz-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
     padding: 10px 20px;
 }
 #info {

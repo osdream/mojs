@@ -3,8 +3,60 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
     <title></title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
 </head>
 <body>
 hello,you
+<script type="text/javascript" charset="utf-8">
+function _log(msg, dom) {
+    console && console.log(msg);
+}
+(function (window, document) {
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
+
+function makeQR(token) {
+    require(['muses/tool'], function(tool) {
+        var QRCode = tool.QRCode;
+        $("body").append($('<div id="qr"></div>'));
+        var qrcode = new QRCode('qr', {
+            text: "http://dev046.baidu.com:8092/hks/mobile.html?muses_scepter=" + token,
+            width: 120,
+            height: 120,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.L
+        });
+    });
+}
+
+// 加载Connect模块
+require(['muses/connect'], function(Connect) {
+    window.connect = new Connect();
+    connect.onTokenExpired = function() {
+        _log('Expired~');
+        connect.destroy()
+            .then(function() {
+                makeConnect();
+            });
+    };
+    function makeConnect() {
+        connect.createToken()
+            .then(function(token) {
+                makeQR(token);
+            })
+            .fail(function(err) {
+                _log('[ERROR] 创建游戏失败，' + (err ? err : ''));
+            });
+    }
+    makeConnect();
+});
+
+})(window, document);
+</script>
 </body>
 </html>

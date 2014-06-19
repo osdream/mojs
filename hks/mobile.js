@@ -10,6 +10,10 @@ function _log(s, dom) {
     console && console.log(s);
     return;
 }
+function _err(s, dom) {
+    alert(s);
+    return;
+}
 
 //browser detect
 function prefix(style) {
@@ -94,7 +98,8 @@ var utils = {
     calculPy: function(l, w) {
         return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
     }
-}
+};
+
 //页面控制
 var pageCtl = {
     curScore: 0,
@@ -268,16 +273,17 @@ pageCtl.init();
 var fruitsCtl = {
     startGame: false,
     fruitWrap: $('#fruitWrap'),
-    oppoFruitWrap: $('#oppoFruitWrap'),
     startBtn: $('#frame2 .start'),
     waitTime: $('#waitTime'),
     myTime: $('#fruitWrap .useSeconds'),
-    oppoTime: $('#oppoFruitWrap .oppoUseSeconds'),
     readTime: 3000,
     originPos: [[0, 0], [60, 0], [120, 0], [180, 0], [240, 0]],
     targetPos: [[40, 30], [80, 80], [120, 20], [160, 90], [200, 30]],
+    oppoFruitWrap: $('#oppoFruitWrap'),
+    oppoTime: $('#oppoFruitWrap .useSeconds'),
     oppoRatio: [2/3, 2/3],
     oppoOffsetLeft: 0,
+    oppoReady: $('#oppoFruitWrap .oppoReady'),
     fruitGap: 10,
     fruitWidth: 50,
     oppoFruitWidth: 35,
@@ -436,7 +442,8 @@ var fruitsCtl = {
     },
     setSeconds: function() {
         //test
-        pageCtl.getOppoData({fruits: [[3,1],[2,2],[0,4],[1,3],[4,0]], time: 23.445});
+        //pageCtl.getOppoData({fruits: [[3,1],[2,2],[0,4],[1,3],[4,0]], time: 23.445});
+        pageCtl.getOppoData({fruits: [[3,1],[2,2],[0,4]], time: 13.142});
         var now = new Date().getTime();
         deltaTime = (now - this.gameStartTime) / 1000;
         this.myTime.text(deltaTime + '秒');
@@ -448,7 +455,7 @@ var fruitsCtl = {
         fruitsArr.forEach(function(arr, index) {
             var el = me.oppoFruitDoms[arr[0]];
             me.checkSeq(el, arr[1], true);
-            me.setFruitPos(el, arr[1], false, true);
+            me.setFruitPos(el, arr[1], true, true);
         });
         this.oppoTime.text(useTime);
     },
@@ -460,15 +467,65 @@ var fruitsCtl = {
             this.refreshPos(true);
         }
     }
-}
+};
 fruitsCtl.init();
+
+//比赛
+var competition = function(option) {
+    this.ready = false;
+    if(!option['conn'] || !option['isMaster']) {
+        _err('未能成功匹配对手');
+        return;
+    }
+    this.reset();
+    this.isMaster = option['isMaster'];
+    this.conn = option['conn'];
+    this.init();
+};
+competition.prototype.init = function() {
+    this.competeTimes = 3;
+    this.curCompeteTime = 0;
+    this.status = 'waiting';
+    this.myStatus = {
+        status: 'waiting',
+        score: 0
+    };
+    this.opStatus = {
+        status: 'waiting',
+        score: 0
+    };
+};
+competition.prototype.handleMyStatus = function() {
+
+};
+competition.prototype.handleOpStatus = function() {
+
+};
+competition.prototype.checkStatus = function() {
+    var ms = this.myStatus['status'];
+    var os = this.opStatus['status'];
+    switch(this.status) {
+        case 'waiting':
+            if('ready' == ms && 'ready' == os) {
+                this.startComp();
+            }
+            break;
+    }
+};
+competition.prototype.startComp = function() {
+    this.setStatus('playing');
+};
+competition.prototype.setStatus = function(status) {
+    this.status = status;
+    this.conn.send({'status': status});
+};
+competition.prototype.reset = function() {
+    this.myStatus = null;
+    this.opStatus = null;
+};
 
 //WebSocket连接处理
 var connectHandler = function() {
-    this.connCache = {};
-    this.connId = 0;
-    this.lastLateConnId = -1;
-    //this.latencyTime = null;
 };
 connectHandler.prototype.prepare = function() {
     require.config({
@@ -508,12 +565,6 @@ connectHandler.prototype.fail = function(connect) {
     pageCtl.fail();
 };
 connectHandler.prototype.send = function(type, data) {
-    var sendTime = new Date().getTime();
-    this.connCache[this.connId] = sendTime;
-    //var latencyTime = this.latencyTime || null;
-    //this.connect.send([this.connId, sendTime, type, data, latencyTime]);
-    this.connect.send([this.connId, sendTime, type, data]);
-    this.connId++;
 };
 connectHandler.prototype.get= function(data) {
     var type = "msg";
@@ -526,17 +577,6 @@ connectHandler.prototype.get= function(data) {
     }
     if('end' == type) {
         this.destroy();
-    }
-    if('late' == type) {
-        return;//no latencyTime check
-        var curTime = new Date().getTime();
-        if(this.lastLateConnId < data && this.connCache[data]) {
-            this.lastLateConnId = data;
-            this.latencyTime = Math.round((curTime - this.connCache[data])/2);
-            _log('Net latencyTime: ' + this.latencyTime);
-            this.connCache[data] = null;
-            delete this.connCache[data];
-        }
     }
     if('score' == type) {
         pageCtl.setScore(data);
@@ -571,8 +611,6 @@ var dragCtrl = {
             }
             var deltaLeft = Math.abs(moLeft - this.lastLeft);
             var deltaTop = Math.abs(moTop - this.lastTop);
-            //+(conn.connId > 1) for send latencyTime to PC ASAP
-            //if(deltaLeft <= 5 && conn.connId > 1) {
             if(utils.calculPy(deltaLeft, deltaTop) <= 5) {
                 return;
             }
@@ -637,21 +675,24 @@ var dragCtrl = {
     },
     //check if the fruit is near the dish
     checkDragPos: function(tarLeft, tarTop) {
-        if(tarTop < fruitsCtl.originPosTopline - 25 || tarTop > fruitsCtl.originPosTopline + 25) {
-            this.setDragPos(tarLeft, tarTop);
-            return;
-        }
-        for(var i = 0, len = fruitsCtl.originPos.length; i < len; i++) {
-            var pos = fruitsCtl.originPos[i];
-            var dis = utils.calculPy(tarLeft - pos[0], tarTop - pos[1]);
-            if(dis < this.catchDis) {
-                this.dragDropIndex = i;
-                this.setDragPos(pos[0], pos[1]);
-                return;
+        var catched = (tarTop > fruitsCtl.originPosTopline - 25 && tarTop < fruitsCtl.originPosTopline + 25);
+        if(catched) {
+            catched = false;
+            for(var i = 0, len = fruitsCtl.originPos.length; i < len; i++) {
+                var pos = fruitsCtl.originPos[i];
+                var dis = utils.calculPy(tarLeft - pos[0], tarTop - pos[1]);
+                if(dis < this.catchDis) {
+                    this.dragDropIndex = i;
+                    this.setDragPos(pos[0], pos[1]);
+                    catched = true;
+                    break;
+                }
             }
         }
-        this.dragDropIndex = null;
-        this.setDragPos(tarLeft, tarTop);
+        if(!catched) {
+            this.dragDropIndex = null;
+            this.setDragPos(tarLeft, tarTop);
+        }
     },
     setDragPos: function(tarLeft, tarTop, isReset) {
         var me = this;
