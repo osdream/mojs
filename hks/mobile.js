@@ -360,6 +360,7 @@ var fruitsCtl = {
     oppoFruitWidth: 35,
     dishHeight: 80,
     init: function() {
+        window.scrollTo(0, 1);
         this.bgPrefix = 'http://ecma.bdimg.com/adtest/hks140615fruit0';
         this.fruitDoms = this.fruitWrap.find('.fruits');
         this.oppoFruitDoms = this.oppoFruitWrap.find('.oppoFruits');
@@ -369,14 +370,9 @@ var fruitsCtl = {
             if(true === me.startGame) {
                 return;
             }
-            window.scrollTo(0, 1);
             me.reset(true);
-            me.startGame = true;
             me.startBtn.addClass('disable');
-            var startTime = new Date().getTime();
-            me.myTime.text('');
-            me.waitTime.show().text(Math.round(me.readTime/1000));
-            me.checkWaitTime(startTime);
+            pageCtl.comp && pageCtl.comp.setStatus('ready');
         });
         this.initPos();
     },
@@ -419,7 +415,7 @@ var fruitsCtl = {
         if(goTime >= me.readTime) {
             me.waitTime.text('start').fadeOut(200);
             //me.toFruits = me.createSeq(me.fruits);
-            me.toFruits = me.fruits.slice();//FIXME
+            //me.toFruits = me.fruits.slice();//FIXME
             me.refreshPos();
             return;
         }
@@ -494,14 +490,14 @@ var fruitsCtl = {
         this.startGame = false;
         this.gameRefreshed = false;
         this.startBtn.removeClass('disable');
-        this.startBtn.text('重新开始');
+        //this.startBtn.text('重新开始');
     },
     checkOK: function() {
         this.setSeconds();
         this.startGame = false;
         this.gameRefreshed = false;
         this.startBtn.removeClass('disable');
-        this.startBtn.text('重新开始');
+        //this.startBtn.text('重新开始');
         this.reset();
     },
     setSeconds: function() {
@@ -527,10 +523,19 @@ var fruitsCtl = {
         this.fruitDoms.removeClass('fruitRight').removeClass('fruitErr');
         if(isStart) {
             //this.fruits = this.createSeq(this.fruits);
-            this.toFruits = this.fruits.slice();//FIXME
-            this.toFruits = this.fruits.slice();
+            //this.fruits = this.fruits.slice();//FIXME
+            //this.toFruits = this.fruits.slice();
             this.refreshPos(true);
         }
+    },
+    startTask: function(curFruits, tarFruits) {
+        this.fruits = curFruits;
+        this.toFruits = tarFruits;
+        this.startGame = true;
+        var startTime = new Date().getTime();
+        this.myTime.text('');
+        this.waitTime.show().text(Math.round(this.readTime/1000));
+        this.checkWaitTime(startTime);
     }
 };
 fruitsCtl.init();
@@ -586,22 +591,27 @@ competition.prototype.checkStatus = function() {
     switch(this.status) {
         case 'waiting':
             if('ready' == ms && 'ready' == os) {
+                this.status = 'playing';
                 this.startComp();
             }
             break;
     }
 };
 competition.prototype.startComp = function() {
-    this.setStatus('playing');
+    var curFruits = this.taskHashs[this.curCompeteTime];
+    var tarFruits = this.taskHashs[this.curCompeteTime + this.competeTimes];
+    fruitsCtl.startTask(curFruits, tarFruits);
 };
 competition.prototype.setStatus = function(status) {
-    this.status = status;
-    this.conn.send({'status': status});
+    this.myStatus.status = status;
+    this.checkStatus();
+    this.send({'status': status});
 };
 competition.prototype.reset = function() {
     this.myStatus = null;
     this.opStatus = null;
 };
+//对手连接成功
 competition.prototype.getOppo = function(data) {
     if(this.isMaster) {//主机发题
         this.send({
@@ -618,10 +628,12 @@ competition.prototype.send = function(data) {
     this.conn.send(dataObj);
 };
 competition.prototype.get = function(data) {
-    if(!this.isMaster) {
+    if(!this.isMaster && data.tasks) {
         this.taskHashs = data.tasks;
         console.log(this.taskHashs);
     }
+    this.opStatus.status = data.status;
+    this.checkStatus();
 }
 
 //滑块控制
