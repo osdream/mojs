@@ -56,7 +56,7 @@ GameCenter.Events = {
  * @return {string}
  */
 GameCenter.prototype.getUrl = function(path) {
-    return this.host + path;
+    return this.host + path + '?callback=?';
 };
 
 /**
@@ -213,8 +213,16 @@ GameCenter.prototype.playerStart = function(player) {
         });
     }
     else {
-        this.searchRandomRoom(function(token) {
-            me.connectAsPlayer(token);
+        this.searchRandomRoom(function(err, token) {
+            if (!err) {
+                me.connectAsPlayer(token);
+            }
+            else {
+                me.trigger(
+                    GameCenter.Events.ERROR,
+                    err
+                );
+            }
         });
     }
 };
