@@ -1,4 +1,5 @@
 (function (window, document) {
+var context = {};
 
 //var notFromShare = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)$/);
 //if(!notFromShare) {
@@ -97,8 +98,58 @@ var utils = {
     /*计算直角边*/
     calculPy: function(l, w) {
         return Math.sqrt(Math.pow(l, 2) + Math.pow(w, 2));
+    },
+    waitVariableExists: function(varName, context, callback) {
+        var timer = null;
+        function check() {
+            if (context[varName]) {
+                timer && clearTimeout(timer);
+                callback(context[varName]);
+            }
+            else {
+                timer = setTimeout(check, 200);
+            }
+        }
+        check();
     }
-};
+}
+
+context.gameCenter = null;
+context.connect = null;
+context.oppoPlayers = [];
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
+// 加载Connect模块
+require(['muses/connect'], function(Connect) {
+    var gameCenter = new GameCenter({
+        MusesConnect: Connect
+    });
+    context.gameCenter = gameCenter;
+
+    gameCenter.addListener(
+        GameCenter.Events.ROOM_ENTERED,
+        function(conn) {
+            context.connect = conn;
+        }
+    );
+    var oppoExist = false;
+    gameCenter.addListener(
+        GameCenter.Events.OPPONENT_ENTER_ROOM
+        function(conn, oppoPlayer) {
+            // 如果有多个玩家，抛弃后面的玩家...
+            if (oppoExist) {
+                return;
+            }
+            context.oppoPlayers.push(oppoPlayer);
+            // 通知页面对手信息
+            pageCtl.getOppo(oppoPlayer.userName);
+            oppoExist = true;
+        }
+    );
+});
 
 //页面控制
 var pageCtl = {
@@ -146,7 +197,7 @@ var pageCtl = {
     },
     start: function() {
         if(!pageCtl.imageLoaded) {
-            settimeout(function() {
+            setTimeout(function() {
                 pageCtl.start();
             }, 1000);
             return;
@@ -186,6 +237,16 @@ var pageCtl = {
         this.nameDom.blur();
         this.closeFrame1();
         $('.myName').html(this.userName);
+        // 在用户输入名称之后启动GameCenter
+        var me = this;
+        utils.waitVariableExists('gameCenter', context, function() {
+            context.gameCenter.start(
+                GameCenter.ClientMode.PLAYER,
+                {
+                    userName: me.userName
+                }
+            );
+        });
         this.findingOppo();
     },
     findingOppo: function() {
@@ -194,9 +255,9 @@ var pageCtl = {
         this.isFinding = true;
         this.findingAnimation();
         //test
-        setTimeout(function() {
-            pageCtl.getOppo();
-        }, 1000);
+        // setTimeout(function() {
+        //     pageCtl.getOppo();
+        // }, 1000);
     },
     findingAnimation: function() {
         var dotNum = 3;
@@ -747,4 +808,5 @@ var dragCtrl = {
     }
 };
 dragCtrl.init();
+
 })(window, document);
