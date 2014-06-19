@@ -46,7 +46,8 @@ GameCenter.Events = {
     HOST_TOKEN_CREATED: 'HOST_TOKEN_CREATED', // PC上的需要关注的事件：新的本地房间token已创建，需要去更新二维码
     HOST_TOKEN_EXPIRED: 'HOST_TOKEN_EXPIRED', // GameCenter 内部事件，不用管
     ROOM_ENTERED: 'ROOM_ENTERED', // 手机事件：自己进入房间了
-    OPPONENT_ENTER_ROOM: 'OPPONENT_ENTER_ROOM' // 手机事件：对方进入房间了
+    OPPONENT_ENTER_ROOM: 'OPPONENT_ENTER_ROOM', // 手机事件：对方进入房间了
+    PLAYER_MESSAGE_RECEIVED: 'PLAYER_MESSAGE_RECEIVED' // 收到对方玩家消息
 };
 
 /**
@@ -297,7 +298,7 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
             .connectWith(token)
             .then(function() {
                 // 回调
-                afterHandler(connect);
+                afterHandler && afterHandler(connect);
 
                 // EVENT: 已进入房间，但还不确定是否有对手在
                 me.trigger(
@@ -330,6 +331,9 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                                 break;
                             }
                         }
+                    }
+                    else if (msg.type == 'message') {
+                        me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg.data);
                     }
                 };
                 /**

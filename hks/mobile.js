@@ -135,6 +135,12 @@ require(['muses/connect'], function(Connect) {
             context.connect = conn;
         }
     );
+    gameCenter.addListener(
+        GameCenter.Events.PLAYER_MESSAGE_RECEIVED,
+        function(data) {
+
+        }
+    );
     var oppoExist = false;
     gameCenter.addListener(
         GameCenter.Events.OPPONENT_ENTER_ROOM,
@@ -585,6 +591,13 @@ competition.prototype.reset = function() {
     this.myStatus = null;
     this.opStatus = null;
 };
+competition.prototype.send = function(data) {
+    var dataObj = {
+        type: 'message',
+        data: data
+    };
+    this.conn.send(dataObj);
+}
 
 //WebSocket连接处理
 var connectHandler = function() {
