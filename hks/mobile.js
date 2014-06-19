@@ -137,7 +137,7 @@ require(['muses/connect'], function(Connect) {
     );
     var oppoExist = false;
     gameCenter.addListener(
-        GameCenter.Events.OPPONENT_ENTER_ROOM
+        GameCenter.Events.OPPONENT_ENTER_ROOM,
         function(conn, oppoPlayer) {
             // 如果有多个玩家，抛弃后面的玩家...
             if (oppoExist) {
@@ -168,6 +168,7 @@ var pageCtl = {
       'http://ecma.bdimg.com/adtest/hks140615fruit02.png', 'http://ecma.bdimg.com/adtest/hks140615fruit03.png',
       'http://ecma.bdimg.com/adtest/hks140615fruit04.png', 'http://ecma.bdimg.com/adtest/hks140615fruit05.png',
       'http://ecma.bdimg.com/adtest/hks140617dish.png'],
+    comp: null,
     init: function() {
         //预加载图片
         $.imgpreload(this.preImages, {

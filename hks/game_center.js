@@ -1,14 +1,14 @@
 /***************************************************************************
- * 
+ *
  * Copyright (c) 2014 Baidu.com, Inc. All Rights Reserved
  * $Id$
- * 
+ *
  **************************************************************************/
- 
- 
+
+
 /*
  * path:    game_center.js
- * desc:    
+ * desc:
  * author:  songao(songao@baidu.com)
  * version: $Revision$
  * date:    $Date: 2014/06/19 15:03:04$
@@ -246,7 +246,7 @@ GameCenter.prototype.tryEnterRoom = function(token, callback) {
 /**
  * 搜寻随机房间
  */
-GameCenter.prototype.searchRandomRoom = function() {
+GameCenter.prototype.searchRandomRoom = function(callback) {
     var url = this.getUrl('/room/search');
     $.getJSON(url)
         .done(function(data) {
