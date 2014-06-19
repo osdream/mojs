@@ -116,7 +116,6 @@ var utils = {
 
 context.gameCenter = null;
 context.connect = null;
-context.oppoPlayers = [];
 require.config({
     paths: {
         'muses': 'http://ecma.bdimg.com/lego-mat/muses'
@@ -133,12 +132,16 @@ require(['muses/connect'], function(Connect) {
         GameCenter.Events.ROOM_ENTERED,
         function(conn) {
             context.connect = conn;
+            pageCtl.comp = new competition({
+                conn: conn,
+                isMaster: !gameCenter.getRoomData().result.full
+            });
         }
     );
     gameCenter.addListener(
         GameCenter.Events.PLAYER_MESSAGE_RECEIVED,
         function(data) {
-
+            pageCtl.comp && pageCtl.comp.get(data);
         }
     );
     var oppoExist = false;
@@ -149,7 +152,6 @@ require(['muses/connect'], function(Connect) {
             if (oppoExist) {
                 return;
             }
-            context.oppoPlayers.push(oppoPlayer);
             // 通知页面对手信息
             pageCtl.getOppo(oppoPlayer.userName);
             oppoExist = true;
@@ -286,6 +288,7 @@ var pageCtl = {
     getOppo: function(oppoName) {
         this.isFinding = false;
         this.oppoNameDom.text(oppoName || '测试对手');
+        this.comp && this.comp.getOppo();
         var me = this;
         setTimeout(function() {
             me.frameSearch.hide();
@@ -415,20 +418,14 @@ var fruitsCtl = {
         me.waitTime.text(Math.round((me.readTime - goTime)/1000));
         if(goTime >= me.readTime) {
             me.waitTime.text('start').fadeOut(200);
-            me.toFruits = me.createSeq(me.fruits);
+            //me.toFruits = me.createSeq(me.fruits);
+            me.toFruits = me.fruits.slice();//FIXME
             me.refreshPos();
             return;
         }
         setTimeout(function() {
             me.checkWaitTime(startTime);
         }, 1000);
-    },
-    createSeq: function(arr) {
-        var toArr = arr.slice();
-        toArr.sort(function() {
-            return 0.5 - Math.random();
-        });
-        return toArr;
     },
     refreshPos: function(isStart) {
         var me = this;
@@ -504,7 +501,6 @@ var fruitsCtl = {
         this.startGame = false;
         this.gameRefreshed = false;
         this.startBtn.removeClass('disable');
-        alert('COOL');
         this.startBtn.text('重新开始');
         this.reset();
     },
@@ -530,7 +526,8 @@ var fruitsCtl = {
     reset: function(isStart) {
         this.fruitDoms.removeClass('fruitRight').removeClass('fruitErr');
         if(isStart) {
-            this.fruits = this.createSeq(this.fruits);
+            //this.fruits = this.createSeq(this.fruits);
+            this.toFruits = this.fruits.slice();//FIXME
             this.toFruits = this.fruits.slice();
             this.refreshPos(true);
         }
@@ -541,10 +538,6 @@ fruitsCtl.init();
 //比赛
 var competition = function(option) {
     this.ready = false;
-    if(!option['conn'] || !option['isMaster']) {
-        _err('未能成功匹配对手');
-        return;
-    }
     this.reset();
     this.isMaster = option['isMaster'];
     this.conn = option['conn'];
@@ -553,6 +546,8 @@ var competition = function(option) {
 competition.prototype.init = function() {
     this.competeTimes = 3;
     this.curCompeteTime = 0;
+    this.taskArr = [1,2,3,4,5];
+    this.taskHashs = [];
     this.status = 'waiting';
     this.myStatus = {
         status: 'waiting',
@@ -562,6 +557,22 @@ competition.prototype.init = function() {
         status: 'waiting',
         score: 0
     };
+    if(this.isMaster) {//主机发题
+        this.createTasks();
+    }
+};
+competition.prototype.createTasks = function() {
+    var taskNum = this.competeTimes;
+    for(var i = 0; i < taskNum * 2; i++) {
+        this.taskHashs.push(this.createSeq(this.taskArr));
+    }
+};
+competition.prototype.createSeq = function(arr) {
+    var toArr = arr.slice();
+    toArr.sort(function() {
+        return 0.5 - Math.random();
+    });
+    return toArr;
 };
 competition.prototype.handleMyStatus = function() {
 
@@ -591,77 +602,27 @@ competition.prototype.reset = function() {
     this.myStatus = null;
     this.opStatus = null;
 };
+competition.prototype.getOppo = function(data) {
+    if(this.isMaster) {//主机发题
+        this.send({
+            status: 'waiting',
+            tasks: this.taskHashs
+        });
+    }
+};
 competition.prototype.send = function(data) {
     var dataObj = {
         type: 'message',
         data: data
     };
     this.conn.send(dataObj);
+};
+competition.prototype.get = function(data) {
+    if(!this.isMaster) {
+        this.taskHashs = data.tasks;
+        console.log(this.taskHashs);
+    }
 }
-
-//WebSocket连接处理
-var connectHandler = function() {
-};
-connectHandler.prototype.prepare = function() {
-    require.config({
-        paths: {
-            'muses': 'http://ecma.bdimg.com/lego-mat/muses'
-        }
-    });
-    // 加载Connect模块
-    require(['muses/connect'], function(Connect) {
-        var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
-        var token = matches && matches.length >= 2 ? matches[1] : null;
-        var connect = new Connect();
-        conn.init(connect);
-        connect.connectWith(token)
-            .then(function() {
-                _log('[INFO] 连接成功，token: ' + token);
-                conn.send('msg', 'open');
-                pageCtl.start();
-                connect.onMessage = function(actions) {
-                    conn.get(actions);
-                }
-            })
-            .fail(function(err) {
-                conn.fail();
-                _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
-            });
-        connect.onTokenExpired = function() {
-            conn.fail();
-        }
-    });
-};
-connectHandler.prototype.init = function(connect) {
-    this.connect = connect;
-};
-connectHandler.prototype.fail = function(connect) {
-    this.connect.destroy();
-    pageCtl.fail();
-};
-connectHandler.prototype.send = function(type, data) {
-};
-connectHandler.prototype.get= function(data) {
-    var type = "msg";
-    if(data instanceof Array) {
-        type = data[0];
-        data = data[1];
-    }
-    if('msg' == type) {
-        _log(data);
-    }
-    if('end' == type) {
-        this.destroy();
-    }
-    if('score' == type) {
-        pageCtl.setScore(data);
-    }
-};
-connectHandler.prototype.destroy = function() {
-    pageCtl.finish();
-    this.connect.destroy();
-};
-//var conn = new connectHandler();
 
 //滑块控制
 var dragCtrl = {

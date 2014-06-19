@@ -267,6 +267,7 @@ GameCenter.prototype.tryEnterRoom = function(token, callback) {
  */
 GameCenter.prototype.searchRandomRoom = function(callback) {
     var url = this.getUrl('/room/search');
+    var me = this;
     $.getJSON(url)
         .done(function(data) {
             if (data.success) {
