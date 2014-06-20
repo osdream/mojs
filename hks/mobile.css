@@ -257,11 +257,15 @@ text-shadow: 1px 1px 2px #ba2103;
     z-index: 0;
 }
 #oppoFruitWrap .oppoReady {
+    position: absolute;
+    left: 50%;
+    top: 60px;
     width: 100px;
     height: 20px;
+    margin-left: -50px;
     line-height: 20px;
     font-size: 20px;
-    color: #ff7255;
+    color: #0f0;
     text-align: center;
 }
 #fruitWrap #waitTime {
@@ -380,6 +384,7 @@ text-shadow: 1px 1px 2px #ba2103;
     cursor: pointer;
 }
 #frame2 .disable {
+    display: none;
     color: #999;
     border: 2px solid #999;
 }

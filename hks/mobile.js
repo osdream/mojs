@@ -141,7 +141,7 @@ require(['muses/connect'], function(Connect) {
     gameCenter.addListener(
         GameCenter.Events.PLAYER_MESSAGE_RECEIVED,
         function(data) {
-            pageCtl.comp && pageCtl.comp.get(data);
+            pageCtl.comp && pageCtl.comp.receiveData(data);
         }
     );
     var oppoExist = false;
@@ -298,18 +298,6 @@ var pageCtl = {
     fail: function() {
         $('#frameFail').show();
     },
-    getOppoData: function(data) {
-        fruitsCtl.setOppoInfo(data);
-
-    },
-    setScore: function(score) {
-        var score = parseInt(score);
-        this.curScore = score;
-        var ten = parseInt(score / 10);
-        var one = score - ten * 10;
-        this.score1.css('background-position-y', '-' + (ten * 26) + 'px');
-        this.score2.css('background-position-y', '-' + (one * 26) + 'px');
-    },
     closeFrame1: function() {
         this.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
         this.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
@@ -345,6 +333,7 @@ var fruitsCtl = {
     startGame: false,
     fruitWrap: $('#fruitWrap'),
     startBtn: $('#frame2 .start'),
+    scoreSpan: $('scoreLine span'),
     waitTime: $('#waitTime'),
     myTime: $('#fruitWrap .useSeconds'),
     readTime: 3000,
@@ -374,6 +363,7 @@ var fruitsCtl = {
             me.startBtn.addClass('disable');
             pageCtl.comp && pageCtl.comp.setStatus('ready');
         });
+        this.refreshScore();
         this.initPos();
     },
     initPos: function() {
@@ -413,9 +403,7 @@ var fruitsCtl = {
         var goTime = curTime - startTime;
         me.waitTime.text(Math.round((me.readTime - goTime)/1000));
         if(goTime >= me.readTime) {
-            me.waitTime.text('start').fadeOut(200);
-            //me.toFruits = me.createSeq(me.fruits);
-            //me.toFruits = me.fruits.slice();//FIXME
+            me.waitTime.text('start').fadeOut(100);
             me.refreshPos();
             return;
         }
@@ -436,11 +424,13 @@ var fruitsCtl = {
             me.setFruitPos(el, index, isStart, true);
         });
         this.dragRightNum = 0;
+        this.curUseTime = 100000000;
     },
     setFruitPos: function(el, index, isStart, isOppo) {
         if(isStart) {
             var elPos = this.fruits.indexOf(index + 1);
             var pos = this.originPos[elPos];
+            $(el).removeClass('droped');
         } else {
             var pos = this.targetPos[this.toFruits[index] - 1];
         }
@@ -449,7 +439,6 @@ var fruitsCtl = {
         } else {
             pos = [pos[0], pos[1] + (isStart ? 0 : 10)];
             $(el).data('pos', pos);
-            $(el).removeClass('droped');
         }
         this._setPos(el, pos);
     },
@@ -468,6 +457,15 @@ var fruitsCtl = {
         if(curDom.hasClass('fruitRight')) {
             return;
         }
+        if(!isOppo && pageCtl.comp) {
+            var cn = ele.className;
+            var cls = cn.replace('fruits ', '');
+            console.log(cls);
+            pageCtl.comp.sendData({
+                status: 'playing',
+                taskRes: [cls, index]
+            });
+        }
         var oriFruit = this.fruits[index];
         if(curDom.hasClass('fruit0' + oriFruit)) {
             curDom.addClass('fruitRight');
@@ -481,6 +479,7 @@ var fruitsCtl = {
         if(!isOppo) {
             this.dragRightNum++;
         }
+
         if(5 == this.dragRightNum && !isOppo) {
             this.checkOK();
         }
@@ -493,38 +492,50 @@ var fruitsCtl = {
         //this.startBtn.text('重新开始');
     },
     checkOK: function() {
-        this.setSeconds();
+        this.setSeconds(true);
         this.startGame = false;
         this.gameRefreshed = false;
         this.startBtn.removeClass('disable');
         //this.startBtn.text('重新开始');
         this.reset();
     },
-    setSeconds: function() {
-        //test
-        //pageCtl.getOppoData({fruits: [[3,1],[2,2],[0,4],[1,3],[4,0]], time: 23.445});
-        pageCtl.getOppoData({fruits: [[3,1],[2,2],[0,4]], time: 13.142});
+    setScore: function(myScore, opScore) {
+        this.scoreSpan.text(opScore + ":" + myScore);
+    },
+    refreshScore: function() {
+        this.scoreSpan.text('观察3秒钟，将水果拖至初始的位置');
+    },
+    setSeconds: function(isFinish) {
         var now = new Date().getTime();
         deltaTime = (now - this.gameStartTime) / 1000;
+        this.curUseTime = deltaTime;
+        pageCtl.comp && pageCtl.comp.send({
+            status: 'finish',
+            rightNum: this.dragRightNum,
+            useTime: deltaTime
+        });
         this.myTime.text(deltaTime + '秒');
     },
-    setOppoInfo: function(data) {
-        var fruitsArr = data['fruits'];
-        var useTime = data['time'];
-        var me = this;
-        fruitsArr.forEach(function(arr, index) {
-            var el = me.oppoFruitDoms[arr[0]];
-            me.checkSeq(el, arr[1], true);
-            me.setFruitPos(el, arr[1], true, true);
-        });
-        this.oppoTime.text(useTime);
+    setOppoReady: function() {
+        if(this.startGame) {
+            return;
+        }
+        this.oppoReady.text('Ready');
+    },
+    hideOppoReady: function() {
+        if(this.startGame) {
+            return;
+        }
+        this.oppoReady.text('Wait').removeClass('finish');
+        this.oppoTime.text('');
+    },
+    setOppoFinish: function(time) {
+        this.oppoReady.text('Finish').addClass('finish');
+        this.oppoTime.text(time);
     },
     reset: function(isStart) {
         this.fruitDoms.removeClass('fruitRight').removeClass('fruitErr');
         if(isStart) {
-            //this.fruits = this.createSeq(this.fruits);
-            //this.fruits = this.fruits.slice();//FIXME
-            //this.toFruits = this.fruits.slice();
             this.refreshPos(true);
         }
     },
@@ -533,8 +544,9 @@ var fruitsCtl = {
         this.toFruits = tarFruits;
         this.startGame = true;
         var startTime = new Date().getTime();
-        this.myTime.text('');
         this.waitTime.show().text(Math.round(this.readTime/1000));
+        this.myTime.text('');
+        this.hideOppoReady();
         this.checkWaitTime(startTime);
     }
 };
@@ -582,8 +594,34 @@ competition.prototype.createSeq = function(arr) {
 competition.prototype.handleMyStatus = function() {
 
 };
-competition.prototype.handleOpStatus = function() {
-
+competition.prototype.handleOpStatus = function(data) {
+    switch(this.opStatus.status) {
+        case 'ready':
+            fruitsCtl.setOppoReady();
+            break;
+        case 'playing':
+            var opRes = data.taskRes;
+            if(opRes) {
+                var fruitCls = opRes[0];
+                var tarIdx = opRes[1];
+                var el = $('#oppoFruitWrap .' + fruitCls);
+                if(el.hasClass('droped')){
+                    return;
+                }
+                fruitsCtl.checkSeq(el[0], tarIdx, true);
+                fruitsCtl.setFruitPos(el[0], tarIdx, true, true);
+            }
+            break;
+        case 'finish':
+            var opRightNum = data.rightNum;
+            var opUseTime =  data.useTime;
+            this.opStatus['curRightNum'] = opRightNum;
+            this.opStatus['curUseTime'] = opUseTime;
+            fruitsCtl.setOppoFinish(opUseTime);
+            break;
+        default:
+            fruitsCtl.hideOppoReady();
+    }
 };
 competition.prototype.checkStatus = function() {
     var ms = this.myStatus['status'];
@@ -592,7 +630,15 @@ competition.prototype.checkStatus = function() {
         case 'waiting':
             if('ready' == ms && 'ready' == os) {
                 this.status = 'playing';
+                this.setStatus('playing');
                 this.startComp();
+            }
+            break;
+        case 'playing':
+            if('finish' == ms && 'finish' == os) {
+                this.status = 'waiting';
+                this.setStatus('waiting');
+                this.calCulScore();
             }
             break;
     }
@@ -601,11 +647,33 @@ competition.prototype.startComp = function() {
     var curFruits = this.taskHashs[this.curCompeteTime];
     var tarFruits = this.taskHashs[this.curCompeteTime + this.competeTimes];
     fruitsCtl.startTask(curFruits, tarFruits);
+    this.curCompeteTime++;
 };
-competition.prototype.setStatus = function(status) {
+competition.prototype.calCulScore = function() {
+    var mRightNum = fruitsCtl.dragRightNum;
+    var mCurTime = fruitsCtl.curUseTime;
+    var oRightNum = this.opStatus['curRightNum'];
+    var oUseTime = this.opStatus['curUseTime'];
+    if (mRightNum > oRightNum) {
+        this.myStatus['score']++;
+    } else if (mRightNum < mCurTime) {
+        this.opStatus['score']++;
+    } else {
+        if (mCurTime < oUseTime) {
+            this.myStatus['score']++;
+        } else if (mCurTime > oUseTime) {
+            this.opStatus['score']++;
+        } else {//平局,应该不太可能吧
+            this.myStatus['score']++;
+            this.opStatus['score']++;
+        }
+    }
+    fruitsCtl.setScore(this.myStatus['score'], this.opStatus['score']);
+};
+competition.prototype.setStatus = function(status, noCheck) {
     this.myStatus.status = status;
-    this.checkStatus();
-    this.send({'status': status});
+    this.sendData({'status': status});
+    !noCheck && this.checkStatus();
 };
 competition.prototype.reset = function() {
     this.myStatus = null;
@@ -614,26 +682,30 @@ competition.prototype.reset = function() {
 //对手连接成功
 competition.prototype.getOppo = function(data) {
     if(this.isMaster) {//主机发题
-        this.send({
+        this.sendData({
             status: 'waiting',
             tasks: this.taskHashs
         });
     }
 };
-competition.prototype.send = function(data) {
+competition.prototype.sendData = function(data) {
     var dataObj = {
         type: 'message',
         data: data
     };
     this.conn.send(dataObj);
 };
-competition.prototype.get = function(data) {
+competition.prototype.receiveData = function(data) {
     if(!this.isMaster && data.tasks) {
         this.taskHashs = data.tasks;
         console.log(this.taskHashs);
+        this.sendData({
+            status: 'waiting'
+        });
     }
     this.opStatus.status = data.status;
     this.checkStatus();
+    this.handleOpStatus(data);
 }
 
 //滑块控制
