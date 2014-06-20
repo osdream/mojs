@@ -170,9 +170,7 @@ var pageCtl = {
     oppoNameDom: $('.oppoName'),
     nameDom: $('#name'),
     startBtn: $('#startGame'),
-    preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png', 'http://ecma.bdimg.com/adtest/centrum140528topc.png',
-      'http://ecma.bdimg.com/adtest/centrum140528topm.png', 'http://ecma.bdimg.com/adtest/centrum140528bottomm.png',
-      'http://ecma.bdimg.com/adtest/centrum140528bottomc.png', 'http://ecma.bdimg.com/adtest/hks140615fruit01.png',
+    preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png',  'http://ecma.bdimg.com/adtest/hks140615fruit01.png',
       'http://ecma.bdimg.com/adtest/hks140615fruit02.png', 'http://ecma.bdimg.com/adtest/hks140615fruit03.png',
       'http://ecma.bdimg.com/adtest/hks140615fruit04.png', 'http://ecma.bdimg.com/adtest/hks140615fruit05.png',
       'http://ecma.bdimg.com/adtest/hks140617dish.png'],
@@ -299,8 +297,6 @@ var pageCtl = {
         $('#frameFail').show();
     },
     closeFrame1: function() {
-        this.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
-        this.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
         this.nameDom.remove();
         this.startBtn.remove();
         this.frame1.remove();
@@ -333,7 +329,7 @@ var fruitsCtl = {
     startGame: false,
     fruitWrap: $('#fruitWrap'),
     startBtn: $('#frame2 .start'),
-    scoreSpan: $('scoreLine span'),
+    scoreSpan: $('#scoreLine span'),
     waitTime: $('#waitTime'),
     myTime: $('#fruitWrap .useSeconds'),
     readTime: 3000,
@@ -426,11 +422,15 @@ var fruitsCtl = {
         this.dragRightNum = 0;
         this.curUseTime = 100000000;
     },
-    setFruitPos: function(el, index, isStart, isOppo) {
+    setFruitPos: function(el, index, isStart, isOppo, isRemoteOppo) {
         if(isStart) {
-            var elPos = this.fruits.indexOf(index + 1);
-            var pos = this.originPos[elPos];
-            $(el).removeClass('droped');
+            if(isOppo && isRemoteOppo) {
+                var pos = this.originPos[index];
+            } else {
+                var elPos = this.fruits.indexOf(index + 1);
+                var pos = this.originPos[elPos];
+                $(el).removeClass('droped');
+            }
         } else {
             var pos = this.targetPos[this.toFruits[index] - 1];
         }
@@ -459,8 +459,7 @@ var fruitsCtl = {
         }
         if(!isOppo && pageCtl.comp) {
             var cn = ele.className;
-            var cls = cn.replace('fruits ', '');
-            console.log(cls);
+            var cls = /.*(fruit\d{2}).*/.exec(cn)[1];
             pageCtl.comp.sendData({
                 status: 'playing',
                 taskRes: [cls, index]
@@ -485,19 +484,12 @@ var fruitsCtl = {
         }
     },
     checkFail: function(ele) {
-        this.setSeconds();
-        this.startGame = false;
         this.gameRefreshed = false;
-        this.startBtn.removeClass('disable');
-        //this.startBtn.text('重新开始');
+        this.setSeconds();
     },
     checkOK: function() {
-        this.setSeconds(true);
-        this.startGame = false;
         this.gameRefreshed = false;
-        this.startBtn.removeClass('disable');
-        //this.startBtn.text('重新开始');
-        this.reset();
+        this.setSeconds(true);
     },
     setScore: function(myScore, opScore) {
         this.scoreSpan.text(opScore + ":" + myScore);
@@ -509,12 +501,22 @@ var fruitsCtl = {
         var now = new Date().getTime();
         deltaTime = (now - this.gameStartTime) / 1000;
         this.curUseTime = deltaTime;
-        pageCtl.comp && pageCtl.comp.send({
-            status: 'finish',
-            rightNum: this.dragRightNum,
-            useTime: deltaTime
-        });
+        if(pageCtl.comp) {
+            pageCtl.comp.myStatus.status = 'finish';
+            pageCtl.comp.sendData({
+                status: 'finish',
+                rightNum: this.dragRightNum,
+                useTime: deltaTime
+            });
+            pageCtl.comp.checkStatus();
+        }
         this.myTime.text(deltaTime + '秒');
+    },
+    showWait: function() {
+        if(this.startGame) {
+            return;
+        }
+        this.oppoReady.text('Wait');
     },
     setOppoReady: function() {
         if(this.startGame) {
@@ -523,26 +525,25 @@ var fruitsCtl = {
         this.oppoReady.text('Ready');
     },
     hideOppoReady: function() {
-        if(this.startGame) {
-            return;
-        }
-        this.oppoReady.text('Wait').removeClass('finish');
-        this.oppoTime.text('');
+        this.oppoReady.text('').removeClass('finish');
     },
     setOppoFinish: function(time) {
         this.oppoReady.text('Finish').addClass('finish');
-        this.oppoTime.text(time);
+        this.oppoTime.text(time + '秒');
     },
-    reset: function(isStart) {
-        this.fruitDoms.removeClass('fruitRight').removeClass('fruitErr');
-        if(isStart) {
-            this.refreshPos(true);
-        }
+    reset: function() {
+        this.startGame = false;
+        this.gameRefreshed = false;
+        this.startBtn.removeClass('disable');
     },
     startTask: function(curFruits, tarFruits) {
         this.fruits = curFruits;
         this.toFruits = tarFruits;
         this.startGame = true;
+        pageCtl.frame2.removeClass('fruitsMask');
+        this.fruitDoms.removeClass('fruitRight').removeClass('fruitErr');
+        this.oppoFruitDoms.removeClass('fruitRight').removeClass('fruitErr');
+        this.refreshPos(true);
         var startTime = new Date().getTime();
         this.waitTime.show().text(Math.round(this.readTime/1000));
         this.myTime.text('');
@@ -596,6 +597,9 @@ competition.prototype.handleMyStatus = function() {
 };
 competition.prototype.handleOpStatus = function(data) {
     switch(this.opStatus.status) {
+        case 'waiting':
+            fruitsCtl.showWait();
+            break;
         case 'ready':
             fruitsCtl.setOppoReady();
             break;
@@ -605,11 +609,8 @@ competition.prototype.handleOpStatus = function(data) {
                 var fruitCls = opRes[0];
                 var tarIdx = opRes[1];
                 var el = $('#oppoFruitWrap .' + fruitCls);
-                if(el.hasClass('droped')){
-                    return;
-                }
+                fruitsCtl.setFruitPos(el[0], tarIdx, true, true, true);
                 fruitsCtl.checkSeq(el[0], tarIdx, true);
-                fruitsCtl.setFruitPos(el[0], tarIdx, true, true);
             }
             break;
         case 'finish':
@@ -619,8 +620,6 @@ competition.prototype.handleOpStatus = function(data) {
             this.opStatus['curUseTime'] = opUseTime;
             fruitsCtl.setOppoFinish(opUseTime);
             break;
-        default:
-            fruitsCtl.hideOppoReady();
     }
 };
 competition.prototype.checkStatus = function() {
@@ -631,7 +630,7 @@ competition.prototype.checkStatus = function() {
             if('ready' == ms && 'ready' == os) {
                 this.status = 'playing';
                 this.setStatus('playing');
-                this.startComp();
+                this.startTask();
             }
             break;
         case 'playing':
@@ -639,15 +638,32 @@ competition.prototype.checkStatus = function() {
                 this.status = 'waiting';
                 this.setStatus('waiting');
                 this.calCulScore();
+                this.finishTask();
             }
             break;
     }
 };
-competition.prototype.startComp = function() {
+competition.prototype.startTask = function() {
     var curFruits = this.taskHashs[this.curCompeteTime];
     var tarFruits = this.taskHashs[this.curCompeteTime + this.competeTimes];
     fruitsCtl.startTask(curFruits, tarFruits);
     this.curCompeteTime++;
+};
+competition.prototype.finishTask = function() {
+    if(this.curCompeteTime < this.competeTimes) {
+        fruitsCtl.reset();
+    } else {
+        this.finishComp();
+    }
+};
+competition.prototype.finishComp = function() {
+    if(this.myStatus.score > this.opStatus.score) {
+        alert('你赢了！再见！');
+    } else if(this.myStatus.score < this.opStatus.score) {
+        alert('你输了！再见！');
+    } else {
+        alert('呵呵！不分胜负！');
+    }
 };
 competition.prototype.calCulScore = function() {
     var mRightNum = fruitsCtl.dragRightNum;
@@ -656,7 +672,7 @@ competition.prototype.calCulScore = function() {
     var oUseTime = this.opStatus['curUseTime'];
     if (mRightNum > oRightNum) {
         this.myStatus['score']++;
-    } else if (mRightNum < mCurTime) {
+    } else if (mRightNum < oRightNum) {
         this.opStatus['score']++;
     } else {
         if (mCurTime < oUseTime) {
@@ -698,14 +714,14 @@ competition.prototype.sendData = function(data) {
 competition.prototype.receiveData = function(data) {
     if(!this.isMaster && data.tasks) {
         this.taskHashs = data.tasks;
-        console.log(this.taskHashs);
+        _log(this.taskHashs);
         this.sendData({
             status: 'waiting'
         });
     }
     this.opStatus.status = data.status;
-    this.checkStatus();
     this.handleOpStatus(data);
+    this.checkStatus();
 }
 
 //滑块控制
