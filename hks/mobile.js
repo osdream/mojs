@@ -121,10 +121,10 @@ context.gameCenter = null;
 context.connect = null;
 require.config({
     paths: {
-        'muses': 'http://ecma.bdimg.com/lego-mat/muses',
-        'stars': 'http://bs.baidu.com/public01/2014-06/hackthon/stars'
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
     }
 });
+
 // 加载Connect模块
 require(['muses/connect'], function(Connect) {
     var gameCenter = new GameCenter({
@@ -188,13 +188,13 @@ var pageCtl = {
                     pageCtl.start();
                 //}
                 //test
-                require(['stars'], function(star) {
-                    //star.genStarBubble('star1', pageCtl.body);
-                    //star.genStarBlink('blink', 0, 200, 200);
-                    //star.genStarsFly('star', 10, [160, 250], [180, 200]);
-                    //star.genStarsFly('star-white', 6, [160, 250], [180, 200]);
-                    //star.genStarsFly('star-small', 6, [160, 250], [180, 200]);
-                });
+                // require(['stars'], function(star) {
+                //     star.genStarBubble('star1', pageCtl.body);
+                //     star.genStarBlink('blink', 0, 200, 200);
+                //     star.genStarsFly('star', 10, [160, 250], [180, 200]);
+                //     star.genStarsFly('star-white', 6, [160, 250], [180, 200]);
+                //     star.genStarsFly('star-small', 6, [160, 250], [180, 200]);
+                // });
             }
         });
         this.detectViewport();
@@ -305,6 +305,10 @@ var pageCtl = {
     fail: function() {
         $('#frameFail').show();
     },
+    succeed: function() {
+        $('#frameSucceed').addClass('show');
+        ANIM.gen3Stars($('#frameSucceed'), 2);
+    },
     closeFrame1: function() {
         this.nameDom.remove();
         this.startBtn.remove();
@@ -332,7 +336,13 @@ var pageCtl = {
         }
     }
 };
+
+pageCtl.succeed(3);
+return;
+
 pageCtl.init();
+
+
 
 var fruitsCtl = {
     startGame: false,
@@ -672,7 +682,7 @@ competition.prototype.finishTask = function() {
 competition.prototype.finishComp = function() {
     if(this.myStatus.score > this.opStatus.score) {
         alert('你赢了！再见！');
-        pageCtl.succeed(this.myStatus.score, '#frameSucceed');
+        pageCtl.succeed(this.myStatus.score);
     } else if(this.myStatus.score < this.opStatus.score) {
         alert('你输了！再见！');
         pageCtl.fail();
