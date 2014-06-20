@@ -424,6 +424,13 @@ body.nameFocused {
 #frameSucceed {
     display: none;
 }
+#frameSucceed.show {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg.png);
+    background-size: 100%;
+}
 #frameFail {
     display: none;
     position: relative;
