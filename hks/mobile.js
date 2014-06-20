@@ -118,7 +118,8 @@ context.gameCenter = null;
 context.connect = null;
 require.config({
     paths: {
-        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses',
+        'stars': 'http://bs.baidu.com/public01/2014-06/hackthon/stars'
     }
 });
 // 加载Connect模块
@@ -165,7 +166,6 @@ var pageCtl = {
     body: $('body'),
     ctlDom: $('#controller'),
     frame1: $('#frame1'),
-    frameSearch: $('#frameSearch'),
     frame2: $('#frame2'),
     oppoNameDom: $('.oppoName'),
     nameDom: $('#name'),
@@ -183,6 +183,14 @@ var pageCtl = {
                 //if(conn.connid > 0) {
                     pageCtl.start();
                 //}
+                //test
+                require(['stars'], function(star) {
+                    star.genStarBubble('star1', pageCtl.body);
+                    star.genStarBlink('blink', 0, 200, 200);
+                    star.genStarsFly('star', 10, [160, 250], [180, 200]);
+                    star.genStarsFly('star-white', 6, [160, 250], [180, 200]);
+                    star.genStarsFly('star-small', 6, [160, 250], [180, 200]);
+                });
             }
         });
         this.detectViewport();
@@ -217,12 +225,12 @@ var pageCtl = {
         this.body.addClass('enteringName');
         this.frame1.show();
         this.nameDom.focus(function() {
-            pageCtl.nameDom.parent().addClass('nameFocused');
+            pageCtl.body.addClass('nameFocused');
         }).blur(function() {
-            pageCtl.nameDom.parent().removeClass('nameFocused');
+            pageCtl.body.removeClass('nameFocused');
         }).keypress(function(evt) {
             if(13 === evt.keyCode) {
-                pageCtl.nameDom.parent().removeClass('nameFocused');
+                pageCtl.body.removeClass('nameFocused');
                 pageCtl.fireStart();
             } else {
                 pageCtl.nameDom.parent().find('label').removeClass('labelErr');
@@ -257,8 +265,8 @@ var pageCtl = {
         this.findingOppo();
     },
     findingOppo: function() {
-        this.frameSearch.show();
-        this.oppoNameDom.text('搜寻对手中');
+        this.frame2.show();
+        fruitsCtl.scoreSpan.text('搜寻对手中');
         this.isFinding = true;
         this.findingAnimation();
         //test
@@ -270,7 +278,7 @@ var pageCtl = {
         var dotNum = 3;
         var me = this;
         function _animate() {
-            if(!me.isFinding || !me.oppoNameDom[0]) {
+            if(!me.isFinding) {
                 return;
             }
             dotNum = (dotNum + 1) % 4;
@@ -278,19 +286,19 @@ var pageCtl = {
             for(var i = dotNum; i > 0; i--) {
                 dotStr += '-';
             }
-            me.oppoNameDom.text(dotStr + '搜寻对手中' + dotStr);
+            fruitsCtl.scoreSpan.text(dotStr + '搜寻对手中' + dotStr);
             setTimeout(_animate, 800);
         }
         _animate();
     },
     getOppo: function(oppoName) {
         this.isFinding = false;
+        fruitsCtl.scoreSpan.text('');
         this.oppoNameDom.text(oppoName || '测试对手');
         this.comp && this.comp.getOppo();
         var me = this;
         setTimeout(function() {
-            me.frameSearch.hide();
-            me.frame2.show();
+            me.frame2.removeClass('waitingOppo');
         }, 1000);
     },
     fail: function() {
@@ -333,15 +341,15 @@ var fruitsCtl = {
     waitTime: $('#waitTime'),
     myTime: $('#fruitWrap .useSeconds'),
     readTime: 3000,
-    originPos: [[0, 0], [60, 0], [120, 0], [180, 0], [240, 0]],
-    targetPos: [[40, 30], [80, 80], [120, 20], [160, 90], [200, 30]],
+    originPos: [[0, 0], [64, 0], [128, 0], [192, 0], [256, 0]],
+    targetPos: [[40, 30], [80, 100], [120, 20], [160, 90], [200, 30]],
     oppoFruitWrap: $('#oppoFruitWrap'),
     oppoTime: $('#oppoFruitWrap .useSeconds'),
-    oppoRatio: [2/3, 2/3],
+    oppoRatio: [1/2, 1/2],
     oppoOffsetLeft: 0,
     oppoReady: $('#oppoFruitWrap .oppoReady'),
-    fruitGap: 10,
-    fruitWidth: 50,
+    fruitGap: 0,
+    fruitWidth: 64,
     oppoFruitWidth: 35,
     dishHeight: 80,
     init: function() {
@@ -367,13 +375,14 @@ var fruitsCtl = {
         var oH = pageCtl.vHeight * 2 / 5;
         this.fruitWrap.height(fH);
         this.oppoFruitWrap.height(oH);
-        var restWidth = pageCtl.vWidth - 300;
-        var offsetLeft = (restWidth > 0 ? restWidth / 2 + 5 : 0);
-        var offsetTop = fH - this.dishHeight - this.fruitWidth;
-        var oppoRestWidth = pageCtl.vWidth - 205;
-        var oppoOffsetLeft = (oppoRestWidth > 0 ? oppoRestWidth / 2 + 3 : 0);
+        var restWidth = pageCtl.vWidth - 320;
+        _log(restWidth);
+        var offsetLeft = (restWidth > 0 ? restWidth / 2 : 0);
+        var offsetTop = fH - this.fruitWidth - 30;
+        var oppoRestWidth = pageCtl.vWidth - 160;
+        var oppoOffsetLeft = (oppoRestWidth > 0 ? oppoRestWidth / 2 : 0);
         this.oppoOffsetLeft = oppoOffsetLeft - restWidth * this.oppoRatio[0] / 2;
-        this.oppoOffsetTop = oH - 100;
+        this.oppoOffsetTop = oH - 130;
         if(hasTransition) {
             [].forEach.call($('.fruits, .oppoFruits'), function(el, index) {
                 el.style[transitionProperty] = cssPrefix + 'transform';
@@ -660,8 +669,10 @@ competition.prototype.finishTask = function() {
 competition.prototype.finishComp = function() {
     if(this.myStatus.score > this.opStatus.score) {
         alert('你赢了！再见！');
+        pageCtl.succeed(this.myStatus.score, '#frameSucceed');
     } else if(this.myStatus.score < this.opStatus.score) {
         alert('你输了！再见！');
+        pageCtl.fail();
     } else {
         alert('呵呵！不分胜负！');
     }
@@ -893,3 +904,4 @@ var dragCtrl = {
 dragCtrl.init();
 
 })(window, document);
+

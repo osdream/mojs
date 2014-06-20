@@ -9,6 +9,7 @@
     <script src="http://ecma.bdimg.com/public01/js/jquery.imgpreload.min.js"></script>
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
     <link rel="stylesheet" href="mobile.css" />
+    <link rel="stylesheet" href="http://bs.baidu.com/public01/2014-06/hackthon/stars.css">
 </head>
 <body class="loading">
     <div id="controller">
@@ -27,10 +28,10 @@
             <span class="vs">VS</span>
             <span class="oppoName"></span>
         </div>
-        <div id="frame2" class="fruitsMask">
+        <div id="frame2" class="fruitsMask waitingOppo">
             <div id="oppoFruitWrap">
                 <div class="oppoTime">
-                    <span class="oppoName"></span>
+                    <span class="oppoName">?</span>
                     <span class="useSeconds"></span>
                 </div>
                 <span class="oppoFruits fruit01"></span>
@@ -57,8 +58,9 @@
             </div>
             <span class="start">准备</span>
         </div>
+        <div id="frameSucceed">
+        </div>
         <div id="frameFail">
-            与电脑连接失败，可尝试刷新电脑生成新的二维码重新连接。
         </div>
     </div>
     <div id="rotateScreen">请切换成竖屏来玩游戏</div>

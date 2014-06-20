@@ -10,7 +10,7 @@ html,body {
 body {
     font-size: 10px;
     color: #333;
-    background: url(http://bs.baidu.com/public01/2014-06/1_bg.jpg) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1_bg.jpg) 50% 0 no-repeat;
     background-size: 100%;
 }
 body.loading {
@@ -87,6 +87,10 @@ body.loading {
     font-size: 16px;
 }
 
+body.nameFocused {
+    background-position: 50% -240px;
+    background-color: #4d4ab5;
+}
 .nameFocused h3 {
     display: none;
 }
@@ -95,8 +99,10 @@ body.loading {
 }
 .nameFocused #name {
     position: fixed;
-    top: 0;
-    width: 280px;
+    font-size: 18px;
+    top: 20px;
+    left: 5%;
+    width: 90%;
     height: 50px;
     line-height: 20px;
     padding: 15px 5px;
@@ -115,7 +121,7 @@ body.loading {
     margin-left: -63px;
     left: 50%;
     top: 330px;
-    background: url(http://bs.baidu.com/public01/2014-06/btn_ok.png) 0 0  no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ok.png) 0 0  no-repeat;
     background-size: 100%;
 }
 
@@ -132,7 +138,7 @@ body.loading {
     font-size: 0;
     width: 94px;
     height: 33px;
-    background: url(http://bs.baidu.com/public01/2014-06/btn_rule.png) 0 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/btn_rule.png) 0 0 no-repeat;
     background-size: 100%;
 }
 #gameHelp {
@@ -140,7 +146,7 @@ body.loading {
     bottom: 30px;
     width: 320px;
     height: 310px;
-    background: url(http://bs.baidu.com/public01/2014-06/rule_bg.png) 0 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/rule_bg.png) 0 0 no-repeat;
     background-size: 100%;
     z-index: 20;
     font-size: 0;
@@ -182,24 +188,22 @@ body.loading {
     top: 0;
     width: 100%;
     height: 100%;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/m_bg.jpg) 50% 0 no-repeat;
+    background-size: 100%;
 }
 #frame2 .myTime,
 #frame2 .oppoTime {
     position: absolute;
-    width: 90px;
-    height: 40px;
-    right: 5px;
-    top: -5px;
+    width: 85px;
+    height: 55px;
+    right: 4px;
+    top: -13px;
     color: #ff6445;
     font-size: 15px;
     line-height: 20px;
     z-index: 10;
     text-align: center;
-    background-color: #97c0fd;
--webkit-border-radius: 5px;
-   -moz-border-radius: 5px;
-        border-radius: 5px;
-    border: 5px solid #fff;
+    border: 1px solid #000;
 }
 #frame2 .myTime span,
 #frame2 .oppoTime span {
@@ -211,28 +215,27 @@ body.loading {
 #frame2 .oppoTime {
     top: auto;
     right: auto;
-    left: 5px;
-    bottom: -5px;
-    color: #4a971e;
-    background-color: #de8cfa;
+    left: 4px;
+    bottom: -12px;
 }
 #scoreLine {
     position: absolute;
     width: 100%;
-    height: 0px;
-    border-top: 2px dashed #ff7255;
-    margin-top: -1px;
+    height: 110px;
+    margin-top: -55px;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/match_board.png) 50% 0 no-repeat;
+    background-size: 100% 100%;
 }
 #scoreLine span {
     position: absolute;
-    font-size: 16px;
-    width: 200px;
-    height: 34px;
+    font-size: 24px;
+    width: 140px;
+    height: 56px;
+    line-height: 56px;
     left: 50%;
-    top: -17px;
-    margin-left: -100px;
+    top: 27px;
+    margin-left: -70px;
     text-align: center;
-    line-height: 17px;
     background-color: #f7f7f7;
     z-index: 1;
 }
@@ -247,17 +250,17 @@ body.loading {
 #oppoFruitWrap .oppoDish {
     position: absolute;
     left: -1000px;
-    top: 50px;
-    width: 205px;
-    height: 11px;
-    background: url(http://ecma.bdimg.com/adtest/hks140617dish.png) repeat-x;
-    background-size: 20% 100%;
+    top: 35px;
+    width: 160px;
+    height: 32px;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_bg.png) 50% 0 no-repeat;
+    background-size: 100% 100%;
     z-index: 0;
 }
 #oppoFruitWrap .oppoReady {
     position: absolute;
     left: 50%;
-    top: 60px;
+    top: 10px;
     width: 100px;
     height: 20px;
     margin-left: -50px;
@@ -281,115 +284,145 @@ body.loading {
 #fruitWrap .fruitDish {
     position: absolute;
     left: -1000px;
-    bottom: 60px;
-    height: 16px;
-    width: 300px;
-    background: url(http://ecma.bdimg.com/adtest/hks140617dish.png) repeat-x;
-    background-size: 20% 100%;
+    bottom: 30px;
+    width: 320px;
+    height: 64px;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_bg.png) 50% 0 no-repeat;
+    background-size: 100% 100%;
     z-index: 0;
 }
-#oppoFruitWrap .fruit01,
-#fruitWrap .fruit01 {
-    background: url(http://ecma.bdimg.com/adtest/hks140615fruit01.png) no-repeat;
+#oppoFruitWrap .fruit01:before,
+#fruitWrap .fruit01:before {
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit1.png) no-repeat;
 }
-#oppoFruitWrap .fruit02,
-#fruitWrap .fruit02 {
-    background: url(http://ecma.bdimg.com/adtest/hks140615fruit02.png) no-repeat;
+#oppoFruitWrap .fruit02:before,
+#fruitWrap .fruit02:before {
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit2.png) no-repeat;
 }
-#oppoFruitWrap .fruit03,
-#fruitWrap .fruit03 {
-    background: url(http://ecma.bdimg.com/adtest/hks140615fruit03.png) no-repeat;
+#oppoFruitWrap .fruit03:before,
+#fruitWrap .fruit03:before {
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit3.png) no-repeat;
 }
-#oppoFruitWrap .fruit04,
-#fruitWrap .fruit04 {
-    background: url(http://ecma.bdimg.com/adtest/hks140615fruit04.png) no-repeat;
+#oppoFruitWrap .fruit04:before,
+#fruitWrap .fruit04:before {
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit4.png) no-repeat;
 }
-#oppoFruitWrap .fruit05,
-#fruitWrap .fruit05 {
-    background: url(http://ecma.bdimg.com/adtest/hks140615fruit05.png) no-repeat;
+#oppoFruitWrap .fruit05:before,
+#fruitWrap .fruit05:before {
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit5.png) no-repeat;
 }
 #oppoFruitWrap .oppoFruits,
 #fruitWrap .fruits {
     position: absolute;
-    width: 50px;
-    height: 50px;
+    width: 64px;
+    height: 64px;
     left: 0;
     top: 0;
-    background-size: 100% 100%;
-    z-index: 1;
+    z-index: 2;
 }
 #oppoFruitWrap .oppoFruits {
-    width: 35px;
-    height: 35px;
+    width: 34px;
+    height: 34px;
 }
-#frame2.fruitsMask .oppoFruits,
-#frame2.fruitsMask .fruits {
+#oppoFruitWrap .oppoFruits:before,
+#fruitWrap .fruits:before {
+    content: '';
+    position: absolute;
+    width: 68px;
+    height: 68px;
+    left: 0;
+    top: -4px;
+    background-size: 100% 100%;
+    z-index: 2;
+}
+#oppoFruitWrap .oppoFruits:before {
+    width: 34px;
+    height: 34px;
+}
+#frame2.fruitsMask .oppoFruits:before,
+#frame2.fruitsMask .fruits:before {
     background-image: none;
     border: 2px solid #333;
 }
-#fruitWrap .holding {
-    width: 70px;
-    height: 70px;
-    margin: -10px 0 0 -10px
+#frame2.waitingOppo #fruitWrap,
+#frame2.waitingOppo #oppoFruitWrap {
+
+}
+#fruitWrap .holding:before {
+    width: 80px;
+    height: 80px;
+    margin: -6px 0 0 -6px;
 }
 #oppoFruitWrap .fruitRight:after {
-    content: '√';
+    content: '';
     position: absolute;
-    font-size: 25px;
-    color: #0f0;
     top: 0;
-    right: 0;
-}
-#oppoFruitWrap .fruitErr {
-    opacity: 0.6;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    z-index: 1;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_right.png) 50% 0 no-repeat;
+    background-size: 100%;
 }
 #oppoFruitWrap .fruitErr:after {
-    content: '╳';
+    content: '';
     position: absolute;
-    font-size: 30px;
-    color: #f00;
+    width: 32px;
+    height: 32px;
     top: 0;
-    right: 0;
+    left: 0;
+    z-index: 1;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_wrong.png) 50% 0 no-repeat;
+    background-size: 100%;
 }
 #fruitWrap .fruitRight:after {
-    content: '√';
+    content: '';
     position: absolute;
-    font-size: 30px;
-    color: #0f0;
     top: 0;
     right: 0;
-}
-#fruitWrap .fruitErr {
-    opacity: 0.6;
+    width: 64px;
+    height: 64px;
+    z-index: 1;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_right.png) 50% 0 no-repeat;
+    background-size: 100%;
 }
 #fruitWrap .fruitErr:after {
-    content: '╳';
+    content: '';
     position: absolute;
-    font-size: 30px;
-    color: #f00;
     top: 0;
     right: 0;
+    width: 64px;
+    height: 64px;
+    z-index: 1;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_wrong.png) 50% 0 no-repeat;
+    background-size: 100%;
 }
 #frame2 .start {
     position: absolute;
-    bottom: 10px;
-    width: 80px;
-    height: 24px;
-    line-height: 24px;
-    color: #ff6445;
-    font-size: 18px;
-    line-height: 20px;
-    left: 50%;
-    margin-left: -40px;
-    border: 2px solid #ff6445;
-    background: #fff;
     text-align: center;
-    cursor: pointer;
+    width: 125px;
+    height: 60px;
+    font-size: 0;
+    margin-left: -63px;
+    left: 50%;
+    top: 50%;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ready.png) 0 0  no-repeat;
+    background-size: 100%;
+    z-index: 100;
+}
+#frame2.waitingOppo .start {
+    display: none;
+}
+#frame2.waitingOppo #scoreLine span {
+    font-size: 18px;
 }
 #frame2 .disable {
     display: none;
     color: #999;
     border: 2px solid #999;
+}
+#frameSucceed {
+    display: none;
 }
 #frameFail {
     display: none;
