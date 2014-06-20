@@ -251,7 +251,7 @@ GameCenter.prototype.tryEnterRoom = function(token, callback) {
             if (data.success) {
                 me.roomData = data;
                 var isNeedInformHost = data.result.entered && data.result.full;
-                callback(null, token, isNeedInformHost);
+                callback(null, data.result.token, isNeedInformHost);
             }
             else {
                 callback(new Error('创建随机房间失败'));

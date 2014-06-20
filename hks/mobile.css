@@ -2,7 +2,7 @@
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     outline: none;
 }
-html,body {
+html, body {
     padding: 0;
     margin: 0;
     height: 100%;
@@ -229,6 +229,7 @@ body.nameFocused {
 #scoreLine span {
     position: absolute;
     font-size: 24px;
+    font-family: 'Microsofy YaHei';
     width: 140px;
     height: 56px;
     line-height: 56px;
@@ -291,6 +292,20 @@ body.nameFocused {
     background-size: 100% 100%;
     z-index: 0;
 }
+#fruitWrap .fruitDish:after,
+#oppoFruitWrap .oppoDish:after {
+    display: none;
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #999;
+    opacity: 0.5;
+}
+#frame2.fruitsMask #fruitWrap .fruitDish:after,
+#frame2.fruitsMask #oppoFruitWrap .oppoDish:after {
+    display: block;
+}
 #oppoFruitWrap .fruit01:before,
 #fruitWrap .fruit01:before {
     background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit1.png) no-repeat;
@@ -342,7 +357,6 @@ body.nameFocused {
 #frame2.fruitsMask .oppoFruits:before,
 #frame2.fruitsMask .fruits:before {
     background-image: none;
-    border: 2px solid #333;
 }
 #frame2.waitingOppo #fruitWrap,
 #frame2.waitingOppo #oppoFruitWrap {
@@ -414,7 +428,7 @@ body.nameFocused {
     display: none;
 }
 #frame2.waitingOppo #scoreLine span {
-    font-size: 18px;
+    font-size: 14px;
 }
 #frame2 .disable {
     display: none;
