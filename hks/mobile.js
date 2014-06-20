@@ -549,6 +549,7 @@ var fruitsCtl = {
         this.myTime.text('');
         this.hideOppoReady();
         this.checkWaitTime(startTime);
+        dragCtrl.restartGame();
     }
 };
 fruitsCtl.init();
@@ -664,6 +665,7 @@ competition.prototype.finishComp = function() {
     } else {
         alert('呵呵！不分胜负！');
     }
+    this.reset();
 };
 competition.prototype.calCulScore = function() {
     var mRightNum = fruitsCtl.dragRightNum;
@@ -691,6 +693,7 @@ competition.prototype.setStatus = function(status, noCheck) {
     this.sendData({'status': status});
     !noCheck && this.checkStatus();
 };
+//TODO
 competition.prototype.reset = function() {
     this.myStatus = null;
     this.opStatus = null;
@@ -728,6 +731,7 @@ competition.prototype.receiveData = function(data) {
 var dragCtrl = {
     catchDis: 25,//距离盘子多少被捕获
     dragDropIndex: null,
+    dragDropIndexCache : [],
     init: function(options) {
         this.hammerInited = false;
         this.lastLeft = null;
@@ -783,10 +787,11 @@ var dragCtrl = {
         this.holding = false;
         clearTimeout(this.positionEmitter);
         this.dragingDom.style[transitionProperty] = cssPrefix + 'transform';
-        if(null !== this.dragDropIndex) {
+        if(null !== this.dragDropIndex && this.dragDropIndexCache.indexOf(this.dragDropIndex) < 0) {
             this.setDragPos(fruitsCtl.originPos[0], fruitsCtl.originPos[1], true);
             fruitsCtl.checkSeq(this.dragingDom, this.dragDropIndex);
             $(this.dragingDom).addClass('droped');
+            this.dragDropIndexCache.push(this.dragDropIndex);
         } else {
             this.setDragPos(this.dragInitPos[0], this.dragInitPos[1], true);
         }
@@ -880,6 +885,9 @@ var dragCtrl = {
             me.positionListener.call(me);
             me.tickTack.call(me);
         }, me.positionEmitInter);
+    },
+    restartGame: function() {
+        this.dragDropIndexCache = [];
     }
 };
 dragCtrl.init();
