@@ -207,10 +207,15 @@ var pageCtl = {
             }
         });
         this.detectViewport();
-        this.body.on('click', '.knowHelp', function() {
-            $('#gameHelp').remove();
-        }).on('click', '.showHelp', function() {
-            pageCtl.showHelp();
+        $('.showHelp').click(function() {
+            if($('#gameHelp').length <= 0) {
+                pageCtl.showHelp();
+                $('.knowHelp').click(function() {
+                    if($('#gameHelp').length > 0) {
+                        $('#gameHelp').remove();
+                    }
+                });
+            }
         });
     },
     showHelp: function() {
@@ -219,6 +224,9 @@ var pageCtl = {
     detectViewport: function() {
         var vHeight = Math.max(this.body.height(), this.body.width());
         var vWidth = Math.min(this.body.height(), this.body.width());
+        if(vHeight <= 380) {
+            this.body.addClass('lowHeight');
+        }
         this.vHeight = vHeight;
         this.vWidth = vWidth;
     },

@@ -10,11 +10,29 @@ html, body {
 body {
     font-size: 10px;
     color: #333;
-    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1_bg.jpg) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1_bg.jpg) 50% 0 no-repeat #4d4ab4;
     background-size: 100%;
     font-family: "Microsoft YaHei";
 }
 body.loading {
+    position: relative;
+}
+body.loading:after {
+    content: 'loading...';
+    position: absolute;
+    width: 100px;
+    height: 20px;
+    font-size: 20px;
+    color: #fff;
+    top: 260px;
+    left: 50%;
+    text-align: center;
+    margin-left: -50px;
+        animation: loading-opacity linear 1s infinite;
+-webkit-animation: loading-opacity linear 1s infinite;
+-webkit-text-shadow: 1px 1px 1px #000;
+   -moz-text-shadow: 1px 1px 1px #000;
+        text-shadow: 1px 1px 1px #000;
 }
 #controller {
     position: relative;
@@ -88,9 +106,14 @@ body.loading {
     font-size: 16px;
 }
 
+.lowHeight .userWrap h3 {
+    padding-top: 180px;
+}
+.lowHeight #startGame {
+    top: 280px;
+}
 body.nameFocused {
     background-position: 50% -240px;
-    background-color: #4d4ab5;
 }
 .nameFocused h3 {
     display: none;
@@ -127,9 +150,7 @@ body.nameFocused {
 }
 
 #startGame:active {
--webkit-box-shadow: none;
--moz-box-shadow: none;
-    box-shadow: none;
+    opacity: 0.6;
 }
 .showHelp {
     display: block;
@@ -541,7 +562,26 @@ body.nameFocused {
         top: 160px;
     }
 }
-/*@font-face {*/
-    /*font-family: BebasNeue;*/
-    /*src: url('https://s3.amazonaws.com/html5hacks/BebasNeue.otf');*/
-/*}*/
+
+@keyframes loading-opacity {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@-webkit-keyframes loading-opacity {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
