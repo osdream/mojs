@@ -17,14 +17,43 @@
 /**
  * 游戏服务器连接类
  * @param {Object} options 选项
+ *
+ * @constructor
  */
 function GameCenter(options) {
+    /**
+     * @type {Object}
+     */
     this.options = options;
-    this.MusesConnect = options.MusesConnect;
+
+    /**
+     * @type {Function}
+     */
+    this.MusesConnect = options['MusesConnect'];
+
+    /**
+     * @type {string}
+     */
     this.host = options['host'] || 'http://osdream.com:8860';
+
+    /**
+     * @type {?string}
+     */
     this.hostToken = null;
+
+    /**
+     * @type {boolean}
+     */
     this.started = false;
+
+    /**
+     * @type {Object.<string, Function>}
+     */
     this.listeners = {};
+
+    /**
+     * @type {?Object}
+     */
     this.roomData = null;
 }
 
@@ -74,12 +103,13 @@ GameCenter.prototype.getRoomData = function() {
  * @param {Function} callback
  */
 GameCenter.prototype.createLocalRoom = function(callback) {
+    var me = this;
     var url = this.getUrl('/room/create');
     $.getJSON(url)
         .done(function(data) {
-            if (data.success) {
+            if (data['success']) {
                 me.roomData = data;
-                callback(null, data.result.token);
+                callback(null, data['result']['token']);
             }
             else {
                 callback(new Error('创建本地房间失败'));
@@ -154,7 +184,7 @@ GameCenter.prototype.connectAsHost = function(token) {
     var me = this;
     me.hostToken = token;
     function connectInternal() {
-        var connect = new me.MusesConnect();
+        var connect = /** @type {Connect} */new me.MusesConnect();
         me.connect = connect;
 
         connect
@@ -162,8 +192,8 @@ GameCenter.prototype.connectAsHost = function(token) {
             .then(function() {
                 // 接收更新token的事件
                 connect.onMessage = function(msg) {
-                    if (msg.type == 'event'
-                        && msg.event == GameCenter.Events.HOST_TOKEN_EXPIRED
+                    if (msg['type'] == 'event'
+                        && msg['event'] == GameCenter.Events.HOST_TOKEN_EXPIRED
                     ) {
                         me.hostRestart();
                     }
@@ -245,13 +275,13 @@ GameCenter.prototype.playerStart = function(player) {
  */
 GameCenter.prototype.tryEnterRoom = function(token, callback) {
     var me = this;
-    var url = this.getUrl('/room/enter', {token: token});
-    $.getJSON(url)
+    var url = this.getUrl('/room/enter');
+    $.getJSON(url, {token: token})
         .done(function(data) {
-            if (data.success) {
+            if (data['success']) {
                 me.roomData = data;
-                var isNeedInformHost = data.result.entered && data.result.full;
-                callback(null, data.result.token, isNeedInformHost);
+                var isNeedInformHost = data['result']['entered'] && data['result']['full'];
+                callback(null, data['result']['token'], isNeedInformHost);
             }
             else {
                 callback(new Error('创建随机房间失败'));
@@ -270,9 +300,9 @@ GameCenter.prototype.searchRandomRoom = function(callback) {
     var me = this;
     $.getJSON(url)
         .done(function(data) {
-            if (data.success) {
+            if (data['success']) {
                 me.roomData = data;
-                callback(null, data.result.token);
+                callback(null, data['result']['token']);
             }
             else {
                 callback(new Error('获取随机房间失败'));
@@ -303,7 +333,7 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
     var me = this;
     me.playToken = token;
     function connectInternal() {
-        var connect = new me.MusesConnect();
+        var connect = /** @type {Connect} */new me.MusesConnect();
         me.connect = connect;
 
         connect
@@ -321,16 +351,16 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                 var sendSeqs = [];
                 var timer = null;
                 connect.onMessage = function(msg) {
-                    if (msg.type == 'echo') {
+                    if (msg['type'] == 'echo') {
                         // 应答，序列号加1作为响应
                         connect.send({
-                            type: 'ack',
-                            seq: msg.seq + 1,
-                            player: me.player // 将自己的信息发送给对方
+                            'type': 'ack',
+                            'seq': msg['seq'] + 1,
+                            'player': me.player // 将自己的信息发送给对方
                         });
                     }
-                    else if (msg.type == 'ack') {
-                        var ackSeq = msg.seq;
+                    else if (msg['type'] == 'ack') {
+                        var ackSeq = msg['seq'];
                         for (var i = 0; i < sendSeqs.length; i++) {
                             if (ackSeq == sendSeqs[i] + 1) {
                                 clearTimeout(timer);
@@ -338,14 +368,14 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                                 me.trigger(
                                     GameCenter.Events.OPPONENT_ENTER_ROOM,
                                     connect,
-                                    msg.player // 收到对手信息
+                                    msg['player'] // 收到对手信息
                                 );
                                 break;
                             }
                         }
                     }
-                    else if (msg.type == 'message') {
-                        me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg.data);
+                    else if (msg['type'] == 'message') {
+                        me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg['data']);
                     }
                 };
                 /**
@@ -359,8 +389,8 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                         sendSeqs.shift();
                     }
                     connect.send({
-                        type: 'echo',
-                        seq: seq
+                        'type': 'echo',
+                        'seq': seq
                     });
                     timer = setTimeout(echo, 500);
                 }
