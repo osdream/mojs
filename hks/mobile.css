@@ -12,6 +12,7 @@ body {
     color: #333;
     background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1_bg.jpg) 50% 0 no-repeat;
     background-size: 100%;
+    font-family: "BebasNeue","Microsoft YaHei";
 }
 body.loading {
 }
@@ -235,7 +236,7 @@ body.nameFocused {
 #scoreLine span {
     position: absolute;
     font-size: 50px;
-    font-family: 'Microsofy YaHei';
+    font-family: 'Microsoft YaHei';
     width: 134px;
     height: 56px;
     line-height: 56px;
@@ -276,16 +277,29 @@ body.nameFocused {
     text-align: center;
 }
 #fruitWrap #waitTime {
-    color: #ff7255;
-    width: 100px;
-    height: 20px;
-    line-height: 30px;
-    font-size: 30px;
+    width: 64px;
+    height: 75px;
     position: absolute;
     text-align: center;
-    top: 100px;
+    top: 50px;
     left: 50%;
-    margin-left: -50px;
+    margin-left: -32px;
+    background-size: 100% 100%;
+}
+#fruitWrap #waitTime.count1 {
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1.png);
+}
+#fruitWrap #waitTime.count2 {
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/2.png);
+}
+#fruitWrap #waitTime.count3 {
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/3.png);
+}
+#fruitWrap #waitTime.start {
+    width: 120px;
+    height: 75px;
+    margin-left: -60px;
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/start.png);
 }
 #fruitWrap .fruitDish {
     position: absolute;
@@ -306,6 +320,9 @@ body.nameFocused {
     height: 100%;
     background-color: #999;
     opacity: 0.5;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit_shadow.png) repeat-x;
+    background-size: 20% 100%;
+    top: -8%;
 }
 #frame2.fruitsMask #fruitWrap .fruitDish:after,
 #frame2.fruitsMask #oppoFruitWrap .oppoDish:after {
@@ -442,48 +459,45 @@ body.nameFocused {
 }
 #frameSucceed {
     display: none;
-}
-#frameSucceed.show {
     position: absolute;
     left: 0;
     top: 0;
     z-index: 10;
-    display: block;
     width: 100%;
     height: 100%;
-    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg.png);
     background-size: 100%;
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg.png);
 }
-#frameFail {
-    display: none;
-    position: relative;
-    z-index: 8;
-    font-size: 20px;
-    font-weight: bold;
-    width: 200px;
-    margin: 80px auto;
-    color: #ff6445;
-    background: #fff;
--webkit-border-radius: 10px;
-   -moz-border-radius: 10px;
-        border-radius: 10px;
--webkit-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
-   -moz-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
-        box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
-    padding: 10px 20px;
-}
-#info {
+#frameSucceed .status {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    font-size: 8px;
-    padding: 2px;
-    height: 140px;
-    width: 40%;
-    background-color: #333;
-    color: #fff;
-    opacity: 0.4;
-    overflow: hidden;
+    left: 50%;
+    top: 100px;
+    margin-left: -120px;
+    width: 260px;
+    height: 60px;
+    background-size: 100% 100%;
+}
+#frameSucceed.show .status {
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/txt_win.png);
+}
+#frameSucceed.showFail .status {
+    margin-left: -130px;
+    top: 180px;
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/txt_lose.png);
+}
+#frameSucceed .retry,
+#frameSucceed .share {
+    position: absolute;
+    width: 160px;
+    height: 50px;
+    left: 50%;
+    top: 300px;
+    margin-left: -80px;
+    cursor: pointer;
+    z-index: 1000;
+}
+#frameSucceed .share {
+    top: 364px;
 }
 .fromShare #frame1 {
     display: block;
@@ -499,6 +513,9 @@ body.nameFocused {
     color: #ff6445;
     font-weight: bold;
     line-height: 200px;
+    background: #fff;
+    width: 100%;
+    height: 100%;
 }
 #gameHelp {
 
@@ -517,4 +534,14 @@ body.nameFocused {
     .enteringName #rotateScreen {
         display: none;
     }
+    .enteringName #frame1 .userWrap h3 {
+        padding-top: 50px;
+    }
+    .enteringName #frame1 .userWrap #startGame {
+        top: 160px;
+    }
+}
+@font-face {
+    font-family: BebasNeue;
+    src: url('https://s3.amazonaws.com/html5hacks/BebasNeue.otf');
 }

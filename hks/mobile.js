@@ -128,8 +128,8 @@ require.config({
 // 加载Connect模块
 require(['muses/connect'], function(Connect) {
     var gameCenter = new GameCenter({
-        MusesConnect: Connect
-        //host: 'http://gamecenter_0-0-0-1.jpaas-idea.baidu.com'
+        MusesConnect: Connect,
+        host: 'http://gamecenter_0-0-0-2.jpaas-idea.baidu.com'
     });
     context.gameCenter = gameCenter;
 
@@ -189,7 +189,11 @@ var pageCtl = {
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star1_w.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_w.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_w.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/blink.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3.png'
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/blink.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/2.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/3.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/start.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/txt_lose.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/txt_win.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit_shadow.png'
       //'http://bs.baidu.com/public01/2014-06/hackthon/images/sunlignt.png'
     ],
     comp: null,
@@ -315,10 +319,10 @@ var pageCtl = {
         }
     },
     fail: function() {
-        $('#frameFail').show();
+        $('#frameSucceed').addClass('showFail').show();
     },
     succeed: function(score) {
-        $('#frameSucceed').addClass('show');
+        $('#frameSucceed').addClass('show').show();
         ANIM.gen3Stars($('#frameSucceed'), score);
     },
     closeFrame1: function() {
@@ -409,9 +413,9 @@ var fruitsCtl = {
         var me = this;
         var curTime = new Date().getTime();
         var goTime = curTime - startTime;
-        me.waitTime.text(Math.round((me.readTime - goTime)/1000));
+        me.waitTime.removeClass('start count1 count2 count3').addClass('count' + Math.round((me.readTime - goTime)/1000));
         if(goTime >= me.readTime) {
-            me.waitTime.text('start').fadeOut(100);
+            me.waitTime.addClass('start').fadeOut(1000);
             pageCtl.frame2.removeClass('fruitsMask');
             setTimeout(function() {
                 me.refreshPos();
@@ -506,7 +510,7 @@ var fruitsCtl = {
         this.gameRefreshed = false;
         this.setSeconds(true);
     },
-    setScore: function(myScore, opScore) {
+    setScore: function(myScore, opScore, isWin) {
         this.scoreSpan.text(opScore + " : " + myScore);
     },
     refreshScore: function() {
@@ -560,7 +564,7 @@ var fruitsCtl = {
         this.startGame = true;
         this.refreshPos(true);
         var startTime = new Date().getTime();
-        this.waitTime.show().text(Math.round(this.readTime/1000));
+        this.waitTime.show().addClass('count' + Math.round(this.readTime/1000));
         this.myTime.text('').parent().removeClass('hasTime');
         this.oppoTime.text('').parent().removeClass('hasTime');
         this.hideOppoReady();
@@ -581,6 +585,7 @@ var competition = function(option) {
 competition.prototype.init = function() {
     this.competeTimes = 3;
     this.curCompeteTime = 0;
+    this.curCompeteWin = false;
     this.taskArr = [1,2,3,4,5];
     this.taskHashs = [];
     this.status = 'waiting';
@@ -667,10 +672,13 @@ competition.prototype.startTask = function() {
     this.curCompeteTime++;
 };
 competition.prototype.finishTask = function() {
+    var me = this;
     if(this.curCompeteTime < this.competeTimes) {
         fruitsCtl.reset();
     } else {
-        this.finishComp();
+        setTimeout(function() {
+            me.finishComp();
+        }, 3000);
     }
 };
 competition.prototype.finishComp = function() {
@@ -689,13 +697,16 @@ competition.prototype.calCulScore = function() {
     var mCurTime = fruitsCtl.curUseTime;
     var oRightNum = this.opStatus['curRightNum'];
     var oUseTime = this.opStatus['curUseTime'];
+    this.curCompeteWin = false;
     if (mRightNum > oRightNum) {
         this.myStatus['score']++;
+        this.curCompeteWin = true;
     } else if (mRightNum < oRightNum) {
         this.opStatus['score']++;
     } else {
         if (mCurTime < oUseTime) {
             this.myStatus['score']++;
+            this.curCompeteWin = true;
         } else if (mCurTime > oUseTime) {
             this.opStatus['score']++;
         } else {//平局,应该不太可能吧
@@ -703,7 +714,7 @@ competition.prototype.calCulScore = function() {
             this.opStatus['score']++;
         }
     }
-    fruitsCtl.setScore(this.myStatus['score'], this.opStatus['score']);
+    fruitsCtl.setScore(this.myStatus['score'], this.opStatus['score'], this.curCompeteWin);
 };
 competition.prototype.setStatus = function(status, noCheck) {
     this.myStatus.status = status;
@@ -714,7 +725,7 @@ competition.prototype.setStatus = function(status, noCheck) {
 competition.prototype.reset = function(isInit) {
     this.myStatus = null;
     this.opStatus = null;
-    this.compFinished = false;
+    isInit && (this.compFinished = false);
 };
 //对手连接成功
 competition.prototype.getOppo = function(data) {
