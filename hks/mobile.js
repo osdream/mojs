@@ -389,7 +389,7 @@ var fruitsCtl = {
         var oppoRestWidth = pageCtl.vWidth - 160;
         var oppoOffsetLeft = (oppoRestWidth > 0 ? oppoRestWidth / 2 : 0);
         this.oppoOffsetLeft = oppoOffsetLeft - restWidth * this.oppoRatio[0] / 2;
-        this.oppoOffsetTop = oH - 128;
+        this.oppoOffsetTop = 35;
         if(hasTransition) {
             [].forEach.call($('.fruits, .oppoFruits'), function(el, index) {
                 el.style[transitionProperty] = cssPrefix + 'transform';
@@ -454,7 +454,7 @@ var fruitsCtl = {
             var pos = this.targetPos[this.toFruits[index] - 1];
         }
         if(isOppo) {
-            pos = [pos[0] * this.oppoRatio[0] + this.oppoOffsetLeft, pos[1] * this.oppoRatio[1] + (isStart ? -this.oppoOffsetTop : 60)];
+            pos = [pos[0] * this.oppoRatio[0] + this.oppoOffsetLeft, (isStart ? this.oppoOffsetTop : pos[1] * this.oppoRatio[1] + 60)];
         } else {
             pos = [pos[0], pos[1] + (isStart ? 0 : 10)];
             $(el).data('pos', pos);

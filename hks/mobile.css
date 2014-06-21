@@ -12,7 +12,7 @@ body {
     color: #333;
     background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1_bg.jpg) 50% 0 no-repeat;
     background-size: 100%;
-    font-family: "BebasNeue","Microsoft YaHei";
+    font-family: "Microsoft YaHei";
 }
 body.loading {
 }
@@ -541,7 +541,7 @@ body.nameFocused {
         top: 160px;
     }
 }
-@font-face {
-    font-family: BebasNeue;
-    src: url('https://s3.amazonaws.com/html5hacks/BebasNeue.otf');
-}
+/*@font-face {*/
+    /*font-family: BebasNeue;*/
+    /*src: url('https://s3.amazonaws.com/html5hacks/BebasNeue.otf');*/
+/*}*/
