@@ -198,16 +198,22 @@ body.nameFocused {
     height: 55px;
     right: 4px;
     top: -13px;
-    color: #ff6445;
-    font-size: 15px;
-    line-height: 20px;
+    color: #333;
+    font-size: 17px;
+    line-height: 55px;
     z-index: 10;
     text-align: center;
-    border: 1px solid #000;
+}
+#frame2 .hasTime {
+    line-height: 27px;
 }
 #frame2 .myTime span,
 #frame2 .oppoTime span {
     display: block;
+    height: 27;
+-webkit-text-shadow: 1px 1px 0 #fff;
+   -moz-text-shadow: 1px 1px 0 #fff;
+        text-shadow: 1px 1px 0 #fff;
 }
 #frame2 .useSeconds {
     font-size: 14px;
@@ -228,16 +234,15 @@ body.nameFocused {
 }
 #scoreLine span {
     position: absolute;
-    font-size: 24px;
+    font-size: 50px;
     font-family: 'Microsofy YaHei';
-    width: 140px;
+    width: 134px;
     height: 56px;
     line-height: 56px;
     left: 50%;
     top: 27px;
-    margin-left: -70px;
+    margin-left: -67px;
     text-align: center;
-    background-color: #f7f7f7;
     z-index: 1;
 }
 #oppoFruitWrap,
@@ -439,6 +444,10 @@ body.nameFocused {
     display: none;
 }
 #frameSucceed.show {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 10;
     display: block;
     width: 100%;
     height: 100%;

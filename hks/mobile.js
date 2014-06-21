@@ -114,7 +114,7 @@ var utils = {
     }
 };
 window.onunload = function() {
-    pageCtl.comp && pageCtl.comp.oppoLeave();
+    pageCtl.comp && pageCtl.comp.leave();
 };
 
 context.gameCenter = null;
@@ -137,9 +137,11 @@ require(['muses/connect'], function(Connect) {
         GameCenter.Events.ROOM_ENTERED,
         function(conn) {
             context.connect = conn;
+            var isMaster = !gameCenter.getRoomData().result.full;
+            isMaster && ANIM.genStarBlink('blink', 0, 300, 225);
             pageCtl.comp = new competition({
                 conn: conn,
-                isMaster: !gameCenter.getRoomData().result.full
+                isMaster: isMaster
             });
         }
     );
@@ -166,7 +168,6 @@ require(['muses/connect'], function(Connect) {
 
 //页面控制
 var pageCtl = {
-    curScore: 0,
     body: $('body'),
     ctlDom: $('#controller'),
     frame1: $('#frame1'),
@@ -174,27 +175,31 @@ var pageCtl = {
     oppoNameDom: $('.oppoName'),
     nameDom: $('#name'),
     startBtn: $('#startGame'),
-    preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png',  'http://ecma.bdimg.com/adtest/hks140615fruit01.png',
-      'http://ecma.bdimg.com/adtest/hks140615fruit02.png', 'http://ecma.bdimg.com/adtest/hks140615fruit03.png',
-      'http://ecma.bdimg.com/adtest/hks140615fruit04.png', 'http://ecma.bdimg.com/adtest/hks140615fruit05.png',
-      'http://ecma.bdimg.com/adtest/hks140617dish.png'],
+    preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png',  'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit1.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit2.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit3.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit4.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit5.png',
+      'http://ecma.bdimg.com/adtest/hks140617dish.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ok.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_rule.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/rule_bg.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/m_bg.jpg', 'http://bs.baidu.com/public01/2014-06/hackthon/images/match_board.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/match_board.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_right.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_wrong.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ready.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg.png',
+      'http://bs.baidu.com/public01/2014-06/star1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/prize_03.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/star1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star1_bg.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/star1_w.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_w.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_w.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/blink.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3.png'
+      //'http://bs.baidu.com/public01/2014-06/hackthon/images/sunlignt.png'
+    ],
     comp: null,
     init: function() {
         //预加载图片
         $.imgpreload(this.preImages, {
             all: function() {
                 pageCtl.imageLoaded = true;
-                //if(conn.connid > 0) {
-                    pageCtl.start();
-                //}
-                //test
-                // require(['stars'], function(star) {
-                //     star.genStarBubble('star1', pageCtl.body);
-                //     star.genStarBlink('blink', 0, 200, 200);
-                //     star.genStarsFly('star', 10, [160, 250], [180, 200]);
-                //     star.genStarsFly('star-white', 6, [160, 250], [180, 200]);
-                //     star.genStarsFly('star-small', 6, [160, 250], [180, 200]);
-                // });
+                pageCtl.start();
+
             }
         });
         this.detectViewport();
@@ -203,7 +208,6 @@ var pageCtl = {
         }).on('click', '.showHelp', function() {
             pageCtl.showHelp();
         });
-        //conn.prepare();
     },
     showHelp: function() {
         this.ctlDom.append('<div id="gameHelp">比赛规则<span class="knowHelp">我知道了</span></div>');
@@ -243,6 +247,8 @@ var pageCtl = {
         this.startBtn.click(function() {
             pageCtl.fireStart();
         });
+        //test
+        //pageCtl.succeed(0);
     },
     fireStart: function() {
         //conn.send('msg', 'start');
@@ -302,12 +308,18 @@ var pageCtl = {
         this.comp && this.comp.getOppo();
         this.frame2.removeClass('waitingOppo');
     },
+    oppoLeave: function(compFinished) {
+        if(!compFinished) {
+            this.oppoNameDom.text('已经离开');
+            fruitsCtl.oppoTime.text('').parent().removeClass('hasTime');
+        }
+    },
     fail: function() {
         $('#frameFail').show();
     },
-    succeed: function() {
+    succeed: function(score) {
         $('#frameSucceed').addClass('show');
-        ANIM.gen3Stars($('#frameSucceed'), 2);
+        ANIM.gen3Stars($('#frameSucceed'), score);
     },
     closeFrame1: function() {
         this.nameDom.remove();
@@ -318,30 +330,11 @@ var pageCtl = {
         this.frame1 = null;
         this.body.removeClass('enteringName');
     },
-    finish: function() {
-        var score = this.curScore;
-        this.closeFrame1();
-        this.frame2.hide();
-        this.frame3.show();
-        if(score < 10) {
-            score = '0' + score;
-        }
-        this.frame3Num.text(score);
-        if(score <= 6) {
-            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype1.png)');
-        } else if (score <= 10) {
-            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype2.png)');
-        } else {
-            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype3.png)');
-        }
+    closeFrame2: function() {
+        this.frame2.remove();
     }
 };
-
-pageCtl.succeed(3);
-return;
-
 pageCtl.init();
-
 
 
 var fruitsCtl = {
@@ -392,7 +385,7 @@ var fruitsCtl = {
         var oppoRestWidth = pageCtl.vWidth - 160;
         var oppoOffsetLeft = (oppoRestWidth > 0 ? oppoRestWidth / 2 : 0);
         this.oppoOffsetLeft = oppoOffsetLeft - restWidth * this.oppoRatio[0] / 2;
-        this.oppoOffsetTop = oH - 130;
+        this.oppoOffsetTop = oH - 128;
         if(hasTransition) {
             [].forEach.call($('.fruits, .oppoFruits'), function(el, index) {
                 el.style[transitionProperty] = cssPrefix + 'transform';
@@ -514,7 +507,7 @@ var fruitsCtl = {
         this.setSeconds(true);
     },
     setScore: function(myScore, opScore) {
-        this.scoreSpan.text(opScore + ":" + myScore);
+        this.scoreSpan.text(opScore + " : " + myScore);
     },
     refreshScore: function() {
         this.scoreSpan.text('观察3秒钟，将水果拖至初始的位置');
@@ -532,7 +525,7 @@ var fruitsCtl = {
             });
             pageCtl.comp.checkStatus();
         }
-        this.myTime.text(deltaTime + '秒');
+        this.myTime.text(deltaTime + '秒').parent().addClass('hasTime');
     },
     showWait: function() {
         if(this.startGame) {
@@ -551,7 +544,7 @@ var fruitsCtl = {
     },
     setOppoFinish: function(time) {
         this.oppoReady.text('Finish').addClass('finish');
-        this.oppoTime.text(time + '秒');
+        this.oppoTime.text(time + '秒').parent().addClass('hasTime');
     },
     reset: function() {
         this.startGame = false;
@@ -568,7 +561,8 @@ var fruitsCtl = {
         this.refreshPos(true);
         var startTime = new Date().getTime();
         this.waitTime.show().text(Math.round(this.readTime/1000));
-        this.myTime.text('');
+        this.myTime.text('').parent().removeClass('hasTime');
+        this.oppoTime.text('').parent().removeClass('hasTime');
         this.hideOppoReady();
         this.checkWaitTime(startTime);
         dragCtrl.restartGame();
@@ -578,8 +572,8 @@ fruitsCtl.init();
 
 //比赛
 var competition = function(option) {
-    this.ready = false;
-    this.reset(true);
+    this.compFinished = false;
+    this.reset();
     this.isMaster = option['isMaster'];
     this.conn = option['conn'];
     this.init();
@@ -615,9 +609,6 @@ competition.prototype.createSeq = function(arr) {
     });
     return toArr;
 };
-competition.prototype.handleMyStatus = function() {
-
-};
 competition.prototype.handleOpStatus = function(data) {
     switch(this.opStatus.status) {
         case 'waiting':
@@ -642,6 +633,9 @@ competition.prototype.handleOpStatus = function(data) {
             this.opStatus['curRightNum'] = opRightNum;
             this.opStatus['curUseTime'] = opUseTime;
             fruitsCtl.setOppoFinish(opUseTime);
+            break;
+        case 'leave':
+            pageCtl.oppoLeave(this.compFinished);
             break;
     }
 };
@@ -681,14 +675,13 @@ competition.prototype.finishTask = function() {
 };
 competition.prototype.finishComp = function() {
     if(this.myStatus.score > this.opStatus.score) {
-        alert('你赢了！再见！');
         pageCtl.succeed(this.myStatus.score);
     } else if(this.myStatus.score < this.opStatus.score) {
-        alert('你输了！再见！');
         pageCtl.fail();
     } else {
-        alert('呵呵！不分胜负！');
+        pageCtl.succeed(this.myStatus.score);
     }
+    this.compFinished = true;
     this.reset();
 };
 competition.prototype.calCulScore = function() {
@@ -719,9 +712,9 @@ competition.prototype.setStatus = function(status, noCheck) {
 };
 //TODO
 competition.prototype.reset = function(isInit) {
-    !isInit && this.setStatus('leave', true);
     this.myStatus = null;
     this.opStatus = null;
+    this.compFinished = false;
 };
 //对手连接成功
 competition.prototype.getOppo = function(data) {
@@ -732,8 +725,10 @@ competition.prototype.getOppo = function(data) {
         });
     }
 };
-competition.prototype.oppoLeave= function() {
-    this.reset();
+competition.prototype.leave= function() {
+    if(!this.compFinished) {
+        this.setStatus('leave', true);
+    }
 };
 competition.prototype.sendData = function(data) {
     var dataObj = {
