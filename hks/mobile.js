@@ -129,7 +129,7 @@ require.config({
 require(['muses/connect'], function(Connect) {
     var gameCenter = new GameCenter({
         MusesConnect: Connect,
-        host: 'http://gamecenter_0-0-0-2.jpaas-idea.baidu.com'
+        host: 'http://114.215.181.63:8860'
     });
     context.gameCenter = gameCenter;
 
