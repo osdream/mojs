@@ -331,7 +331,10 @@ var pageCtl = {
     },
     succeed: function(score) {
         $('#frameSucceed').addClass('show').show();
-        ANIM.gen3Stars($('#frameSucceed'), score);
+        var ratio = this.vWidth / 320;
+        $('#frameSucceed .retry').css({'top': ratio * 300, 'margin-left': -80 * ratio, 'width' : ratio * 160, 'height': ratio * 50});
+        $('#frameSucceed .share').css({'top': ratio * 360, 'margin-left': -80 * ratio, 'width' : ratio * 160, 'height': ratio * 50});
+        ANIM.gen3Stars($('#frameSucceedStars'), score);
     },
     closeFrame1: function() {
         this.nameDom.remove();

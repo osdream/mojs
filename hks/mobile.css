@@ -489,6 +489,14 @@ body.nameFocused {
     background-size: 100%;
     background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg.png);
 }
+#frameSucceed #frameSucceedStars {
+    position: absolute;
+    left: 0;
+    top: 0;
+    left: 50%;
+    margin-left: -160px;
+    width: 320px;
+}
 #frameSucceed .status {
     position: absolute;
     left: 50%;
