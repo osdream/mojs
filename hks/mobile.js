@@ -168,6 +168,7 @@ require(['muses/connect'], function(Connect) {
 
 //页面控制
 var pageCtl = {
+    maxWait: 2000,//最长等待时间，超过使用AI
     body: $('body'),
     ctlDom: $('#controller'),
     frame1: $('#frame1'),
@@ -299,6 +300,7 @@ var pageCtl = {
     findingAnimation: function() {
         var dotNum = 3;
         var me = this;
+        me.startFindingTime = new Date().getTime();
         function _animate() {
             if(!me.isFinding) {
                 return;
@@ -309,15 +311,19 @@ var pageCtl = {
                 dotStr += '.';
             }
             fruitsCtl.scoreSpan.text(dotStr + '搜寻对手中' + dotStr);
-            setTimeout(_animate, 800);
+            if(new Date().getTime() - me.startFindingTime > me.maxWait) {
+                me.getOppo('AI玩家', true);
+            } else {
+                setTimeout(_animate, 800);
+            }
         }
         _animate();
     },
-    getOppo: function(oppoName) {
+    getOppo: function(oppoName, isAI) {
         this.isFinding = false;
         fruitsCtl.scoreSpan.text('');
         this.oppoNameDom.text(oppoName || '测试对手');
-        this.comp && this.comp.getOppo();
+        this.comp && this.comp.getOppo(isAI);
         this.frame2.removeClass('waitingOppo');
     },
     oppoLeave: function(compFinished) {
@@ -539,6 +545,13 @@ var fruitsCtl = {
                 useTime: deltaTime
             });
             pageCtl.comp.checkStatus();
+            var aiUseTime;
+            if(pageCtl.comp.AICompTime) {
+                aiUseTime = (pageCtl.comp.AICompTime + deltaTime) / 2;
+            } else {
+                aiUseTime = pageCtl.comp.AICompTime;
+            }
+            utils.cookie('aitime', aiUseTime);
         }
         this.myTime.text(deltaTime + '秒').parent().addClass('hasTime');
     },
@@ -594,6 +607,8 @@ var competition = function(option) {
     this.init();
 };
 competition.prototype.init = function() {
+    this.AIOppo = false;
+    this.AICompTime = null;
     this.competeTimes = 3;
     this.curCompeteTime = 0;
     this.curCompeteWin = false;
@@ -610,6 +625,11 @@ competition.prototype.init = function() {
     };
     if(this.isMaster) {//主机发题
         this.createTasks();
+    }
+    //获取AI每次游戏的时间
+    var cookieAITime = utils.cookie('aitime');
+    if(cookieAITime) {
+        this.AICompTime = cookieAITime;
     }
 };
 competition.prototype.createTasks = function() {
@@ -739,7 +759,12 @@ competition.prototype.reset = function(isInit) {
     isInit && (this.compFinished = false);
 };
 //对手连接成功
-competition.prototype.getOppo = function(data) {
+competition.prototype.getOppo = function(isAI) {
+    if(isAI) {
+        this.AIOppo = true;
+        //this.isMaster = true;//?
+        this.initAI();
+    }
     if(this.isMaster) {//主机发题
         this.sendData({
             status: 'waiting',
@@ -770,11 +795,14 @@ competition.prototype.receiveData = function(data) {
     this.opStatus.status = data.status;
     this.handleOpStatus(data);
     this.checkStatus();
-}
+};
+//等待时间超过20秒 启用AI对手
+competition.prototype.initAI = function() {
+};
 
 //滑块控制
 var dragCtrl = {
-    catchDis: 50,//距离盘子多少被捕获
+    catchDis: 32,//距离盘子多少被捕获
     dragDropIndex: null,
     dragDropIndexCache : [],
     init: function(options) {
@@ -938,4 +966,3 @@ var dragCtrl = {
 dragCtrl.init();
 
 })(window, document);
-
