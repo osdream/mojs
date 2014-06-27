@@ -435,8 +435,458 @@ GameCenter.prototype.trigger = function(eventName, var_args) {
     }
 };
 
+/**
+ * AI 类
+ * @constructor
+ */
+GameCenter.AI = function(playerRecord, options) {
+    /**
+     * 玩家的历史记录
+     * @type {Object}
+     */
+    this.playerRecord = playerRecord || {
+        'averageCorrect': 3, // 平均正确数目
+        'averageCostTime': 10000, // 平均耗费时长
+        'playTimes': 0 // 已玩局数
+    };
 
+    /**
+     * AI是否是主玩家
+     * @type {boolean}
+     */
+    this.isMaster = options.isMaster;
 
+    /**
+     * 比赛类
+     */
+    this.Competition = options.competition;
+
+    /**
+     * 比赛对象
+     */
+    this.competition = null;
+
+    /**
+     * 对方玩家
+     */
+    this.oppoPlayer = null;
+
+    /**
+     * 游戏服务器连接对象
+     */
+    this.gameCenter = null;
+
+    /**
+     * muses连接对象
+     */
+    this.connect = null;
+
+    /**
+     * 当前游戏局数
+     */
+    this.playedGameCount = 0;
+
+    /**
+     * 总局数
+     */
+    this.totalGameCount = 3;
+
+    /**
+     * 当前局正确数目
+     */
+    this.currentRightCount = 0;
+
+    /**
+     * 游戏全局状态
+     */
+    this.globalStatus = 'waiting';
+
+    /**
+     * AI状态
+     */
+    this.selfGame = {
+        status: 'waiting',
+        correctCount: 0,
+        costTime: 0,
+        score: 0
+    };
+
+    /**
+     * 对手状态
+     */
+    this.oppoGame = {
+        status: 'waiting',
+        correctCount: 0,
+        costTime: 0,
+        score: 0
+    };
+}
+
+/**
+ * 获取玩家历史战绩
+ */
+GameCenter.AI.prototype.getPlayerRecord = function() {
+    return this.playerRecord;
+};
+
+GameCenter.AI.prototype.mergePlayerRecord = function(correctCount, costTime) {
+    this.playerRecord['averageCorrect'] = (correctCount + this.playerRecord['averageCorrect']) / 2;
+    this.playerRecord['averageCostTime'] = (costTime + this.playerRecord['averageCostTime']) / 2;
+    this.playerRecord['playTimes']++;
+};
+
+/**
+ * AI启动
+ */
+GameCenter.AI.prototype.start = function() {
+    var that = this;
+    this.createGameCenter(function(gameCenter) {
+        gameCenter.start(
+            GameCenter.ClientMode.PLAYER,
+            {
+                userName: that.getRandomName()
+            }
+        );
+    });
+};
+
+/**
+ * 创建 GameCenter
+ */
+GameCenter.AI.prototype.createGameCenter = function(callback) {
+    var that = this;
+    require.config({
+        paths: {
+            'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+        }
+    });
+
+    require(['muses/connect'], function(Connect) {
+        var gameCenter = new GameCenter({
+            MusesConnect: Connect,
+            host: 'http://114.215.181.63:8860'
+        });
+        that.gameCenter = gameCenter;
+
+        gameCenter.addListener(
+            GameCenter.Events.ROOM_ENTERED,
+            function(conn) {
+                that.connect = conn;
+                that.competition = new that.Competition({
+                    conn: conn,
+                    isMaster: that.isMaster
+                });
+            }
+        );
+        gameCenter.addListener(
+            GameCenter.Events.PLAYER_MESSAGE_RECEIVED,
+            function(data) {
+                // 接受到新消息
+                that.processMessage(data);
+            }
+        );
+        var oppoExist = false;
+        gameCenter.addListener(
+            GameCenter.Events.OPPONENT_ENTER_ROOM,
+            function(conn, oppoPlayer) {
+                // 如果有多个玩家，抛弃后面的玩家...
+                if (oppoExist) {
+                    return;
+                }
+                oppoExist = true;
+
+                // 收到对方玩家信息
+                that.oppoPlayer = oppoPlayer;
+
+                // 有对手了，可以开始游戏了
+                that.startGame();
+            }
+        );
+        callback(gameCenter);
+    });
+};
+
+/**
+ * 获取AI玩家名称
+ */
+GameCenter.AI.prototype.getRandomName = function() {
+    return '我是机器人';
+    // TODO
+};
+
+/**
+ * 开始游戏
+ */
+GameCenter.AI.prototype.startGame = function() {
+    if (this.isMaster) {
+        this.competition.createTasks();
+        this.taskHashs = this.competition.taskHashs;
+        this.send({
+            status: 'waiting',
+            tasks: this.taskHashs
+        });
+    }
+    var that = this;
+    setTimeout(
+        function() {
+            that.setStatus('ready');
+            that.checkStatus();
+        },
+        1000
+    );
+};
+
+/**
+ * 发送数据包
+ */
+GameCenter.AI.prototype.send = function(data) {
+    var package = {
+        type: 'message',
+        data: data
+    };
+    this.connect.send(package);
+};
+
+/**
+ * 处理收到的消息
+ */
+GameCenter.AI.prototype.processMessage = function(package) {
+    // 如果不是主玩家，接收游戏题目
+    if (!this.isMaster && package.tasks) {
+        this.taskHashs = package.tasks;
+        this.send({
+            status: 'waiting'
+        });
+    }
+    this.handleOppoData(package);
+};
+
+GameCenter.AI.prototype.handleOppoData = function(data) {
+    this.oppoGame.status = data.status;
+    switch(data.status) {
+        case 'waiting':
+            // do nothing
+            break;
+        case 'ready':
+            // do nothing
+            break;
+        case 'playing':
+            /*
+            var oppoResult = data.taskRes;
+            if (oppoResult) {
+                // 被拖动的水果
+                var fruitClass = opRes[0];
+                // 拖动到的盘子的index
+                var plateIndex = opRes[1];
+                // 最初盘子上水果摆放数组
+                var plate = this.getCurrentPlate();
+                // 正确的水果类型
+                var rightFruitType = plate[plateIndex];
+                // 实际水果类型
+                var actualFruitType = parseInt(
+                    fruitClass.replace(/fruit0/g, '')
+                );
+                if (actualFruitType == rightFruitType) {
+                    this.currentRightCount++;
+                }
+            }
+            */
+            break;
+        case 'finish':
+            this.oppoGame.correctCount = data.rightNum;
+            this.oppoGame.costTime = data.useTime;
+            this.mergePlayerRecord(
+                this.oppoGame.correctCount,
+                this.oppoGame.costTime
+            );
+            break;
+        case 'leave':
+            break;
+    }
+
+    this.checkStatus();
+};
+
+GameCenter.AI.prototype.getCurrentPlate = function() {
+    return this.taskHashs[this.playedGameCount];
+};
+
+GameCenter.AI.prototype.getCurrentShuffle = function() {
+    return this.taskHashs[this.playedGameCount + this.totalGameCount];
+};
+
+GameCenter.AI.prototype.checkStatus = function() {
+    var selfStatus = this.selfGame.status;
+    var oppoStatus = this.oppoGame.status;
+    console.log('self:' + selfStatus);
+    console.log('oppo:' + oppoStatus);
+    switch (this.globalStatus) {
+        case 'waiting':
+            if ('ready' == selfStatus
+                && 'ready' == oppoStatus
+            ) {
+                this.globalStatus = 'playing';
+                this.setStatus('playing');
+                this.startTask();
+            }
+            break;
+        case 'playing':
+            if ('finish' == selfStatus
+                && 'finish' == oppoStatus
+            ) {
+                this.globalStatus = 'waiting';
+                this.setStatus('waiting');
+                this.calcScore();
+                this.finishTask();
+            }
+            break;
+    }
+};
+
+GameCenter.AI.prototype.setStatus = function(status) {
+    this.selfGame.status = status;
+    this.send({
+        status: status
+    });
+};
+
+GameCenter.AI.prototype.startTask = function() {
+    var that = this;
+
+    // 过8秒之后模拟用户拖动
+    this.waitFor(8000, function() {
+        that.startSimulate();
+    });
+};
+
+GameCenter.AI.prototype.finishTask = function() {
+    var that = this;
+    if (this.playedGameCount < this.totalGameCount) {
+        this.playedGameCount++;
+        this.nextGame();
+    }
+    else {
+        this.reset();
+    }
+};
+
+GameCenter.AI.prototype.nextGame = function() {
+    var that = this;
+    this.setStatus('waiting');
+    this.checkStatus();
+    setTimeout(
+        function() {
+            that.setStatus('ready');
+            that.checkStatus();
+        },
+        5000
+    );
+};
+
+GameCenter.AI.prototype.reset = function() {
+    this.setStatus('waiting');
+    this.checkStatus();
+};
+
+GameCenter.AI.prototype.waitFor = function(time, callback) {
+    var startTime = new Date().getTime();
+    function heartBeat() {
+        var currentTime = new Date().getTime();
+        if (currentTime - startTime >= time) {
+            callback();
+        }
+        else {
+            setTimeout(heartBeat, 200);
+        }
+    }
+    heartBeat();
+};
+
+GameCenter.AI.prototype.startSimulate = function() {
+    var plate = this.getCurrentPlate();
+
+    var timer = null;
+    var that = this;
+    var index = 0;
+    var correctCount = 0;
+    var startTime = new Date().getTime();
+    function finish() {
+        that.selfGame.status = 'finish';
+        that.send({
+            'status': 'finish',
+            'rightNum': correctCount,
+            'useTime': ((new Date().getTime() - startTime) / 1000)
+        });
+        that.checkStatus();
+    }
+    function nextMove() {
+        var costTime = that.getRandomCostTime();
+        var correctRatio = that.getCorrectRatio();
+        console.log(costTime);
+        console.log(correctRatio);
+        timer = setTimeout(
+            function() {
+                if (Math.random() < correctRatio || index == plate.length - 1) {
+                    that.send({
+                        'taskRes': ['fruit0' + plate[index], index],
+                        'status':'playing'
+                    });
+                    correctCount++;
+                    index++;
+                    if (index < plate.length) {
+                        nextMove();
+                    }
+                    else {
+                        finish();
+                    }
+                }
+                else {
+                    that.send({
+                        'taskRes': ['fruit0' + plate[index + 1], index],
+                        'status':'playing'
+                    });
+                    finish();
+                }
+            },
+            costTime
+        );
+    }
+    nextMove();
+};
+
+GameCenter.AI.prototype.getCorrectRatio = function() {
+    return this.playerRecord['averageCorrect'] / 5;
+};
+
+GameCenter.AI.prototype.getRandomCostTime = function() {
+    return this.playerRecord['averageCostTime'] * (8 + Math.random()*4) / 50;
+};
+
+GameCenter.AI.prototype.calcScore = function() {
+    var selfCorrectCount = this.selfGame.correctCount;
+    var selfCostTime = this.selfGame.costTime;
+    var oppoCorrectCount = this.oppoGame.correctCount;
+    var oppoCostTime = this.oppoGame.costTime;
+    var isWinner = false;
+    if (selfCorrectCount > oppoCorrectCount) {
+        this.selfGame.score++;
+    }
+    else if (selfCorrectCount < oppoCorrectCount) {
+        this.oppoGame.score++;
+    }
+    else {
+        if (selfCostTime < oppoCostTime) {
+            this.selfGame.score++;
+        }
+        else if (selfCostTime > oppoCostTime) {
+            this.oppoGame.score++;
+        }
+        else {
+            this.selfGame.score++;
+            this.oppoGame.score++;
+        }
+    }
+};
 
 
 

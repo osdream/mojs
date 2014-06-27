@@ -312,7 +312,15 @@ var pageCtl = {
             }
             fruitsCtl.scoreSpan.text(dotStr + '搜寻对手中' + dotStr);
             if(new Date().getTime() - me.startFindingTime > me.maxWait) {
-                me.getOppo('AI玩家', true);
+                // me.getOppo('AI玩家', true);
+                var ai = new GameCenter.AI(
+                    null,
+                    {
+                        isMaster: !me.comp.isMaster,
+                        competition: competition
+                    }
+                );
+                ai.start();
             } else {
                 setTimeout(_animate, 800);
             }
