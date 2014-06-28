@@ -1,5 +1,7 @@
 (function (window, document) {
 var context = {};
+context.cms = new ClickMonkeyService('bdd_sdc_one_hackathon');
+context.cms.send('scan_count');
 
 //var notFromShare = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)$/);
 //if(!notFromShare) {
@@ -151,6 +153,7 @@ require(['muses/connect'], function(Connect) {
             pageCtl.comp && pageCtl.comp.receiveData(data);
         }
     );
+    // TODO: 限制只能有一个对手
     var oppoExist = false;
     gameCenter.addListener(
         GameCenter.Events.OPPONENT_ENTER_ROOM,
@@ -162,6 +165,13 @@ require(['muses/connect'], function(Connect) {
             // 通知页面对手信息
             pageCtl.getOppo(oppoPlayer.userName);
             oppoExist = true;
+
+            if (oppoPlayer.isAI) {
+                context.cms.send('play_with_ai');
+            }
+            else {
+                context.cms.send('play_with_player');
+            }
         }
     );
 });
@@ -176,25 +186,25 @@ var pageCtl = {
     oppoNameDom: $('.oppoName'),
     nameDom: $('#name'),
     startBtn: $('#startGame'),
-    preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png',  'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit1.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit2.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit3.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit4.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit5.png',
-      'http://ecma.bdimg.com/adtest/hks140617dish.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ok.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_rule.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/rule_bg.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/m_bg.jpg', 'http://bs.baidu.com/public01/2014-06/hackthon/images/match_board.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/match_board.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_right.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_wrong.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ready.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg.png',
+    preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png',  'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit1.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit2.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit3.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit4.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit5.png',
+      'http://ecma.bdimg.com/adtest/hks140617dish.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_ok.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_rule.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/rule_bg.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/m_bg.jpg', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/match_board.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_bg.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_right.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_wrong.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_ready.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/ending_bg.png',
       'http://bs.baidu.com/public01/2014-06/star1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/prize_03.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star1_bg.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star1_w.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_w.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_w.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/blink.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/2.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/3.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/start.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/txt_lose.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/txt_win.png',
-      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit_shadow.png'
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/1.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/2.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/3.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/start.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/txt_lose.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/txt_win.png',
+      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit_shadow.png'
       //'http://bs.baidu.com/public01/2014-06/hackthon/images/sunlignt.png'
     ],
     comp: null,
@@ -217,6 +227,14 @@ var pageCtl = {
                     }
                 });
             }
+        });
+
+        $('#replay').click(function(e) {
+            context.cms.send('game_replay');
+
+            window.location.reload();
+            e.preventDefault();
+            return false;
         });
     },
     showHelp: function() {
@@ -264,6 +282,7 @@ var pageCtl = {
         //pageCtl.succeed(0);
     },
     fireStart: function() {
+        context.cms.send('game_start');
         //conn.send('msg', 'start');
         this.userName = this.nameDom.val();
         if('' == this.userName) {
@@ -312,7 +331,21 @@ var pageCtl = {
             }
             fruitsCtl.scoreSpan.text(dotStr + '搜寻对手中' + dotStr);
             if(new Date().getTime() - me.startFindingTime > me.maxWait) {
-                me.getOppo('AI玩家', true);
+                // 创建AI
+                utils.waitVariableExists('comp', me, function() {
+                    var playerRecord = utils.cookie('player_record');
+                    if (playerRecord) {
+                        playerRecord = JSON.parse(playerRecord);
+                    }
+                    var ai = new GameCenter.AI(
+                        playerRecord,
+                        {
+                            isMaster: !me.comp.isMaster,
+                            competition: competition
+                        }
+                    );
+                    ai.start();
+                });
             } else {
                 setTimeout(_animate, 800);
             }
@@ -707,6 +740,7 @@ competition.prototype.finishTask = function() {
     if(this.curCompeteTime < this.competeTimes) {
         fruitsCtl.reset();
     } else {
+        context.cms.send('game_finish');
         setTimeout(function() {
             me.finishComp();
         }, 3000);
@@ -726,6 +760,15 @@ competition.prototype.finishComp = function() {
 competition.prototype.calCulScore = function() {
     var mRightNum = fruitsCtl.dragRightNum;
     var mCurTime = fruitsCtl.curUseTime;
+
+    // 更新玩家战绩
+    var playerRecord = utils.cookie('player_record');
+    if (playerRecord) {
+        playerRecord = JSON.parse(playerRecord);
+    }
+    var brandNewRecord = GameCenter.mergePlayerRecord(playerRecord, mRightNum, mCurTime);
+    utils.cookie('player_record', JSON.stringify(brandNewRecord));
+
     var oRightNum = this.opStatus['curRightNum'];
     var oUseTime = this.opStatus['curUseTime'];
     this.curCompeteWin = false;

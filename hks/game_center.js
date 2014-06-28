@@ -55,6 +55,12 @@ function GameCenter(options) {
      * @type {?Object}
      */
     this.roomData = null;
+
+    /**
+     * 进入房间的对手的clientId
+     * @type {?string}
+     */
+    this.oppoClientId = null;
 }
 
 /**
@@ -350,7 +356,7 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
 
                 var sendSeqs = [];
                 var timer = null;
-                connect.onMessage = function(msg) {
+                connect.onMessage = function(msg, package) {
                     if (msg['type'] == 'echo') {
                         // 应答，序列号加1作为响应
                         connect.send({
@@ -364,6 +370,8 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                         for (var i = 0; i < sendSeqs.length; i++) {
                             if (ackSeq == sendSeqs[i] + 1) {
                                 clearTimeout(timer);
+                                // 记录对方的clientId，用于防止很多人连入房间
+                                me.oppoClientId = package['from'];
                                 // EVENT: 确认对手进入房间
                                 me.trigger(
                                     GameCenter.Events.OPPONENT_ENTER_ROOM,
@@ -375,7 +383,11 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                         }
                     }
                     else if (msg['type'] == 'message') {
-                        me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg['data']);
+                        // TODO: 仍然有BUG
+                        // 只有来自第一个进入房间的对手的消息才能传递给当前玩家
+                        if (me.oppoClientId == package['from']) {
+                            me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg['data']);
+                        }
                     }
                 };
                 /**
@@ -435,10 +447,650 @@ GameCenter.prototype.trigger = function(eventName, var_args) {
     }
 };
 
+/**
+ * 静态函数，合并玩家历史战绩
+ * @static
+ */
+GameCenter.mergePlayerRecord = function(playerRecord, correctCount, costTime) {
+    var movedFruitCount = correctCount + (correctCount < 5 ? 1 : 0);
+    var unitCostTime = costTime * 1000 / movedFruitCount;
+    var record = {};
+    if (playerRecord) {
+        record['averageCorrect'] = (correctCount + playerRecord['averageCorrect']) / 2;
+        record['averageUnitCostTime'] = (unitCostTime + playerRecord['averageUnitCostTime']) / 2;
+        record['playTimes'] = playerRecord['playTimes'] + 1;
+    }
+    else {
+        record['averageCorrect'] = correctCount;
+        record['averageUnitCostTime'] = unitCostTime;
+        record['playTimes'] = 1;
+    }
 
+    return record;
+};
 
+/**
+ * AI 类
+ * @constructor
+ */
+GameCenter.AI = function(playerRecord, options) {
+    /**
+     * 玩家的历史记录
+     * @type {Object}
+     */
+    this.playerRecord = playerRecord || {
+        'averageCorrect': 4.5, // 平均正确数目
+        'averageUnitCostTime': 1000, // 平均耗费时长
+        'playTimes': 0 // 已玩局数
+    };
 
+    /**
+     * AI是否是主玩家
+     * @type {boolean}
+     */
+    this.isMaster = options.isMaster;
 
+    /**
+     * 比赛类
+     */
+    this.Competition = options.competition;
+
+    /**
+     * 向上难度系数
+     * @type {number}
+     */
+    this.hardLevelRatio = 1.4;
+
+    /**
+     * 向下难度系数
+     */
+    this.easyLevelRatio = 0.95;
+
+    /**
+     * 正常难度系数
+     */
+    this.normalLevelRatio = 1.1;
+
+    /**
+     * 难度系数
+     */
+    this.levelRatio = this.normalLevelRatio;
+
+    /**
+     * 比赛对象
+     */
+    this.competition = null;
+
+    /**
+     * 对方玩家
+     */
+    this.oppoPlayer = null;
+
+    /**
+     * 游戏服务器连接对象
+     */
+    this.gameCenter = null;
+
+    /**
+     * muses连接对象
+     */
+    this.connect = null;
+
+    /**
+     * 当前游戏局数
+     */
+    this.playedGameCount = 0;
+
+    /**
+     * 总局数
+     */
+    this.totalGameCount = 3;
+
+    /**
+     * 当前局正确数目
+     */
+    this.currentRightCount = 0;
+
+    /**
+     * 游戏全局状态
+     */
+    this.globalStatus = 'waiting';
+
+    /**
+     * AI状态
+     */
+    this.selfGame = {
+        status: 'waiting',
+        correctCount: 0,
+        costTime: 0,
+        score: 0
+    };
+
+    /**
+     * 对手状态
+     */
+    this.oppoGame = {
+        status: 'waiting',
+        correctCount: 0,
+        costTime: 0,
+        score: 0
+    };
+}
+
+/**
+ * 获取玩家历史战绩
+ */
+GameCenter.AI.prototype.getPlayerRecord = function() {
+    return this.playerRecord;
+};
+
+/**
+ * 合并玩家历史战绩
+ */
+GameCenter.AI.prototype.updatePlayerRecord = function(correctCount, costTime) {
+    this.playerRecord = GameCenter.mergePlayerRecord(this.playerRecord, correctCount, costTime);
+};
+
+/**
+ * AI启动
+ */
+GameCenter.AI.prototype.start = function() {
+    var that = this;
+    this.createGameCenter(function(gameCenter) {
+        gameCenter.start(
+            GameCenter.ClientMode.PLAYER,
+            {
+                userName: that.getRandomName(),
+                isAI: true
+            }
+        );
+    });
+};
+
+/**
+ * 创建 GameCenter
+ */
+GameCenter.AI.prototype.createGameCenter = function(callback) {
+    var that = this;
+    require.config({
+        paths: {
+            'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+        }
+    });
+
+    require(['muses/connect'], function(Connect) {
+        var gameCenter = new GameCenter({
+            MusesConnect: Connect,
+            host: 'http://114.215.181.63:8860'
+        });
+        that.gameCenter = gameCenter;
+
+        gameCenter.addListener(
+            GameCenter.Events.ROOM_ENTERED,
+            function(conn) {
+                that.connect = conn;
+                that.competition = new that.Competition({
+                    conn: conn,
+                    isMaster: that.isMaster
+                });
+            }
+        );
+        gameCenter.addListener(
+            GameCenter.Events.PLAYER_MESSAGE_RECEIVED,
+            function(data) {
+                // 接受到新消息
+                that.processMessage(data);
+            }
+        );
+        var oppoExist = false;
+        gameCenter.addListener(
+            GameCenter.Events.OPPONENT_ENTER_ROOM,
+            function(conn, oppoPlayer) {
+                // 如果有多个玩家，抛弃后面的玩家...
+                if (oppoExist) {
+                    return;
+                }
+                oppoExist = true;
+
+                // 收到对方玩家信息
+                that.oppoPlayer = oppoPlayer;
+
+                // 有对手了，可以开始游戏了
+                that.startGame();
+            }
+        );
+        callback(gameCenter);
+    });
+};
+
+/**
+ * 获取AI玩家名称
+ */
+GameCenter.AI.prototype.getRandomName = function() {
+    var names = ['小新', '苏牙', '李刚', '小A', '小B', 'Angela', 'Cloe', '有杀气', '来者何人'];
+    return names[parseInt(Math.random() * names.length)];
+};
+
+/**
+ * 开始游戏
+ */
+GameCenter.AI.prototype.startGame = function() {
+    if (this.isMaster) {
+        this.competition.createTasks();
+        this.taskHashs = this.competition.taskHashs;
+        this.send({
+            status: 'waiting',
+            tasks: this.taskHashs
+        });
+    }
+    var that = this;
+    setTimeout(
+        function() {
+            that.setStatus('ready');
+            that.checkStatus();
+        },
+        1000
+    );
+};
+
+/**
+ * 发送数据包
+ */
+GameCenter.AI.prototype.send = function(data) {
+    var package = {
+        type: 'message',
+        data: data
+    };
+    this.connect.send(package);
+};
+
+/**
+ * 处理收到的消息
+ */
+GameCenter.AI.prototype.processMessage = function(package) {
+    // 如果不是主玩家，接收游戏题目
+    if (!this.isMaster && package.tasks) {
+        this.taskHashs = package.tasks;
+        this.send({
+            status: 'waiting'
+        });
+    }
+    this.handleOppoData(package);
+};
+
+/**
+ * 处理对手数据
+ */
+GameCenter.AI.prototype.handleOppoData = function(data) {
+    this.oppoGame.status = data.status;
+    switch(data.status) {
+        case 'waiting':
+            // do nothing
+            break;
+        case 'ready':
+            // do nothing
+            break;
+        case 'playing':
+            // do nothing
+            break;
+        case 'finish':
+            // 记录对手游戏结果
+            this.oppoGame.correctCount = data.rightNum;
+            this.oppoGame.costTime = data.useTime;
+            // 将游戏数据合并到历史，用于训练AI
+            this.updatePlayerRecord(
+                this.oppoGame.correctCount,
+                this.oppoGame.costTime
+            );
+            break;
+        case 'leave':
+            // do nothing
+            break;
+    }
+
+    this.checkStatus();
+};
+
+/**
+ * 获取当前局盘子里的水果顺序
+ */
+GameCenter.AI.prototype.getCurrentPlate = function() {
+    return this.taskHashs[this.playedGameCount];
+};
+
+/**
+ * 获取当前局打乱了的水果顺序
+ */
+GameCenter.AI.prototype.getCurrentShuffle = function() {
+    return this.taskHashs[this.playedGameCount + this.totalGameCount];
+};
+
+/**
+ * 检查双方状态
+ */
+GameCenter.AI.prototype.checkStatus = function() {
+    var selfStatus = this.selfGame.status;
+    var oppoStatus = this.oppoGame.status;
+    switch (this.globalStatus) {
+        case 'waiting':
+            if ('ready' == selfStatus
+                && 'ready' == oppoStatus
+            ) {
+                this.globalStatus = 'playing';
+                this.setStatus('playing');
+                this.startTask();
+            }
+            break;
+        case 'playing':
+            if ('finish' == selfStatus
+                && 'finish' == oppoStatus
+            ) {
+                this.globalStatus = 'waiting';
+                this.setStatus('waiting');
+                this.calcScore();
+                this.finishTask();
+            }
+            break;
+    }
+};
+
+/**
+ * 设置自身状态，并通知对方
+ */
+GameCenter.AI.prototype.setStatus = function(status) {
+    this.selfGame.status = status;
+    this.send({
+        status: status
+    });
+};
+
+/**
+ * 开始当前局
+ */
+GameCenter.AI.prototype.startTask = function() {
+    var that = this;
+
+    // 过8秒之后模拟用户拖动
+    this.waitFor(8000, function() {
+        that.startSimulate();
+    });
+};
+
+/**
+ * 结束当前局
+ */
+GameCenter.AI.prototype.finishTask = function() {
+    var that = this;
+    if (this.playedGameCount < this.totalGameCount) {
+        this.playedGameCount++;
+        this.nextGame();
+    }
+    else {
+        this.reset();
+    }
+};
+
+/**
+ * 准备下一局
+ */
+GameCenter.AI.prototype.nextGame = function() {
+    var that = this;
+    this.setStatus('waiting');
+    this.checkStatus();
+    setTimeout(
+        function() {
+            that.setStatus('ready');
+            that.checkStatus();
+        },
+        3000
+    );
+};
+
+/**
+ * 重置
+ */
+GameCenter.AI.prototype.reset = function() {
+    this.setStatus('waiting');
+    this.checkStatus();
+};
+
+/**
+ * 准确等待函数
+ */
+GameCenter.AI.prototype.waitFor = function(time, callback) {
+    var startTime = new Date().getTime();
+    function heartBeat() {
+        var currentTime = new Date().getTime();
+        if (currentTime - startTime >= time) {
+            callback();
+        }
+        else {
+            setTimeout(heartBeat, 200);
+        }
+    }
+    heartBeat();
+};
+
+/**
+ * 模拟人玩游戏拖动水果的过程
+ */
+GameCenter.AI.prototype.startSimulate = function() {
+    var plate = this.getCurrentPlate();
+
+    var timer = null;
+    var that = this;
+    var index = 0;
+    var correctCount = 0;
+    var startTime = new Date().getTime();
+    function finish() {
+        that.selfGame.status = 'finish';
+        that.send({
+            'status': 'finish',
+            'rightNum': correctCount,
+            'useTime': ((new Date().getTime() - startTime) / 1000)
+        });
+        that.checkStatus();
+    }
+    function nextMove() {
+        var costTime = that.getRandomCostTime();
+        var correctRatio = that.getCorrectRatio();
+        timer = setTimeout(
+            function() {
+                if (Math.random() < correctRatio || index == plate.length - 1) {
+                    that.send({
+                        'taskRes': ['fruit0' + plate[index], index],
+                        'status':'playing'
+                    });
+                    correctCount++;
+                    index++;
+                    if (index < plate.length) {
+                        nextMove();
+                    }
+                    else {
+                        finish();
+                    }
+                }
+                else {
+                    that.send({
+                        'taskRes': ['fruit0' + plate[index + 1], index],
+                        'status':'playing'
+                    });
+                    finish();
+                }
+            },
+            costTime
+        );
+    }
+    nextMove();
+};
+
+/**
+ * 获取AI拖动水果正确率
+ */
+GameCenter.AI.prototype.getCorrectRatio = function() {
+    var averageCorrect = this.playerRecord['averageCorrect'];
+
+    // 胜率计算方式：在平均胜率基础上乘以一个难度系数 levelRatio
+    // 但不能高于1
+    return Math.min(Math.max(averageCorrect, 4.75) * this.levelRatio / 5, 1);
+};
+
+/**
+ * 获取随机单步耗费时长
+ */
+GameCenter.AI.prototype.getRandomCostTime = function() {
+    var averageUnitCostTime = this.playerRecord['averageUnitCostTime'];
+
+    // 每步时长计算方式：在平均单位耗时基础上除以难度系数，并在此基础上正负20%波动
+    // 但不能低于600ms...
+    return Math.max(
+        (Math.min(averageUnitCostTime, 1200) / this.levelRatio) * (9 + Math.random() * 2) / 10,
+        600
+    );
+};
+
+/**
+ * 计分
+ */
+GameCenter.AI.prototype.calcScore = function() {
+    var selfCorrectCount = this.selfGame.correctCount;
+    var selfCostTime = this.selfGame.costTime;
+    var oppoCorrectCount = this.oppoGame.correctCount;
+    var oppoCostTime = this.oppoGame.costTime;
+
+    var result;
+    if (selfCorrectCount > oppoCorrectCount) {
+        result = 'winner';
+    }
+    else if (selfCorrectCount < oppoCorrectCount) {
+        result = 'loser';
+    }
+    else {
+        if (selfCostTime < oppoCostTime) {
+            result = 'winner';
+        }
+        else if (selfCostTime > oppoCostTime) {
+            result = 'loser';
+        }
+        else {
+            result = 'tie';
+        }
+    }
+
+    if (result = 'winner') {
+        this.selfGame.score++;
+        this.levelRatio = this.easyLevelRatio;
+    }
+    else if (result == 'loser') {
+        this.oppoGame.score++;
+        this.levelRatio = this.hardLevelRatio;
+    }
+    else {
+        this.selfGame.score++;
+        this.oppoGame.score++;
+        this.levelRatio = this.normalLevelRatio;
+    }
+};
+
+/**
+ * @constructor
+ * @param {string} plid 物料id.
+ * @extends {ad.service.Service}
+ */
+function ClickMonkeyService(plid) {
+    /**
+     * @private
+     * @type {string}
+     */
+    this._plid = plid;
+};
+
+/**
+ * 获取plid
+ * @param {string=} opt_domId 容器id.
+ * @return {string}
+ */
+ClickMonkeyService.prototype.getPlid = function(opt_domId) {
+    if (this._plid && this._plid.replace('PLID', 'IDPL') != '%IDPL%') {
+        return this._plid;
+    }
+    else if (opt_domId) {
+        return opt_domId.replace(/ec-ma-/g, '');
+    }
+    else {
+        return '';
+    }
+};
+
+/**
+ * 发送clickmonkey的统计请求.
+ * @param {Object} params 请求参数.
+ */
+ClickMonkeyService.prototype.sendLog = function(params) {
+    var queries = this.jsonToQuery(params, function(value, key) {
+        return encodeURIComponent(value);
+    });
+    new Image().src = 'http://clkmk.baidu.com/clkmk-rcv/rcv?' + queries;
+};
+
+/**
+ * 发送监控
+ */
+ClickMonkeyService.prototype.send = function(title) {
+    this.sendLog({
+        'r' : new Date().valueOf(),
+        'q' : '',
+        'xp' : title,
+        'plid' : this.getPlid(),
+        'title' : title
+    });
+};
+
+/**
+ * 将json对象解析成query字符串
+ * @param {Object} json 需要解析的json对象
+ * @param {Function=} replacer_opt 对值进行特殊处理的函数，function (value, key)
+ * @return {string} 解析结果字符串
+ */
+ClickMonkeyService.prototype.jsonToQuery = function (json, replacer_opt) {
+    var me = this;
+    var result = [],
+        itemLen,
+        replacer = replacer_opt || function (value) {
+          return me.escapeSymbol(value);
+        };
+
+    for (var key in json) {
+        var item = json[key];
+        // 这里只考虑item为数组、字符串、数字类型，不考虑嵌套的object
+        if ('[object Array]' == Object.prototype.toString.call(item)) {
+            itemLen = item.length;
+            // FIXME value的值需要encodeURIComponent转义吗？
+            while (itemLen--) {
+                result.push(key + '=' + replacer(item[itemLen], key));
+            }
+        } else {
+            result.push(key + '=' + replacer(item, key));
+        }
+    };
+
+    return result.join('&');
+};
+
+/**
+ * 对字符串进行%&+/#=和空格七个字符进行url转义
+ * @param {string} source 需要转义的字符串
+ * @return {string} 转义之后的字符串.
+ */
+ClickMonkeyService.prototype.escapeSymbol = function (source) {
+    return String(source).replace(/\%/g, "%25")
+                        .replace(/&/g, "%26")
+                        .replace(/\+/g, "%2B")
+                        .replace(/\ /g, "%20")
+                        .replace(/\//g, "%2F")
+                        .replace(/\#/g, "%23")
+                        .replace(/\=/g, "%3D");
+};
 
 
 
