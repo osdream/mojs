@@ -313,9 +313,14 @@ var pageCtl = {
             }
             fruitsCtl.scoreSpan.text(dotStr + '搜寻对手中' + dotStr);
             if(new Date().getTime() - me.startFindingTime > me.maxWait) {
+                // 创建AI
                 utils.waitVariableExists('comp', me, function() {
+                    var playerRecord = utils.cookie('player_record');
+                    if (playerRecord) {
+                        playerRecord = JSON.parse(playerRecord);
+                    }
                     var ai = new GameCenter.AI(
-                        null,
+                        playerRecord,
                         {
                             isMaster: !me.comp.isMaster,
                             competition: competition
@@ -736,6 +741,15 @@ competition.prototype.finishComp = function() {
 competition.prototype.calCulScore = function() {
     var mRightNum = fruitsCtl.dragRightNum;
     var mCurTime = fruitsCtl.curUseTime;
+
+    // 更新玩家战绩
+    var playerRecord = utils.cookie('player_record');
+    if (playerRecord) {
+        playerRecord = JSON.parse(playerRecord);
+    }
+    var brandNewRecord = GameCenter.mergePlayerRecord(playerRecord, mRightNum, mCurTime);
+    utils.cookie('player_record', JSON.stringify(brandNewRecord));
+
     var oRightNum = this.opStatus['curRightNum'];
     var oUseTime = this.opStatus['curUseTime'];
     this.curCompeteWin = false;

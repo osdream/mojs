@@ -436,6 +436,31 @@ GameCenter.prototype.trigger = function(eventName, var_args) {
 };
 
 /**
+ * 静态函数，合并玩家历史战绩
+ * @static
+ */
+GameCenter.mergePlayerRecord = function(playerRecord, correctCount, costTime) {
+    var movedFruitCount = correctCount + (correctCount < 5 ? 1 : 0);
+    var unitCostTime = costTime * 1000 / movedFruitCount;
+    var record = {};
+    if (playerRecord) {
+        record['averageCorrect'] = (correctCount + playerRecord['averageCorrect']) / 2;
+        record['averageUnitCostTime'] = (unitCostTime + playerRecord['averageUnitCostTime']) / 2;
+        record['playTimes'] = playerRecord['playTimes'] + 1;
+    }
+    else {
+        record['averageCorrect'] = correctCount;
+        record['averageUnitCostTime'] = unitCostTime;
+        record['playTimes'] = 1;
+    }
+
+    console.log('unit: ' + unitCostTime);
+    console.log(JSON.stringify(record, null, 4));
+
+    return record;
+};
+
+/**
  * AI 类
  * @constructor
  */
@@ -465,7 +490,7 @@ GameCenter.AI = function(playerRecord, options) {
      * 向上难度系数
      * @type {number}
      */
-    this.hardLevelRatio = 1.25;
+    this.hardLevelRatio = 1.3;
 
     /**
      * 向下难度系数
@@ -553,15 +578,8 @@ GameCenter.AI.prototype.getPlayerRecord = function() {
 /**
  * 合并玩家历史战绩
  */
-GameCenter.AI.prototype.mergePlayerRecord = function(correctCount, costTime) {
-    var movedFruitCount = correctCount + (correctCount < 5 ? 1 : 0);
-    var unitCostTime = costTime * 1000 / movedFruitCount;
-    console.log('unit: ' + unitCostTime);
-
-    this.playerRecord['averageCorrect'] = (Math.max(correctCount, 4.5) + this.playerRecord['averageCorrect']) / 2;
-    this.playerRecord['averageUnitCostTime'] = (Math.min(unitCostTime, 2000) + this.playerRecord['averageUnitCostTime']) / 2;
-    this.playerRecord['playTimes']++;
-    console.log(JSON.stringify(this.playerRecord, null, 4));
+GameCenter.AI.prototype.updatePlayerRecord = function(correctCount, costTime) {
+    this.playerRecord = GameCenter.mergePlayerRecord(this.playerRecord, correctCount, costTime);
 };
 
 /**
@@ -639,7 +657,7 @@ GameCenter.AI.prototype.createGameCenter = function(callback) {
  * 获取AI玩家名称
  */
 GameCenter.AI.prototype.getRandomName = function() {
-    var names = ['小新', '苏牙', '李刚', '小A', '小B', 'Agenla', 'Cloe'];
+    var names = ['小新', '苏牙', '李刚', '小A', '小B', 'Angela', 'Cloe', '有杀气', '来者何人'];
     return names[parseInt(Math.random() * names.length)];
 };
 
@@ -710,7 +728,7 @@ GameCenter.AI.prototype.handleOppoData = function(data) {
             this.oppoGame.correctCount = data.rightNum;
             this.oppoGame.costTime = data.useTime;
             // 将游戏数据合并到历史，用于训练AI
-            this.mergePlayerRecord(
+            this.updatePlayerRecord(
                 this.oppoGame.correctCount,
                 this.oppoGame.costTime
             );
@@ -902,19 +920,23 @@ GameCenter.AI.prototype.startSimulate = function() {
  * 获取AI拖动水果正确率
  */
 GameCenter.AI.prototype.getCorrectRatio = function() {
+    var averageCorrect = this.playerRecord['averageCorrect'];
+
     // 胜率计算方式：在平均胜率基础上乘以一个难度系数 levelRatio
     // 但不能高于1
-    return Math.min(this.playerRecord['averageCorrect'] * this.levelRatio / 5, 1);
+    return Math.min(Math.max(averageCorrect, 4.75) * this.levelRatio / 5, 1);
 };
 
 /**
  * 获取随机单步耗费时长
  */
 GameCenter.AI.prototype.getRandomCostTime = function() {
+    var averageUnitCostTime = this.playerRecord['averageUnitCostTime'];
+
     // 每步时长计算方式：在平均单位耗时基础上除以难度系数，并在此基础上正负20%波动
     // 但不能低于600ms...
     return Math.max(
-        (this.playerRecord['averageUnitCostTime'] / this.levelRatio) * (9 + Math.random() * 2) / 10,
+        (Math.min(averageUnitCostTime, 1200) / this.levelRatio) * (9 + Math.random() * 2) / 10,
         600
     );
 };
