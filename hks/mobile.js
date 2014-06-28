@@ -178,7 +178,7 @@ require(['muses/connect'], function(Connect) {
 
 //页面控制
 var pageCtl = {
-    maxWait: 2000,//最长等待时间，超过使用AI
+    maxWait: 10000,//最长等待时间，超过使用AI
     body: $('body'),
     ctlDom: $('#controller'),
     frame1: $('#frame1'),
