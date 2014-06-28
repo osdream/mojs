@@ -893,7 +893,7 @@ GameCenter.AI.prototype.startSimulate = function() {
     }
     function nextMove() {
         var costTime = that.getRandomCostTime();
-        var correctRatio = that.getCorrectRatio();
+        var correctRatio = that.getCorrectRatio(index);
         timer = setTimeout(
             function() {
                 if (Math.random() < correctRatio || index == plate.length - 1) {
@@ -927,12 +927,13 @@ GameCenter.AI.prototype.startSimulate = function() {
 /**
  * 获取AI拖动水果正确率
  */
-GameCenter.AI.prototype.getCorrectRatio = function() {
+GameCenter.AI.prototype.getCorrectRatio = function(index) {
     var averageCorrect = this.playerRecord['averageCorrect'];
+    var memoRatio = [1.4, 1.3, 1.2, 1.1, 1];
 
     // 胜率计算方式：在平均胜率基础上乘以一个难度系数 levelRatio
     // 但不能高于1
-    return Math.min(Math.max(averageCorrect, 4.75) * this.levelRatio / 5, 1);
+    return Math.min(Math.max(averageCorrect, 4.75) * this.levelRatio * memoRatio[index] / 5, 1);
 };
 
 /**
