@@ -10,7 +10,7 @@ html, body {
 body {
     font-size: 10px;
     color: #333;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/1_bg.jpg) 50% 0 no-repeat #4d4ab4;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1_bg.jpg) 50% 0 no-repeat #4d4ab4;
     background-size: 100%;
     font-family: "Microsoft YaHei";
 }
@@ -145,7 +145,7 @@ body.nameFocused {
     margin-left: -63px;
     left: 50%;
     top: 330px;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_ok.png) 0 0  no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ok.png) 0 0  no-repeat;
     background-size: 100%;
 }
 
@@ -160,7 +160,7 @@ body.nameFocused {
     font-size: 0;
     width: 94px;
     height: 33px;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_rule.png) 0 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/btn_rule.png) 0 0 no-repeat;
     background-size: 100%;
 }
 #gameHelp {
@@ -168,7 +168,7 @@ body.nameFocused {
     bottom: 30px;
     width: 320px;
     height: 310px;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/rule_bg.png) 0 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/rule_bg.png) 0 0 no-repeat;
     background-size: 100%;
     z-index: 20;
     font-size: 0;
@@ -210,7 +210,7 @@ body.nameFocused {
     top: 0;
     width: 100%;
     height: 100%;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/m_bg.jpg) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/m_bg.jpg) 50% 0 no-repeat;
     background-size: 100%;
 }
 #frame2 .myTime,
@@ -251,7 +251,7 @@ body.nameFocused {
     width: 100%;
     height: 110px;
     margin-top: -55px;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/match_board.png) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/match_board.png) 50% 0 no-repeat;
     background-size: 100% 100%;
 }
 #scoreLine span {
@@ -281,7 +281,7 @@ body.nameFocused {
     top: 35px;
     width: 160px;
     height: 32px;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_bg.png) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_bg.png) 50% 0 no-repeat;
     background-size: 100% 100%;
     z-index: 0;
 }
@@ -308,19 +308,19 @@ body.nameFocused {
     background-size: 100% 100%;
 }
 #fruitWrap #waitTime.count1 {
-    background-image: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/1.png);
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/1.png);
 }
 #fruitWrap #waitTime.count2 {
-    background-image: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/2.png);
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/2.png);
 }
 #fruitWrap #waitTime.count3 {
-    background-image: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/3.png);
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/3.png);
 }
 #fruitWrap #waitTime.start {
     width: 120px;
     height: 75px;
     margin-left: -60px;
-    background-image: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/start.png);
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/start.png);
 }
 #fruitWrap .fruitDish {
     position: absolute;
@@ -328,7 +328,7 @@ body.nameFocused {
     bottom: 30px;
     width: 320px;
     height: 64px;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_bg.png) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_bg.png) 50% 0 no-repeat;
     background-size: 100% 100%;
     z-index: 0;
 }
@@ -341,7 +341,7 @@ body.nameFocused {
     height: 100%;
     background-color: #999;
     opacity: 0.5;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit_shadow.png) repeat-x;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit_shadow.png) repeat-x;
     background-size: 20% 100%;
     top: -8%;
 }
@@ -351,23 +351,23 @@ body.nameFocused {
 }
 #oppoFruitWrap .fruit01:before,
 #fruitWrap .fruit01:before {
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit1.png) no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit1.png) no-repeat;
 }
 #oppoFruitWrap .fruit02:before,
 #fruitWrap .fruit02:before {
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit2.png) no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit2.png) no-repeat;
 }
 #oppoFruitWrap .fruit03:before,
 #fruitWrap .fruit03:before {
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit3.png) no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit3.png) no-repeat;
 }
 #oppoFruitWrap .fruit04:before,
 #fruitWrap .fruit04:before {
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit4.png) no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit4.png) no-repeat;
 }
 #oppoFruitWrap .fruit05:before,
 #fruitWrap .fruit05:before {
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit5.png) no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/fruit5.png) no-repeat;
 }
 #oppoFruitWrap .oppoFruits,
 #fruitWrap .fruits {
@@ -418,7 +418,7 @@ body.nameFocused {
     width: 32px;
     height: 32px;
     z-index: 1;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_right.png) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_right.png) 50% 0 no-repeat;
     background-size: 100%;
 }
 #oppoFruitWrap .fruitErr:after {
@@ -429,7 +429,7 @@ body.nameFocused {
     top: 0;
     left: 0;
     z-index: 1;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_wrong.png) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_wrong.png) 50% 0 no-repeat;
     background-size: 100%;
 }
 #fruitWrap .fruitRight:after {
@@ -440,7 +440,7 @@ body.nameFocused {
     width: 64px;
     height: 64px;
     z-index: 1;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_right.png) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_right.png) 50% 0 no-repeat;
     background-size: 100%;
 }
 #fruitWrap .fruitErr:after {
@@ -451,7 +451,7 @@ body.nameFocused {
     width: 64px;
     height: 64px;
     z-index: 1;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_wrong.png) 50% 0 no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/grid_wrong.png) 50% 0 no-repeat;
     background-size: 100%;
 }
 #frame2 .start {
@@ -463,7 +463,7 @@ body.nameFocused {
     margin-left: -63px;
     left: 50%;
     top: 50%;
-    background: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_ready.png) 0 0  no-repeat;
+    background: url(http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ready.png) 0 0  no-repeat;
     background-size: 100%;
     z-index: 100;
 }
@@ -487,7 +487,7 @@ body.nameFocused {
     width: 100%;
     height: 100%;
     background-size: 100%;
-    background-image: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/ending_bg.png);
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg2.png);
 }
 #frameSucceed #frameSucceedStars {
     position: absolute;
@@ -507,12 +507,12 @@ body.nameFocused {
     background-size: 100% 100%;
 }
 #frameSucceed.show .status {
-    background-image: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/txt_win.png);
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/txt_win.png);
 }
 #frameSucceed.showFail .status {
     margin-left: -130px;
     top: 180px;
-    background-image: url(http://ecma.bdimg.com/public01/2014-06/hackthon/images/txt_lose.png);
+    background-image: url(http://bs.baidu.com/public01/2014-06/hackthon/images/txt_lose.png);
 }
 #frameSucceed .retry,
 #frameSucceed .share {
@@ -526,11 +526,12 @@ body.nameFocused {
     z-index: 1000;
 }
 #frameSucceed .share {
+    display: none;
     top: 364px;
 }
 .fromShare #frame1 {
     display: block;
-    background-image: url(http://ecma.bdimg.com/adtest/centrum140606share.png);
+    background-image: url(http://bs.baidu.com/adtest/centrum140606share.png);
 }
 .fromShare #startgame {
     display: none;

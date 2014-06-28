@@ -186,25 +186,25 @@ var pageCtl = {
     oppoNameDom: $('.oppoName'),
     nameDom: $('#name'),
     startBtn: $('#startGame'),
-    preImages: ['http://ecma.bdimg.com/adtest/centrum140528bg.png',  'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit1.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit2.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit3.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit4.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit5.png',
-      'http://ecma.bdimg.com/adtest/hks140617dish.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_ok.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_rule.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/rule_bg.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/m_bg.jpg', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/match_board.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_bg.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_right.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/grid_wrong.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/btn_ready.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/ending_bg.png',
+    preImages: ['http://bs.baidu.com/adtest/centrum140528bg.png',  'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit1.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit2.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit3.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit4.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit5.png',
+      'http://bs.baidu.com/adtest/hks140617dish.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ok.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_rule.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/rule_bg.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/m_bg.jpg', 'http://bs.baidu.com/public01/2014-06/hackthon/images/match_board.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_bg.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_right.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/grid_wrong.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/btn_ready.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/ending_bg.png',
       'http://bs.baidu.com/public01/2014-06/star1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/prize_03.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star1_bg.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star1_w.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star2_w.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_bg.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3_w.png',
       'http://bs.baidu.com/public01/2014-06/hackthon/images/blink.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/star3.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/1.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/2.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/3.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/start.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/txt_lose.png', 'http://ecma.bdimg.com/public01/2014-06/hackthon/images/txt_win.png',
-      'http://ecma.bdimg.com/public01/2014-06/hackthon/images/fruit_shadow.png'
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/1.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/2.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/3.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/start.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/txt_lose.png', 'http://bs.baidu.com/public01/2014-06/hackthon/images/txt_win.png',
+      'http://bs.baidu.com/public01/2014-06/hackthon/images/fruit_shadow.png'
       //'http://bs.baidu.com/public01/2014-06/hackthon/images/sunlignt.png'
     ],
     comp: null,
@@ -414,7 +414,7 @@ var fruitsCtl = {
     dishHeight: 80,
     init: function() {
         window.scrollTo(0, 1);
-        this.bgPrefix = 'http://ecma.bdimg.com/adtest/hks140615fruit0';
+        this.bgPrefix = 'http://bs.baidu.com/adtest/hks140615fruit0';
         this.fruitDoms = this.fruitWrap.find('.fruits');
         this.oppoFruitDoms = this.oppoFruitWrap.find('.oppoFruits');
         this.fruits = [1,2,3,4,5];
