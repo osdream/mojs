@@ -219,14 +219,7 @@ var pageCtl = {
         });
         this.detectViewport();
         $('.showHelp').click(function() {
-            if($('#gameHelp').length <= 0) {
-                pageCtl.showHelp();
-                $('.knowHelp').click(function() {
-                    if($('#gameHelp').length > 0) {
-                        $('#gameHelp').remove();
-                    }
-                });
-            }
+            pageCtl.showHelp();
         });
 
         $('#replay').click(function(e) {
@@ -238,7 +231,14 @@ var pageCtl = {
         });
     },
     showHelp: function() {
-        this.ctlDom.append('<div id="gameHelp">比赛规则<span class="knowHelp">我知道了</span></div>');
+        if($('#gameHelp').length <= 0) {
+            this.ctlDom.append('<div id="gameHelp">比赛规则<span class="knowHelp">我知道了</span></div>');
+            $('.knowHelp').click(function() {
+                if($('#gameHelp').length > 0) {
+                    $('#gameHelp').remove();
+                }
+            });
+        }
     },
     detectViewport: function() {
         var vHeight = Math.max(this.body.height(), this.body.width());
@@ -260,6 +260,8 @@ var pageCtl = {
         var cookieName = utils.cookie('player');
         if(cookieName) {
             this.nameDom.val(cookieName);
+        } else {
+            this.showHelp();
         }
         this.body.addClass('enteringName');
         this.frame1.show();
