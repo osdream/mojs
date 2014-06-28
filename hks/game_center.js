@@ -445,8 +445,8 @@ GameCenter.AI = function(playerRecord, options) {
      * @type {Object}
      */
     this.playerRecord = playerRecord || {
-        'averageCorrect': 3, // 平均正确数目
-        'averageCostTime': 10000, // 平均耗费时长
+        'averageCorrect': 4.5, // 平均正确数目
+        'averageUnitCostTime': 1000, // 平均耗费时长
         'playTimes': 0 // 已玩局数
     };
 
@@ -460,6 +460,27 @@ GameCenter.AI = function(playerRecord, options) {
      * 比赛类
      */
     this.Competition = options.competition;
+
+    /**
+     * 向上难度系数
+     * @type {number}
+     */
+    this.hardLevelRatio = 1.25;
+
+    /**
+     * 向下难度系数
+     */
+    this.easyLevelRatio = 0.95;
+
+    /**
+     * 正常难度系数
+     */
+    this.normalLevelRatio = 1.1;
+
+    /**
+     * 难度系数
+     */
+    this.levelRatio = this.normalLevelRatio;
 
     /**
      * 比赛对象
@@ -529,10 +550,18 @@ GameCenter.AI.prototype.getPlayerRecord = function() {
     return this.playerRecord;
 };
 
+/**
+ * 合并玩家历史战绩
+ */
 GameCenter.AI.prototype.mergePlayerRecord = function(correctCount, costTime) {
-    this.playerRecord['averageCorrect'] = (correctCount + this.playerRecord['averageCorrect']) / 2;
-    this.playerRecord['averageCostTime'] = (costTime + this.playerRecord['averageCostTime']) / 2;
+    var movedFruitCount = correctCount + (correctCount < 5 ? 1 : 0);
+    var unitCostTime = costTime * 1000 / movedFruitCount;
+    console.log('unit: ' + unitCostTime);
+
+    this.playerRecord['averageCorrect'] = (Math.max(correctCount, 4.5) + this.playerRecord['averageCorrect']) / 2;
+    this.playerRecord['averageUnitCostTime'] = (Math.min(unitCostTime, 2000) + this.playerRecord['averageUnitCostTime']) / 2;
     this.playerRecord['playTimes']++;
+    console.log(JSON.stringify(this.playerRecord, null, 4));
 };
 
 /**
@@ -610,8 +639,8 @@ GameCenter.AI.prototype.createGameCenter = function(callback) {
  * 获取AI玩家名称
  */
 GameCenter.AI.prototype.getRandomName = function() {
-    return '我是机器人';
-    // TODO
+    var names = ['小新', '苏牙', '李刚', '小A', '小B', 'Agenla', 'Cloe'];
+    return names[parseInt(Math.random() * names.length)];
 };
 
 /**
@@ -661,6 +690,9 @@ GameCenter.AI.prototype.processMessage = function(package) {
     this.handleOppoData(package);
 };
 
+/**
+ * 处理对手数据
+ */
 GameCenter.AI.prototype.handleOppoData = function(data) {
     this.oppoGame.status = data.status;
     switch(data.status) {
@@ -671,55 +703,46 @@ GameCenter.AI.prototype.handleOppoData = function(data) {
             // do nothing
             break;
         case 'playing':
-            /*
-            var oppoResult = data.taskRes;
-            if (oppoResult) {
-                // 被拖动的水果
-                var fruitClass = opRes[0];
-                // 拖动到的盘子的index
-                var plateIndex = opRes[1];
-                // 最初盘子上水果摆放数组
-                var plate = this.getCurrentPlate();
-                // 正确的水果类型
-                var rightFruitType = plate[plateIndex];
-                // 实际水果类型
-                var actualFruitType = parseInt(
-                    fruitClass.replace(/fruit0/g, '')
-                );
-                if (actualFruitType == rightFruitType) {
-                    this.currentRightCount++;
-                }
-            }
-            */
+            // do nothing
             break;
         case 'finish':
+            // 记录对手游戏结果
             this.oppoGame.correctCount = data.rightNum;
             this.oppoGame.costTime = data.useTime;
+            // 将游戏数据合并到历史，用于训练AI
             this.mergePlayerRecord(
                 this.oppoGame.correctCount,
                 this.oppoGame.costTime
             );
             break;
         case 'leave':
+            // do nothing
             break;
     }
 
     this.checkStatus();
 };
 
+/**
+ * 获取当前局盘子里的水果顺序
+ */
 GameCenter.AI.prototype.getCurrentPlate = function() {
     return this.taskHashs[this.playedGameCount];
 };
 
+/**
+ * 获取当前局打乱了的水果顺序
+ */
 GameCenter.AI.prototype.getCurrentShuffle = function() {
     return this.taskHashs[this.playedGameCount + this.totalGameCount];
 };
 
+/**
+ * 检查双方状态
+ */
 GameCenter.AI.prototype.checkStatus = function() {
     var selfStatus = this.selfGame.status;
     var oppoStatus = this.oppoGame.status;
-    console.log('self:' + selfStatus);
-    console.log('oppo:' + oppoStatus);
     switch (this.globalStatus) {
         case 'waiting':
             if ('ready' == selfStatus
@@ -743,6 +766,9 @@ GameCenter.AI.prototype.checkStatus = function() {
     }
 };
 
+/**
+ * 设置自身状态，并通知对方
+ */
 GameCenter.AI.prototype.setStatus = function(status) {
     this.selfGame.status = status;
     this.send({
@@ -750,6 +776,9 @@ GameCenter.AI.prototype.setStatus = function(status) {
     });
 };
 
+/**
+ * 开始当前局
+ */
 GameCenter.AI.prototype.startTask = function() {
     var that = this;
 
@@ -759,6 +788,9 @@ GameCenter.AI.prototype.startTask = function() {
     });
 };
 
+/**
+ * 结束当前局
+ */
 GameCenter.AI.prototype.finishTask = function() {
     var that = this;
     if (this.playedGameCount < this.totalGameCount) {
@@ -770,6 +802,9 @@ GameCenter.AI.prototype.finishTask = function() {
     }
 };
 
+/**
+ * 准备下一局
+ */
 GameCenter.AI.prototype.nextGame = function() {
     var that = this;
     this.setStatus('waiting');
@@ -779,15 +814,21 @@ GameCenter.AI.prototype.nextGame = function() {
             that.setStatus('ready');
             that.checkStatus();
         },
-        5000
+        3000
     );
 };
 
+/**
+ * 重置
+ */
 GameCenter.AI.prototype.reset = function() {
     this.setStatus('waiting');
     this.checkStatus();
 };
 
+/**
+ * 准确等待函数
+ */
 GameCenter.AI.prototype.waitFor = function(time, callback) {
     var startTime = new Date().getTime();
     function heartBeat() {
@@ -802,6 +843,9 @@ GameCenter.AI.prototype.waitFor = function(time, callback) {
     heartBeat();
 };
 
+/**
+ * 模拟人玩游戏拖动水果的过程
+ */
 GameCenter.AI.prototype.startSimulate = function() {
     var plate = this.getCurrentPlate();
 
@@ -854,37 +898,67 @@ GameCenter.AI.prototype.startSimulate = function() {
     nextMove();
 };
 
+/**
+ * 获取AI拖动水果正确率
+ */
 GameCenter.AI.prototype.getCorrectRatio = function() {
-    return this.playerRecord['averageCorrect'] / 5;
+    // 胜率计算方式：在平均胜率基础上乘以一个难度系数 levelRatio
+    // 但不能高于1
+    return Math.min(this.playerRecord['averageCorrect'] * this.levelRatio / 5, 1);
 };
 
+/**
+ * 获取随机单步耗费时长
+ */
 GameCenter.AI.prototype.getRandomCostTime = function() {
-    return this.playerRecord['averageCostTime'] * (8 + Math.random()*4) / 50;
+    // 每步时长计算方式：在平均单位耗时基础上除以难度系数，并在此基础上正负20%波动
+    // 但不能低于600ms...
+    return Math.max(
+        (this.playerRecord['averageUnitCostTime'] / this.levelRatio) * (9 + Math.random() * 2) / 10,
+        600
+    );
 };
 
+/**
+ * 计分
+ */
 GameCenter.AI.prototype.calcScore = function() {
     var selfCorrectCount = this.selfGame.correctCount;
     var selfCostTime = this.selfGame.costTime;
     var oppoCorrectCount = this.oppoGame.correctCount;
     var oppoCostTime = this.oppoGame.costTime;
-    var isWinner = false;
+
+    var result;
     if (selfCorrectCount > oppoCorrectCount) {
-        this.selfGame.score++;
+        result = 'winner';
     }
     else if (selfCorrectCount < oppoCorrectCount) {
-        this.oppoGame.score++;
+        result = 'loser';
     }
     else {
         if (selfCostTime < oppoCostTime) {
-            this.selfGame.score++;
+            result = 'winner';
         }
         else if (selfCostTime > oppoCostTime) {
-            this.oppoGame.score++;
+            result = 'loser';
         }
         else {
-            this.selfGame.score++;
-            this.oppoGame.score++;
+            result = 'tie';
         }
+    }
+
+    if (result = 'winner') {
+        this.selfGame.score++;
+        this.levelRatio = this.easyLevelRatio;
+    }
+    else if (result == 'loser') {
+        this.oppoGame.score++;
+        this.levelRatio = this.hardLevelRatio;
+    }
+    else {
+        this.selfGame.score++;
+        this.oppoGame.score++;
+        this.levelRatio = this.normalLevelRatio;
     }
 };
 
