@@ -466,9 +466,6 @@ GameCenter.mergePlayerRecord = function(playerRecord, correctCount, costTime) {
         record['playTimes'] = 1;
     }
 
-    console.log('unit: ' + unitCostTime);
-    console.log(JSON.stringify(record, null, 4));
-
     return record;
 };
 
@@ -897,8 +894,6 @@ GameCenter.AI.prototype.startSimulate = function() {
     function nextMove() {
         var costTime = that.getRandomCostTime();
         var correctRatio = that.getCorrectRatio();
-        console.log(costTime);
-        console.log(correctRatio);
         timer = setTimeout(
             function() {
                 if (Math.random() < correctRatio || index == plate.length - 1) {
