@@ -1,5 +1,7 @@
 (function (window, document) {
 var context = {};
+context.cms = new ClickMonkeyService('bdd_sdc_one_hackathon');
+context.cms.send('scan_count');
 
 //var notFromShare = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)$/);
 //if(!notFromShare) {
@@ -163,6 +165,13 @@ require(['muses/connect'], function(Connect) {
             // 通知页面对手信息
             pageCtl.getOppo(oppoPlayer.userName);
             oppoExist = true;
+
+            if (oppoPlayer.isAI) {
+                context.cms.send('play_with_ai');
+            }
+            else {
+                context.cms.send('play_with_player');
+            }
         }
     );
 });
@@ -219,6 +228,14 @@ var pageCtl = {
                 });
             }
         });
+
+        $('#replay').click(function(e) {
+            context.cms.send('game_replay');
+
+            window.location.reload();
+            e.preventDefault();
+            return false;
+        });
     },
     showHelp: function() {
         this.ctlDom.append('<div id="gameHelp">比赛规则<span class="knowHelp">我知道了</span></div>');
@@ -265,6 +282,7 @@ var pageCtl = {
         //pageCtl.succeed(0);
     },
     fireStart: function() {
+        context.cms.send('game_start');
         //conn.send('msg', 'start');
         this.userName = this.nameDom.val();
         if('' == this.userName) {
@@ -722,6 +740,7 @@ competition.prototype.finishTask = function() {
     if(this.curCompeteTime < this.competeTimes) {
         fruitsCtl.reset();
     } else {
+        context.cms.send('game_finish');
         setTimeout(function() {
             me.finishComp();
         }, 3000);

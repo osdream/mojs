@@ -55,6 +55,12 @@ function GameCenter(options) {
      * @type {?Object}
      */
     this.roomData = null;
+
+    /**
+     * 进入房间的对手的clientId
+     * @type {?string}
+     */
+    this.oppoClientId = null;
 }
 
 /**
@@ -350,7 +356,7 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
 
                 var sendSeqs = [];
                 var timer = null;
-                connect.onMessage = function(msg) {
+                connect.onMessage = function(msg, package) {
                     if (msg['type'] == 'echo') {
                         // 应答，序列号加1作为响应
                         connect.send({
@@ -364,6 +370,8 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                         for (var i = 0; i < sendSeqs.length; i++) {
                             if (ackSeq == sendSeqs[i] + 1) {
                                 clearTimeout(timer);
+                                // 记录对方的clientId，用于防止很多人连入房间
+                                me.oppoClientId = package['from'];
                                 // EVENT: 确认对手进入房间
                                 me.trigger(
                                     GameCenter.Events.OPPONENT_ENTER_ROOM,
@@ -375,7 +383,11 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                         }
                     }
                     else if (msg['type'] == 'message') {
-                        me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg['data']);
+                        // TODO: 仍然有BUG
+                        // 只有来自第一个进入房间的对手的消息才能传递给当前玩家
+                        if (me.oppoClientId == package['from']) {
+                            me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg['data']);
+                        }
                     }
                 };
                 /**
@@ -490,7 +502,7 @@ GameCenter.AI = function(playerRecord, options) {
      * 向上难度系数
      * @type {number}
      */
-    this.hardLevelRatio = 1.3;
+    this.hardLevelRatio = 1.4;
 
     /**
      * 向下难度系数
@@ -591,7 +603,8 @@ GameCenter.AI.prototype.start = function() {
         gameCenter.start(
             GameCenter.ClientMode.PLAYER,
             {
-                userName: that.getRandomName()
+                userName: that.getRandomName(),
+                isAI: true
             }
         );
     });
@@ -984,7 +997,105 @@ GameCenter.AI.prototype.calcScore = function() {
     }
 };
 
+/**
+ * @constructor
+ * @param {string} plid 物料id.
+ * @extends {ad.service.Service}
+ */
+function ClickMonkeyService(plid) {
+    /**
+     * @private
+     * @type {string}
+     */
+    this._plid = plid;
+};
 
+/**
+ * 获取plid
+ * @param {string=} opt_domId 容器id.
+ * @return {string}
+ */
+ClickMonkeyService.prototype.getPlid = function(opt_domId) {
+    if (this._plid && this._plid.replace('PLID', 'IDPL') != '%IDPL%') {
+        return this._plid;
+    }
+    else if (opt_domId) {
+        return opt_domId.replace(/ec-ma-/g, '');
+    }
+    else {
+        return '';
+    }
+};
+
+/**
+ * 发送clickmonkey的统计请求.
+ * @param {Object} params 请求参数.
+ */
+ClickMonkeyService.prototype.sendLog = function(params) {
+    var queries = this.jsonToQuery(params, function(value, key) {
+        return encodeURIComponent(value);
+    });
+    new Image().src = 'http://clkmk.baidu.com/clkmk-rcv/rcv?' + queries;
+};
+
+/**
+ * 发送监控
+ */
+ClickMonkeyService.prototype.send = function(title) {
+    this.sendLog({
+        'r' : new Date().valueOf(),
+        'q' : '',
+        'xp' : title,
+        'plid' : this.getPlid(),
+        'title' : title
+    });
+};
+
+/**
+ * 将json对象解析成query字符串
+ * @param {Object} json 需要解析的json对象
+ * @param {Function=} replacer_opt 对值进行特殊处理的函数，function (value, key)
+ * @return {string} 解析结果字符串
+ */
+ClickMonkeyService.prototype.jsonToQuery = function (json, replacer_opt) {
+    var me = this;
+    var result = [],
+        itemLen,
+        replacer = replacer_opt || function (value) {
+          return me.escapeSymbol(value);
+        };
+
+    for (var key in json) {
+        var item = json[key];
+        // 这里只考虑item为数组、字符串、数字类型，不考虑嵌套的object
+        if ('[object Array]' == Object.prototype.toString.call(item)) {
+            itemLen = item.length;
+            // FIXME value的值需要encodeURIComponent转义吗？
+            while (itemLen--) {
+                result.push(key + '=' + replacer(item[itemLen], key));
+            }
+        } else {
+            result.push(key + '=' + replacer(item, key));
+        }
+    };
+
+    return result.join('&');
+};
+
+/**
+ * 对字符串进行%&+/#=和空格七个字符进行url转义
+ * @param {string} source 需要转义的字符串
+ * @return {string} 转义之后的字符串.
+ */
+ClickMonkeyService.prototype.escapeSymbol = function (source) {
+    return String(source).replace(/\%/g, "%25")
+                        .replace(/&/g, "%26")
+                        .replace(/\+/g, "%2B")
+                        .replace(/\ /g, "%20")
+                        .replace(/\//g, "%2F")
+                        .replace(/\#/g, "%23")
+                        .replace(/\=/g, "%3D");
+};
 
 
 
