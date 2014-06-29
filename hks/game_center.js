@@ -61,6 +61,12 @@ function GameCenter(options) {
      * @type {?string}
      */
     this.oppoClientId = null;
+
+    /**
+     * 是否处于 silent 状态
+     * @type {boolean}
+     */
+    this.inSilent = false;
 }
 
 /**
@@ -358,12 +364,15 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                 var timer = null;
                 connect.onMessage = function(msg, package) {
                     if (msg['type'] == 'echo') {
-                        // 应答，序列号加1作为响应
-                        connect.send({
-                            'type': 'ack',
-                            'seq': msg['seq'] + 1,
-                            'player': me.player // 将自己的信息发送给对方
-                        });
+                        // 如果处于silent状态，只允许 silent breaker 进入
+                        if (!me.inSilent || msg['isSilentBreaker']) {
+                            // 应答，序列号加1作为响应
+                            connect.send({
+                                'type': 'ack',
+                                'seq': msg['seq'] + 1,
+                                'player': me.player // 将自己的信息发送给对方
+                            });
+                        }
                     }
                     else if (msg['type'] == 'ack') {
                         var ackSeq = msg['seq'];
@@ -383,7 +392,6 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                         }
                     }
                     else if (msg['type'] == 'message') {
-                        // TODO: 仍然有BUG
                         // 只有来自第一个进入房间的对手的消息才能传递给当前玩家
                         if (me.oppoClientId == package['from']) {
                             me.trigger(GameCenter.Events.PLAYER_MESSAGE_RECEIVED, msg['data']);
@@ -402,7 +410,8 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
                     }
                     connect.send({
                         'type': 'echo',
-                        'seq': seq
+                        'seq': seq,
+                        'isSilentBreaker': !!me.player['isSilentBreaker']
                     });
                     timer = setTimeout(echo, 500);
                 }
@@ -426,6 +435,20 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
     else {
         connectInternal();
     }
+};
+
+/**
+ * 进入silent状态
+ */
+GameCenter.prototype.keepSilent = function() {
+    this.inSilent = true;
+};
+
+/**
+ * 离开silent状态
+ */
+GameCenter.prototype.breakSilent = function() {
+    this.inSilent = false;
 };
 
 /**
@@ -499,7 +522,7 @@ GameCenter.AI = function(playerRecord, options) {
      * 向上难度系数
      * @type {number}
      */
-    this.hardLevelRatio = 1.4;
+    this.hardLevelRatio = 1.5;
 
     /**
      * 向下难度系数
@@ -601,6 +624,7 @@ GameCenter.AI.prototype.start = function() {
             GameCenter.ClientMode.PLAYER,
             {
                 userName: that.getRandomName(),
+                isSilentBreaker: true,
                 isAI: true
             }
         );
