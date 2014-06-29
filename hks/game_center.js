@@ -1061,11 +1061,11 @@ ClickMonkeyService.prototype.sendLog = function(params) {
 /**
  * 发送监控
  */
-ClickMonkeyService.prototype.send = function(title) {
+ClickMonkeyService.prototype.send = function(title, opt_xp) {
     this.sendLog({
         'r' : new Date().valueOf(),
         'q' : '',
-        'xp' : title,
+        'xp' : opt_xp || title,
         'plid' : this.getPlid(),
         'title' : title
     });
