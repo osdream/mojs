@@ -305,8 +305,8 @@ var pageCtl = {
                     userName: me.userName
                 }
             );
+            me.findingOppo();
         });
-        this.findingOppo();
     },
     findingOppo: function() {
         this.frame2.show();
@@ -347,6 +347,8 @@ var pageCtl = {
                         }
                     );
                     ai.start();
+                    // AI启动之后，不再对除了AI以外的玩家做应答
+                    context.gameCenter.keepSilent();
                 });
             } else {
                 setTimeout(_animate, 800);
