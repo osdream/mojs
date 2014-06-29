@@ -354,11 +354,11 @@ var pageCtl = {
         }
         _animate();
     },
-    getOppo: function(oppoName, isAI) {
+    getOppo: function(oppoName) {
         this.isFinding = false;
         fruitsCtl.scoreSpan.text('');
         this.oppoNameDom.text(oppoName || '测试对手');
-        this.comp && this.comp.getOppo(isAI);
+        this.comp && this.comp.getOppo();
         this.frame2.removeClass('waitingOppo');
     },
     oppoLeave: function(compFinished) {
@@ -554,7 +554,7 @@ var fruitsCtl = {
             this.checkOK();
         }
     },
-    checkFail: function(ele) {
+    checkFail: function() {
         this.gameRefreshed = false;
         this.setSeconds();
     },
@@ -573,20 +573,15 @@ var fruitsCtl = {
         deltaTime = (now - this.gameStartTime) / 1000;
         this.curUseTime = deltaTime;
         if(pageCtl.comp) {
-            pageCtl.comp.myStatus.status = 'finish';
             pageCtl.comp.sendData({
                 status: 'finish',
                 rightNum: this.dragRightNum,
                 useTime: deltaTime
             });
+            //线束后停1秒重新开始 TODO
+            //setTimeout(function() {}, 1000);
+            pageCtl.comp.myStatus.status = 'finish';
             pageCtl.comp.checkStatus();
-            var aiUseTime;
-            if(pageCtl.comp.AICompTime) {
-                aiUseTime = (pageCtl.comp.AICompTime + deltaTime) / 2;
-            } else {
-                aiUseTime = pageCtl.comp.AICompTime;
-            }
-            utils.cookie('aitime', aiUseTime);
         }
         this.myTime.text(deltaTime + '秒').parent().addClass('hasTime');
     },
@@ -605,9 +600,18 @@ var fruitsCtl = {
     hideOppoReady: function() {
         this.oppoReady.text('').removeClass('finish');
     },
-    setOppoFinish: function(time) {
+    setOppoFinish: function(time, rightNum) {
         this.oppoReady.text('Finish').addClass('finish');
         this.oppoTime.text(time + '秒').parent().addClass('hasTime');
+        if(pageCtl.comp && 'playing' == pageCtl.comp.myStatus.status) {
+            if(5 === rightNum) {
+                var now = new Date().getTime();
+                if(now - this.gameStartTime > rightNum) {
+                    this.gameRefreshed = false;
+                    this.setSeconds();
+                }
+            }
+        }
     },
     reset: function() {
         this.startGame = false;
@@ -643,7 +647,6 @@ var competition = function(option) {
 };
 competition.prototype.init = function() {
     this.AIOppo = false;
-    this.AICompTime = null;
     this.competeTimes = 3;
     this.curCompeteTime = 0;
     this.curCompeteWin = false;
@@ -660,11 +663,6 @@ competition.prototype.init = function() {
     };
     if(this.isMaster) {//主机发题
         this.createTasks();
-    }
-    //获取AI每次游戏的时间
-    var cookieAITime = utils.cookie('aitime');
-    if(cookieAITime) {
-        this.AICompTime = cookieAITime;
     }
 };
 competition.prototype.createTasks = function() {
@@ -703,7 +701,7 @@ competition.prototype.handleOpStatus = function(data) {
             var opUseTime =  data.useTime;
             this.opStatus['curRightNum'] = opRightNum;
             this.opStatus['curUseTime'] = opUseTime;
-            fruitsCtl.setOppoFinish(opUseTime);
+            fruitsCtl.setOppoFinish(opUseTime, opRightNum);
             break;
         case 'leave':
             pageCtl.oppoLeave(this.compFinished);
@@ -804,12 +802,7 @@ competition.prototype.reset = function(isInit) {
     isInit && (this.compFinished = false);
 };
 //对手连接成功
-competition.prototype.getOppo = function(isAI) {
-    if(isAI) {
-        this.AIOppo = true;
-        //this.isMaster = true;//?
-        this.initAI();
-    }
+competition.prototype.getOppo = function() {
     if(this.isMaster) {//主机发题
         this.sendData({
             status: 'waiting',
@@ -840,9 +833,6 @@ competition.prototype.receiveData = function(data) {
     this.opStatus.status = data.status;
     this.handleOpStatus(data);
     this.checkStatus();
-};
-//等待时间超过20秒 启用AI对手
-competition.prototype.initAI = function() {
 };
 
 //滑块控制
