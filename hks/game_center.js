@@ -519,6 +519,17 @@ GameCenter.AI = function(playerRecord, options) {
     this.Competition = options.competition;
 
     /**
+     * 跟机器人对战的人类玩家...
+     */
+    this.associatedPlayer = options.associatedPlayer || null;
+    // TODO:
+    // 当房间里存在AI/player/intruder
+    // 调用了GameCenter.keepSilent能保证player只回应是isSilentBreaker的玩家(即AI，只有它符合条件)，
+    // 这样player不会回应intruder
+    // 但是AI还是能回应intruder，因此需要给AI增加这么一个associatedPlayer，保证AI只会回应associatedPlayer
+    // 这个功能还没有搞定哈
+
+    /**
      * 向上难度系数
      * @type {number}
      */
@@ -1061,11 +1072,11 @@ ClickMonkeyService.prototype.sendLog = function(params) {
 /**
  * 发送监控
  */
-ClickMonkeyService.prototype.send = function(title) {
+ClickMonkeyService.prototype.send = function(title, opt_xp) {
     this.sendLog({
         'r' : new Date().valueOf(),
         'q' : '',
-        'xp' : title,
+        'xp' : opt_xp || title,
         'plid' : this.getPlid(),
         'title' : title
     });

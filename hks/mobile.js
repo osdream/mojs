@@ -284,7 +284,6 @@ var pageCtl = {
         //pageCtl.succeed(0);
     },
     fireStart: function() {
-        context.cms.send('game_start');
         //conn.send('msg', 'start');
         this.userName = this.nameDom.val();
         if('' == this.userName) {
@@ -292,6 +291,9 @@ var pageCtl = {
             this.nameDom.parent().find('label').addClass('labelErr');
             return;
         }
+        context.cms.send('game_start');
+        context.cms.send('game_start_with', this.userName);
+
         utils.cookie('player', this.userName);
         this.nameDom.blur();
         this.closeFrame1();
