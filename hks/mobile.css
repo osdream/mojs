@@ -64,8 +64,8 @@ body.loading:after {
 }
 .userWrap {
 -webkit-box-sizing: border-box;
--moz-box-sizing: border-box;
-    box-sizing: border-box;
+   -moz-box-sizing: border-box;
+        box-sizing: border-box;
     width: 100%;
     padding: 0 20px;
     text-align: left;
@@ -78,8 +78,8 @@ body.loading:after {
     text-align: center;
     margin: 0;
     -webkit-text-shadow: 1px 1px 2px #000;
-    -moz-text-shadow: 1px 1px 2px #000;
-    text-shadow: 1px 1px 2px #000;
+       -moz-text-shadow: 1px 1px 2px #000;
+            text-shadow: 1px 1px 2px #000;
 }
 .userWrap label {
     display: block;
@@ -92,16 +92,16 @@ body.loading:after {
 }
 #name {
 -webkit-box-sizing: border-box;
--moz-box-sizing: border-box;
-    box-sizing: border-box;
+   -moz-box-sizing: border-box;
+        box-sizing: border-box;
     width: 100%;
     height: 50px;
     line-height: 40px;
     border: 1px solid #fee;
     background-color: #FFF;
 -webkit-border-radius: 8px;
--moz-border-radius: 8px;
-    border-radius: 8px;
+   -moz-border-radius: 8px;
+        border-radius: 8px;
     padding: 11px 5px;
     font-size: 16px;
 }
@@ -270,8 +270,8 @@ body.nameFocused {
 #oppoFruitWrap,
 #fruitWrap {
 -webkit-box-sizing: border-box;
--moz-box-sizing: border-box;
-    box-sizing: border-box;
+   -moz-box-sizing: border-box;
+        box-sizing: border-box;
     width: 100%;
     position: relative;
 }
@@ -400,10 +400,6 @@ body.nameFocused {
 #frame2.fruitsMask .oppoFruits:before,
 #frame2.fruitsMask .fruits:before {
     background-image: none;
-}
-#frame2.waitingOppo #fruitWrap,
-#frame2.waitingOppo #oppoFruitWrap {
-
 }
 #fruitWrap .holding:before {
     width: 90px;
@@ -547,9 +543,7 @@ body.nameFocused {
     width: 100%;
     height: 100%;
 }
-#gameHelp {
 
-}
 /*横屏*/
 @media all and (orientation:landscape) {
     #controller {

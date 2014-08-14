@@ -73,6 +73,7 @@
     <script type="text/javascript" src="mobile.js"></script>
 
     <script type="text/javascript">
+        //微信分享
         var imgUrl = "http://ecma.bdimg.com/public01/2014-06/1.jpg";
         var lineLink = "http://bs.baidu.com/public03/hk/mobile.html";
         var shareTitle = '来挑战\n[善存]记忆力大比拼吧!';
@@ -88,7 +89,7 @@
                 "desc": descContent,
                 "title": shareTitle
             }, function(res) {
-                context && context.cms.send('share_with_friend');
+                CMS && CMS.send('share_with_friend');
             })
         }
         function shareTimeline() {
@@ -100,7 +101,7 @@
                 "desc": descContent,
                 "title": shareTitle
             }, function(res) {
-                context && context.cms.send('share_with_timeline');
+                CMS && CMS.send('share_with_timeline');
             });
         }
         function shareWeibo() {
@@ -108,7 +109,7 @@
                 "content": descContent,
                 "url": lineLink,
             }, function(res) {
-                context && context.cms.send('share_with_weibo');
+                CMS && CMS.send('share_with_weibo');
             });
         }
         // 当微信内置浏览器完成内部初始化后会触发WeixinJSBridgeReady事件。
