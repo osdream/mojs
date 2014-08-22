@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>轻量双屏</title>
+    <style type="text/css" media="screen">
+        html, body {
+            padding: 0;
+            margin: 0;
+            width: 640px;
+            height: 960px;
+            _text-align: center;
+        }
+
+        #container {
+            width: 640px;
+            height: 960px;
+            margin: auto;
+            text-align: center;
+            background-image: url('http://ecma.bdimg.com/adtest/tingkl/640x960.jpg');
+        }
+
+        #btn {
+            width: 415px;
+            height: 86px;
+            display: block;
+            outline: none;
+            background-color: #000000;
+            opacity: 0.5;
+            filter: alpha(opacity=50);
+            margin: auto;
+            position: relative;
+            top: 394px;
+            line-height: 86px;
+            text-decoration: none;
+            font-size: 50px;
+            font-family: arial,sans-serif;
+            color: rgb(250, 230, 3);
+        }
+
+        #frameFail {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div id="container">
+    <a id="btn"  hidefocus="hidefocus" href="http://8.baidu.com/m">前往理财</a>
+</div>
+<div id="frameFail">
+    与电脑连接失败，可尝试刷新电脑生成新的二维码重新连接。
+</div>
+<script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+<script type="text/javascript" charset="utf-8">
+    (function (window, document) {
+        function on(element, type, listener) {
+            if (typeof element === 'string') {
+                element = document.getElementById(element);
+            }
+
+            if (element.addEventListener) {
+                element.addEventListener(type, listener, false);
+            }
+            else if (element.attachEvent) {
+                element.attachEvent('on' + type, function (event) {
+                    listener.call(element, event);
+                });
+            }
+
+            return element;
+        };
+
+        var notFromShare = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)$/);
+        if (!notFromShare) {
+            return;
+        }
+        on('btn', 'click', function () {
+            conn.send('close');
+            conn['distroy']();
+            return false;
+        });
+        //WebSocket连接处理
+        var connectHandler = function () {
+            this.connCache = {};
+            this.connId = 0;
+            this.lastLateConnId = -1;
+            //this.latencyTime = null;
+        };
+        connectHandler.prototype.prepare = function () {
+            require.config({
+                paths: {
+                    'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+                }
+            });
+            // 加载Connect模块
+            require(['muses/connect'], function (Connect) {
+                var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+                var token = matches && matches.length >= 2 ? matches[1] : null;
+                var connect = new Connect();
+                conn.init(connect);
+                connect.connectWith(token)
+                        .then(function () {
+                            conn.send('open');
+                            connect.onMessage = function (msg) {
+                                conn.get(msg);
+                            }
+                        })
+                        .fail(function (err) {
+                            conn.fail();
+                        });
+                connect.onTokenExpired = function () {
+                    conn.fail();
+                }
+            });
+        };
+        connectHandler.prototype.init = function (connect) {
+            this.connect = connect;
+        };
+        connectHandler.prototype.fail = function (connect) {
+            $('#container').hide();
+            $('#frameFail').show();
+            this.connect.destroy();
+        };
+        connectHandler.prototype.send = function (type) {
+            var sendTime = new Date().getTime();
+            this.connCache[this.connId] = sendTime;
+            //var latencyTime = this.latencyTime || null;
+            //this.connect.send([this.connId, sendTime, type, data, latencyTime]);
+            this.connect.send({connId: this.connId, sendTime: sendTime, type: type});
+            this.connId++;
+        };
+        connectHandler.prototype.get = function (msg) {
+            var type = msg && msg['type'];
+            if (!type) {
+                return;
+            }
+            switch (type) {
+                case 'opened':
+                    break;
+            }
+        };
+        connectHandler.prototype.destroy = function () {
+            this.connect.destroy();
+        };
+        var conn = new connectHandler();
+        conn.prepare();
+    })(window, document);
+</script>
+
+</body>
+</html>

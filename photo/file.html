@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <title> capture </title>
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+ </head>
+
+ <body>
+<form action="server.cgi" method="post" enctype="multipart/form-data">
+  <input type="file" name="image" id="file" accept="video/*" capture>
+  <input onclick='displayAsImage()' id='submit' type="button" value="Upload">
+  <img src='' id="img" alt='' />
+</form>
+ </body>
+<script>
+var btn = document.getElementById('submit');
+var img = document.getElementById('img');
+function displayAsImage() {
+alert(1);
+  var file = document.getElementById('file');
+  var imgURL = URL.createObjectURL(file),
+      img = document.createElement('img');
+
+  img.onload = function() {
+    URL.revokeObjectURL(imgURL);
+  };
+
+  img.src = imgURL;
+  document.body.appendChild(img);
+}
+</script>
+</html>

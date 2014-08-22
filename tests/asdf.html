@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+<!--
+Created using JS Bin
+http://jsbin.com
+
+Copyright (c) 2014 by anonymous (http://jsbin.com/tenalati/19/edit)
+
+Released under the MIT license: http://jsbin.mit-license.org
+-->
+  <title>JS Bin</title>
+
+<style id="jsbin-css">
+
+</style>
+</head>
+<body>
+
+<script>
+(function(win){
+var storageWrapG;
+var storageG;
+var MyStor = function(opt_options) {
+    this._options = {
+        'storageName': 'sUserDataStorage' //userData存储文件名
+    };
+
+    this.domInited = false;
+};
+
+MyStor.prototype.log = function(msg) {
+    var div = document.createElement('div');
+    div.innerHTML = msg;
+    document.body.appendChild(div);
+};
+
+/** @override */
+MyStor.prototype.isEnable = function() {
+    if (document.documentElement.addBehavior) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+/**
+ * 初始化并保存用于userData存储的DOM元素
+ * @override
+ */
+var storageCont;
+MyStor.prototype.init = function() {
+    if (!this.isEnable()) {
+        return;
+    }
+    var scriptTag = 'script';
+    try {
+        //用iframe能跨路径userData访问；使用ActiveXObject('htmlfile')，
+        //避免在IE6中调用document.write时出现“已终止操作”的异常。
+        storageCont = new ActiveXObject('htmlfile');
+        storageCont.open();
+        var path = location.pathname.replace(/[^\/]*$/, '');
+        //IE7不支持跨路径userData访问，IE6支持
+        var isIE67 = true;
+        var ifrPath = (isIE67 ? path : '/') + 'favicon.ico';
+        storageCont.write("<" + scriptTag + ">document.w=window</" + scriptTag + "><iframe src=\"/favicon.ico\"></iframe>");
+        storageCont.close();
+        storageWrapG = storageCont.w.frames[0].document;
+        this.log(storageCont.w.frames[0].location.pathname);
+        this.log(location.pathname);
+        storageG = storageWrapG.createElement('div');
+    } catch(e) {
+        //若创建失败，使用当前的document
+        storageWrapG = document.body;
+        storageG = document.createElement('div');
+        this.log('current document');
+alert('is here?');
+    }
+    this.domInited = true;
+};
+
+/** IE6,7中UserData键名中禁用的字符 */
+MyStor.forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g");
+
+/**
+ * 格式化键名，UserData存储键名在IE7中不能以数字开头，IE6,7中键名很多字符不能包含
+ * @private
+ * @param {string} key 键名
+ * @return {string} 格式化后的key
+ */
+MyStor.prototype.getKey = function(key) {
+    return key.replace(/^\d/, '___$&')
+        .replace(MyStor.forbiddenCharsRegex, '___');
+};
+
+/**
+ * 载入用于存储userData的DOM
+ * @private
+ * @return {Element} 存储userData的DOM
+ */
+MyStor.prototype.loadStorage = function() {
+    if (!this.domInited) {
+        this.init();
+    }
+    var storageWrap = storageWrapG;
+    var storage = storageG;
+    storageWrap.appendChild(storageG);
+    storage.addBehavior('#default#userData');
+    this.log('load storage, name: ' + this._options['storageName']);
+    storage.load(this._options['storageName']);
+    return storage;
+};
+
+/**
+ * 移除用于存储userData的DOM
+ * @private
+ */
+MyStor.prototype.unloadStorage = function() {
+    storageWrapG.removeChild(storageG);
+};
+
+/**
+ * 将一个键值对存入到UserData中
+ * @override
+ * @param {string} key 键名
+ * @param {string} value 值
+ * @param {?Object} opt_options config参数
+ * @config {Date|number} expires 设置一个过期时间，
+ *         值的类型必须是一个Date对象或是一个毫秒数
+ * @return {string|null} 存储的值
+ */
+MyStor.prototype.setItem = function(key, value, opt_options) {
+    key = this.getKey(key);
+    this.log('setItem start, key:' + key + ' value: ' + value);
+    var storage = this.loadStorage();
+    if (undefined === value) {
+        storage.removeAttribute(key);
+        storage.save(this._options['storageName']);
+        this.unloadStorage();
+        return;
+    }
+    var time = opt_options && opt_options['expires'] ? opt_options['expires']
+        : 365 * 24 * 60 * 60 * 1000;//默认保存一年时间
+    if ('[object Date]' == ({}).toString.call(time)) {
+        time = time.getTime();
+    } else {
+        time = new Date().getTime() + (time - 0);
+    }
+    this.log('set time: ' + time);
+    storage.expires = new Date(time).toUTCString();
+    this.log('set expires: ' + storage.expires);
+    storage.setAttribute(key, value);
+    storage.save(this._options['storageName']);
+    this.unloadStorage();
+    this.log('setItem end, key:' + key + ' value: ' + value);
+    return value;
+};
+
+/**
+ * 依据键名称来取得UserData中存储的值
+ * @override
+ * @param {string} key 键名
+ * @return {string} 存储的值
+ */
+MyStor.prototype.getItem = function(key) {
+    key = this.getKey(key);
+    this.log('getItem start, key:' + key);
+    var storage = this.loadStorage();
+    var value = storage.getAttribute(key);
+    this.log('getItem-key: ' + key + ',value: ' + value);
+    storage.setAttribute(key, value + 1);
+    this.unloadStorage();
+    this.log('getItem end, key:' + key);
+    return value;
+};
+
+/**
+ * 根据键名称来删除在UserData中存储的值
+ * @override
+ * @param {string} key 键名
+ */
+MyStor.prototype.removeItem = function(key) {
+    var key = this.getKey(key);
+    var storage = this.loadStorage();
+    storage.removeAttribute(key);
+    storage.save(this._options['storageName']);
+    this.unloadStorage();
+};
+
+/**
+ * 清空存储的UserData
+ * @override
+ */
+MyStor.prototype.clear = function() {
+    var storage = this.loadStorage();
+    var attributes = storage.XMLDocument.documentElement.attributes;
+    for (var i = 0, attr; attr = attributes[i]; i++) {
+        storage.removeAttribute(attr.name);
+    };
+    storage.save(this._options['storageName']);
+    this.unloadStorage();
+};
+
+win.MyStor = MyStor;
+})(window);
+
+
+(function(win){
+return;
+alert('not here');
+var storageWrapG;
+var storageG;
+var myStor = {};
+var storageName = 'aNewUserDataStorage'; //userData存储文件名
+
+myStor.setItem = function(key, value) {};
+myStor.getItem = function(key) {};
+myStor.removeItem = function(key) {};
+myStor.log = function(msg) {
+    var div = document.createElement('div');
+    div.innerHTML = msg;
+    document.body.appendChild(div);
+};
+    var storageCont;
+(function() {
+    var scriptTag = 'script';
+    try {
+        //用iframe能跨路径userData访问；使用ActiveXObject('htmlfile')，
+        //避免在IE6中调用document.write时出现“已终止操作”的异常。
+        this.storageCont = new ActiveXObject('htmlfile');
+        this.storageCont.open();
+        var path = location.pathname.replace(/[^\/]*$/, '');
+        //IE7不支持跨路径userData访问，IE6支持
+        var isIE67 = true;
+        var ifrPath = (isIE67 ? path : '/') + 'favicon.ico';
+        this.storageCont.write("<" + scriptTag + ">document.w=window</" + scriptTag + "><iframe src=\"/favicon.ico\"></iframe>");
+        this.storageCont.close();
+        storageWrapG = this.storageCont.w.frames[0].document;
+        myStor.log(this.storageCont.w.frames[0].location.pathname);
+        myStor.log(location.pathname);
+        storageG = storageWrapG.createElement('div');
+    } catch(e) {
+        //若创建失败，使用当前的document
+        storageWrapG = document.body;
+        storageG = document.createElement('div');
+        myStor.log('ccccccccccccccurrent document');
+    }
+    myStor.domInited = true;
+})();
+
+/** IE6,7中UserData键名中禁用的字符 */
+myStor.forbiddenCharsRegex = new RegExp("[!\"#$%&'()*+,/\\\\:;<=>?@[\\]^`{|}~]", "g");
+
+/**
+ * 格式化键名，UserData存储键名在IE7中不能以数字开头，IE6,7中键名很多字符不能包含
+ * @private
+ * @param {string} key 键名
+ * @return {string} 格式化后的key
+ */
+myStor.getKey = function(key) {
+    return key.replace(/^\d/, '___$&')
+        .replace(myStor.forbiddenCharsRegex, '___');
+};
+
+/**
+ * 载入用于存储userData的DOM
+ * @private
+ * @return {Element} 存储userData的DOM
+ */
+var LoadStorage = function(storeFn) {
+    return function() {
+        if (!myStor.domInited) {
+            myStor.init();
+        }
+        var args = Array.prototype.slice.call(arguments, 0);
+        args.unshift(storageG);
+        var storageWrap = storageWrapG;
+        storageWrap.appendChild(storageG);
+        storageG.addBehavior('#default#userData');
+        myStor.log('load storage, name: ' + storageName);
+        storageG.load(storageName);
+        var result = storeFn.apply(myStor, args);
+        storageWrapG.removeChild(storageG);
+        return result;
+    }
+};
+
+/**
+ * 移除用于存储userData的DOM
+ * @private
+ */
+myStor.unloadStorage = function() {
+    storageWrapG.removeChild(storageG);
+};
+
+/**
+ * 将一个键值对存入到UserData中
+ * @override
+ * @param {string} key 键名
+ * @param {string} value 值
+ * @param {?Object} opt_options config参数
+ * @config {Date|number} expires 设置一个过期时间，
+ *         值的类型必须是一个Date对象或是一个毫秒数
+ * @return {string|null} 存储的值
+ */
+myStor.setItem = LoadStorage(function(storage, key, value, opt_options) {
+    key = myStor.getKey(key);
+    myStor.log('setItem start, key:' + key + ' value: ' + value);
+    //var storage = myStor.loadStorage();
+    if (undefined === value) {
+        storage.removeAttribute(key);
+        storage.save(storageName);
+        //myStor.unloadStorage();
+        return;
+    }
+    var time = opt_options && opt_options['expires'] ? opt_options['expires']
+        : 365 * 24 * 60 * 60 * 1000;//默认保存一年时间
+    if ('[object Date]' == ({}).toString.call(time)) {
+        time = time.getTime();
+    } else {
+        time = new Date().getTime() + (time - 0);
+    }
+    myStor.log('set time: ' + time);
+    storage.expires = new Date(time).toUTCString();
+    myStor.log('set expires: ' + storage.expires);
+    storage.setAttribute(key, value);
+    storage.save(storageName);
+    //myStor.unloadStorage();
+    myStor.log('setItem end, key:' + key + ' value: ' + value);
+    return value;
+});
+
+/**
+ * 依据键名称来取得UserData中存储的值
+ * @override
+ * @param {string} key 键名
+ * @return {string} 存储的值
+ */
+myStor.getItem = LoadStorage(function(storage, key) {
+    key = myStor.getKey(key);
+    myStor.log('getItem start, key:' + key);
+    //var storage = myStor.loadStorage();
+    var value = storage.getAttribute(key);
+    myStor.log('getItem-key: ' + key + ',value: ' + value);
+    storage.setAttribute(key, value + 1);
+    //myStor.unloadStorage();
+    myStor.log('getItem end, key:' + key);
+    return value;
+});
+
+/**
+ * 根据键名称来删除在UserData中存储的值
+ * @override
+ * @param {string} key 键名
+ */
+myStor.removeItem = LoadStorage(function(key) {
+    var key = myStor.getKey(key);
+    //var storage = myStor.loadStorage();
+    storage.removeAttribute(key);
+    storage.save(storageName);
+    //myStor.unloadStorage();
+});
+
+
+win.myStor = myStor;
+})(window);
+
+var myStor = new MyStor();
+myStor.log('----------------------');
+myStor.getItem('cc');
+myStor.setItem('cc', 'new hahhahhahahah');
+myStor.getItem('cc');
+
+myStor.getItem('dd');
+myStor.setItem('dd', 'can you do it?');
+myStor.getItem('dd');
+
+myStor.getItem('ee');
+myStor.setItem('ee', 'ee value');
+myStor.getItem('ee');
+
+myStor.getItem('ff');
+myStor.setItem('ff', 'ff value');
+myStor.getItem('ff');
+myStor.log('first finished');
+
+setTimeout(function() {
+    myStor.getItem('ietmore111');
+    myStor.setItem('ietmore111', 'ie test value more111');
+    myStor.getItem('ietmore111');
+    myStor.log('more end');
+}, 5000);
+setTimeout(function() {
+    myStor.getItem('ietmore222');
+    myStor.setItem('ietmore222', 'ie test value more222');
+    myStor.getItem('ietmore222');
+    myStor.log('more 2 end');
+}, 8000);
+setTimeout(function() {
+    myStor.getItem('ietmore333');
+    myStor.setItem('ietmore333', 'ie test value more333');
+    myStor.getItem('ietmore333');
+    myStor.log('more 3 end');
+}, 10000);
+</script>
+
+</body>
+</html>
