@@ -7,8 +7,10 @@
 
  <body>
 <form action="server.cgi" method="post" enctype="multipart/form-data">
-  <input type="file" name="image" id="file" accept="video/*" capture>
-  <input onclick='displayAsImage()' id='submit' type="button" value="Upload">
+  <input type="file" name="file" id="file"/>
+  <input type="file" name="image" id="file1" accept="image/*" capture/>
+  <input type="file" name="video" id="file2" accept="video/*" capture/>
+  <input onclick='displayAsImage()' id='submit' type="button" value="Upload"/>
   <img src='' id="img" alt='' />
 </form>
  </body>
@@ -16,7 +18,7 @@
 var btn = document.getElementById('submit');
 var img = document.getElementById('img');
 function displayAsImage() {
-alert(1);
+alert('hehe');
   var file = document.getElementById('file');
   var imgURL = URL.createObjectURL(file),
       img = document.createElement('img');
