@@ -2,7 +2,7 @@
 *     File Name           :     photoRub.html
 *     Created By          :     DestinyXie
 *     Creation Date       :     [2014-09-03 17:54]
-*     Last Modified       :     [2014-09-09 18:22]
+*     Last Modified       :     [2014-09-09 18:31]
 *     Description         :     rub part of image in canvas
 *******************************************************************************-->
 
@@ -72,12 +72,16 @@ body {
             var stepX = w/20;
             var stepY = h/20;
             var alArr = [];
+            var transCount = 0;
             for (var i = 0; i < 20; i++) {
                 for (var j = 0; j < 20; j++) {
-                    curX = stepX/2 + i * stepX;
-                    curY = stepY/2 + j * stepY;
+                    curX = parseInt(stepX/2 + i * stepX);
+                    curY = parseInt(stepY/2 + j * stepY);
                     curColor = getColor(img, curX, curY);
                     alArr.push(curColor[3]);
+                    if (0 === curColor[3]) {
+                        transCount ++;
+                    }
                     if (init) {
                         ctx.beginPath();
                         ctx.moveTo(curX, curY);
@@ -87,7 +91,8 @@ body {
                     }
                 }
             }
-            console.log(alArr.join('] - ['));
+            //console.log(alArr.join('] - ['));
+            console.log(transCount / 400);
         }
 
         function layer(ctx) {
