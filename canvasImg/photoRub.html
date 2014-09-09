@@ -2,7 +2,7 @@
 *     File Name           :     photoRub.html
 *     Created By          :     DestinyXie
 *     Creation Date       :     [2014-09-03 17:54]
-*     Last Modified       :     [2014-09-05 16:37]
+*     Last Modified       :     [2014-09-09 18:22]
 *     Description         :     rub part of image in canvas
 *******************************************************************************-->
 
@@ -13,25 +13,48 @@
 <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
 <title>html5 canvas</title>
 <style>
+body {
+    position: relative;
+    padding-top: 500px;
+}
 #lamp {
     position: absolute;
     z-index: -1;
-    top: -1000;
+    top: -1000px;
+}
+.canvas01 {
+    position: absolute;
+    top: 0;
+}
+.canvas02 {
+    width: 200px;
+    height: 200px;
+    background: url(pet.jpg) #666;
 }
 </style>
 </head>
 <body>
 <img id="lamp" src="pet2.jpg" />
-<canvas></canvas>
+<canvas class="canvas01"></canvas>
+<canvas class="canvas02"></canvas>
 <script>
 (function(bodyStyle) {
     bodyStyle.mozUserSelect = 'none';
     bodyStyle.webkitUserSelect = 'none';
 
     var img = new Image();
-    var canvas = document.querySelector('canvas');
+    var canvas = document.querySelector('.canvas01');
     canvas.style.backgroundColor='transparent';
     canvas.style.position = 'absolute';
+
+    function getColor(img, x, y) {
+        var offset = (x + y * img.width) * 4;
+        var red = img.data[offset];
+        var green = img.data[offset + 1];
+        var blue = img.data[offset + 2];
+        var alpha = img.data[offset + 3];
+        return [red, green, blue, alpha]
+    }
 
     img.addEventListener('load', function(e) {
         var ctx;
@@ -40,8 +63,31 @@
         var offsetX = canvas.offsetLeft,
         offsetY = canvas.offsetTop;
         var mousedown = false;
-        function checkTransparentPercent() {
-            
+        function checkTransparentPercent(init) {
+            var img = ctx.getImageData(0, 0, w, h);
+            var transparentPoints = 0;
+            var curX;
+            var curY;
+            var curColor;
+            var stepX = w/20;
+            var stepY = h/20;
+            var alArr = [];
+            for (var i = 0; i < 20; i++) {
+                for (var j = 0; j < 20; j++) {
+                    curX = stepX/2 + i * stepX;
+                    curY = stepY/2 + j * stepY;
+                    curColor = getColor(img, curX, curY);
+                    alArr.push(curColor[3]);
+                    if (init) {
+                        ctx.beginPath();
+                        ctx.moveTo(curX, curY);
+                        ctx.lineTo(curX, curY + 1);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                }
+            }
+            console.log(alArr.join('] - ['));
         }
 
         function layer(ctx) {
@@ -51,6 +97,7 @@
 
             ctx.fillStyle = pat;
             ctx.fillRect(0, 0, w, h);
+            checkTransparentPercent(true);
         }
 
         function eventDown(e){
@@ -59,9 +106,9 @@
         }
 
         function eventUp(e){
+            checkTransparentPercent();
             e.preventDefault();
             mousedown=false;
-            checkTransparentPercent();
         }
 
         function eventMove(e){
@@ -98,6 +145,21 @@
         canvas.addEventListener('mousemove', eventMove);
     });
     img.src = 'pet.jpg';
+
+var canvas2 = document.querySelector('.canvas02');
+var c= canvas2.getContext('2d');
+c.translate(0, 0);
+c.fillStyle = "#999";
+c.strokeStyle = "#900";
+c.beginPath();
+c.moveTo(20, 20);
+c.lineTo(120, 120);
+c.lineTo(20, 120);
+c.moveTo(300, 100);
+c.lineTo(300, 200);
+c.closePath();
+c.fill();
+c.stroke();
 })(document.body.style);
 </script>
 </body>
