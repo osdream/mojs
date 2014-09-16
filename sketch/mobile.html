@@ -1,0 +1,734 @@
+<!--******************************************************************************
+*     File Name           :     sketch/mobile.html
+*     Created By          :     DestinyXie
+*     Creation Date       :     [2014-09-16 16:30]
+*     Last Modified       :     [2014-09-16 18:23]
+*     Description         :     双屏互动mobile端调试页
+*******************************************************************************-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>mobile</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://ecma.bdimg.com/public01/js/jquery.imgpreload.min.js"></script>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+    <style type="text/css" media="screen">
+        * {
+    -webkit-user-select: none;
+       -moz-user-select: none;
+        }
+        *, *:focus, *:active {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            outline: none;
+        }
+        html,body {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+        }
+        body {
+            font-size: 10px;
+            color: #333;
+            background: url(http://bs.baidu.com/adtest/centrum140528bg.png) repeat-x #f7f7f7;
+        }
+        body.loading {
+            background: url(http://bs.baidu.com/adtest/centrum140528loading.gif) 50% 100px no-repeat;
+        }
+        #controller {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .logo {
+            position: absolute;
+            top: 10px;
+            left: 14px;
+            width: 58px;
+            height: 51px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528logo.png) 0 0 no-repeat;
+            z-index: 10;
+        }
+        .bg-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 112px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528topc.png) 50% 10px no-repeat;
+        }
+        .bg-bottom {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 265px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528bottomc.png) 50% 0 repeat-x;
+        }
+        #frame1 {
+            display: none;
+            position: absolute;
+            top: 100px;
+            left: 0;
+            width: 100%;
+            height: 319px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528start.png) 50% 0 no-repeat;
+            text-align: center;
+        }
+        #startGame{
+            position: absolute;
+            width: 132px;
+            height: 133px;
+            margin-left: -64px;
+            left: 50%;
+            top: 144px;
+        }
+        #frame2 {
+            display: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528oritip.png) 50% 58px no-repeat;
+        }
+        #orientWrap {
+            display: none;
+            position: absolute;
+            width: 100%;
+            left: 0;
+            bottom: 12px;
+            height: 58px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528oribtn.png) 50% 0 no-repeat;
+        }
+        #dragWrap {
+            display: none;
+            position: absolute;
+            left: 0;
+            bottom: 12px;
+            width: 100%;
+            height: 100%;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528hanbtn.png) 50% bottom no-repeat;
+        }
+        #drag {
+            position: absolute;
+            top: 163px;
+            left: 50%;
+            margin-left: -33px;
+            width: 66px;
+            height: 66px;
+            z-index: 2;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528handler.png) no-repeat;
+        }
+        #frame2Score1, #frame2Score2 {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            margin-left: 18px;
+            width: 27px;
+            height: 26px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528num.png) 0 0 no-repeat;
+        }
+        #frame2Score2 {
+            margin-left: 45px;
+        }
+        #ctlType {
+            position: absolute;
+            left: 50%;
+            bottom: 37px;
+            width: 113px;
+            height: 33px;
+            margin-left: -57px;
+        }
+        #frame3 {
+            display: none;
+            position: absolute;
+            left: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            font-size: 20px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528endbgtop.png) 50% 40px no-repeat;
+        }
+        #scoreType {
+            position: absolute;
+            top: 80px;
+            left: 0;
+            width: 100%;
+            height: 142px;
+            background-position: 50% 0;
+            background-repeat: no-repeat;
+        }
+        #frame3Num {
+            position: absolute;
+            top: 32px;
+            left: 50%;
+            margin-left: -38px;
+            color: #ea5404;
+            font: bold 38px/38px Verdana,arial,sans-serif;
+        }
+        #frame3 .tipbottom {
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 191px;
+            background: url(http://ecma.bdimg.com/adtest/centrum140528endbgbottom.png) 50% 5px no-repeat;
+        }
+        #frameFail {
+            display: none;
+            position: relative;
+            z-index: 8;
+            font-size: 20px;
+            font-weight: bold;
+            width: 200px;
+            margin: 80px auto;
+            color: #ff6445;
+            background: #fff;
+    -webkit-border-radius: 10px;
+       -moz-border-radius: 10px;
+            border-radius: 10px;
+    -webkit-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+       -moz-box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+            box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.35);
+            padding: 10px 20px;
+        }
+        #info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-size: 8px;
+            padding: 2px;
+            height: 140px;
+            width: 40%;
+            background-color: #333;
+            color: #fff;
+            opacity: 0.4;
+            overflow: hidden;
+        }
+        .lowHeight #frame1 {
+            top: auto;
+            bottom: 10px;
+        }
+        .lowHeight #frame3 {
+            background-position: 50% top;
+        }
+        .lowHeight #scoreType {
+            top: 40px;
+        }
+        .fromShare #frame1 {
+            display: block;
+            background-image: url(http://ecma.bdimg.com/adtest/centrum140606share.png);
+        }
+        .fromShare #startGame {
+            display: none;
+        }
+        /*横屏*/
+        @media all and (orientation:landscape) {
+            #frame1 {
+                top: auto;
+                bottom: 0;
+            }
+            #frame2 {
+                background-position: 50% 8px;
+            }
+            #frame2Score1, #frame2Score2 {
+                top: 20px;
+            }
+            #drag {
+                top: 113px;
+            }
+            #orientWrap, #dragWrap {
+                background-position-x: right;
+            }
+            #ctlType {
+                left: auto;
+                right: 0;
+            }
+            #frame3,
+            .lowHeight #frame3 {
+                background-position: 50px top;
+            }
+            #frame3Num,
+            .lowHeight #frame3Num {
+                left: 175px;
+            }
+            #scoreType,
+            .lowHeight #scoreType {
+                top: 40px;
+                background-position: 50px 0;
+            }
+            #frame3 .tipbottom {
+                background-position: 300px 0;
+            }
+        }
+    </style>
+</head>
+<body class="loading">
+    <div id="controller">
+        <div class="logo"></div>
+        <div class="bg-top"></div>
+        <div class="bg-bottom"></div>
+        <div id="frame1">
+            <span id="startGame"></span>
+        </div>
+        <div id="frame2">
+            <div id="orientWrap"></div>
+            <div id="dragWrap">
+                <div id="drag" class="drag"></div>
+            </div>
+            <span id="frame2Score1"></span>
+            <span id="frame2Score2"></span>
+            <span id="ctlType"></span>
+        </div>
+        <div id="frame3">
+            <div id="scoreType">
+                <span id="frame3Num"></span>
+            </div>
+            <div class="tipbottom"></div>
+        </div>
+        <div id="frameFail">
+            与电脑连接失败，可尝试刷新电脑生成新的二维码重新连接。
+        </div>
+        <!--<div id="info"></div>-->
+        <!--for ios test-->
+        <!--<audio src="separation.mp3" onended="this.play();" controls="controls" autobuffer autoplay="true"></audio>-->
+    </div>
+<script type="text/javascript" src="http://ecma.bdimg.com/adtest/140520/js/hammer.js">
+</script>
+<script type="text/javascript" charset="utf-8">
+(function (window, document) {
+var notFromShare = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)$/);
+if(!notFromShare) {
+    $('body').removeClass('loading').addClass('fromShare');
+    return;
+}
+function _log(s, dom) {
+    console && console.log(s);
+    return;
+    var logDom = dom || $('#info');
+    if(logDom.logL) {
+        if(logDom.logL > 20) {
+            logDom.logL = 0;
+            logDom.html('');
+        }
+    } else {
+        logDom.logL = 0;
+    }
+    logDom.logL++;
+    logDom.prepend("<br>");
+    logDom.prepend(s);
+}
+
+//browser detect
+function prefix(style) {
+    if (vender === '') return style;
+
+    style = style.charAt(0).toUpperCase() + style.substr(1);
+    return vender + style;
+}
+
+var dummyStyle = document.createElement('div').style;
+var vender = (function() {
+    var vendors = 't,webkitT,MozT,msT,OT'.split(','),
+        t,
+        i = 0,
+        l = vendors.length;
+
+    for (; i < l; i++) {
+        t = vendors[i] + 'ransform';
+        if (t in dummyStyle) {
+            return vendors[i].substr(0, vendors[i].length - 1);
+        }
+    }
+
+    return false;
+})();
+var transformAttr = prefix('transform');
+
+//firefox的角度偏转是反的
+var isFirefox = /firefox/i.test(navigator.userAgent);
+//页面控制
+var pageCtl = {
+    curScore: 0,
+    ctlDom: $('#controller'),
+    frame1: $('#frame1'),
+    startBtn: $('#startGame'),
+    frame2: $('#frame2'),
+    oriWrap: $('#orientWrap'),
+    dragWrap: $('#dragWrap'),
+    score1: $('#frame2Score1'),
+    score2: $('#frame2Score2'),
+    frame3: $('#frame3'),
+    scoreType: $('#scoreType'),
+    frame3Num: $('#frame3Num'),
+    preImages: ['http://bs.baidu.com/adtest/centrum140528bg.png', 'http://ecma.bdimg.com/adtest/centrum140528topc.png',
+      'http://ecma.bdimg.com/adtest/centrum140528topm.png', 'http://ecma.bdimg.com/adtest/centrum140528bottomm.png',
+      'http://ecma.bdimg.com/adtest/centrum140528bottomc.png', 'http://ecma.bdimg.com/adtest/centrum140528start.png',
+      'http://ecma.bdimg.com/adtest/centrum140528num.png', 'http://ecma.bdimg.com/adtest/centrum140528oritip.png',
+      'http://ecma.bdimg.com/adtest/centrum140528oribtn.png', 'http://ecma.bdimg.com/adtest/centrum140528hantip.png',
+      'http://ecma.bdimg.com/adtest/centrum140528hanbtn.png', 'http://ecma.bdimg.com/adtest/centrum140528handler.png',
+      'http://ecma.bdimg.com/adtest/centrum140528endbgtop.png', 'http://ecma.bdimg.com/adtest/centrum140528endbgbottom.png',
+      'http://ecma.bdimg.com/adtest/centrum140528endtype1.png', 'http://ecma.bdimg.com/adtest/centrum140528endtype2.png',
+      'http://ecma.bdimg.com/adtest/centrum140528endtype3.png'],
+    init: function() {
+        //预加载图片
+        $.imgpreload(this.preImages, {
+            all: function() {
+                pageCtl.imageLoaded = true;
+                if(conn.connId > 0) {
+                    pageCtl.start();
+                }
+            }
+        });
+        this.detectViewport();
+        conn.prepare();
+    },
+    detectViewport: function() {
+        var vHeight = Math.max($('body').height(), $('body').width());
+        if (vHeight < 420) {
+            $('body').addClass('lowHeight');
+        }
+    },
+    start: function() {
+        if(!pageCtl.imageLoaded) {
+            setTimeout(function() {
+                pageCtl.start();
+            }, 1000);
+            return;
+        }
+        $('body').removeClass('loading');
+        this.frame1.show();
+        this.startBtn.click(function() {
+            var isOri = orientation.start();
+            conn.send('msg', 'start');
+            pageCtl.closeFrame1();
+            pageCtl.frame2.show();
+            pageCtl.control(isOri);
+        });
+    },
+    fail: function() {
+        $('#frameFail').show();
+    },
+    control: function(isOri) {
+        if(isOri) {
+            this.frame2.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528oritip.png)');
+            this.oriWrap.show();
+            this.dragWrap.hide();
+        } else {
+            this.frame2.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528hantip.png)');
+            this.oriWrap.hide();
+            this.dragWrap.show();
+        }
+    },
+    setScore: function(score) {
+        var score = parseInt(score);
+        this.curScore = score;
+        var ten = parseInt(score / 10);
+        var one = score - ten * 10;
+        this.score1.css('background-position-y', '-' + (ten * 26) + 'px');
+        this.score2.css('background-position-y', '-' + (one * 26) + 'px');
+    },
+    closeFrame1: function() {
+        pageCtl.ctlDom.find('.bg-top').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528topm.png)');
+        pageCtl.ctlDom.find('.bg-bottom').css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528bottomm.png)');
+        pageCtl.frame1.hide();
+    },
+    finish: function() {
+        var score = this.curScore;
+        this.closeFrame1();
+        this.frame2.hide();
+        this.frame3.show();
+        if(score < 10) {
+            score = '0' + score;
+        }
+        this.frame3Num.text(score);
+        if(score <= 6) {
+            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype1.png)');
+        } else if (score <= 10) {
+            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype2.png)');
+        } else {
+            this.scoreType.css('background-image', 'url(http://ecma.bdimg.com/adtest/centrum140528endtype3.png)');
+        }
+    }
+};
+
+//WebSocket连接处理
+var connectHandler = function() {
+    this.connCache = {};
+    this.connId = 0;
+    this.lastLateConnId = -1;
+};
+connectHandler.prototype.prepare = function() {
+    require.config({
+        paths: {
+            'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+        }
+    });
+    // 加载Connect模块
+    require(['muses/connect'], function(Connect) {
+        var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+        var token = matches && matches.length >= 2 ? matches[1] : null;
+        var connect = new Connect();
+        conn.init(connect);
+        connect.connectWith(token)
+            .then(function() {
+                _log('[INFO] 连接成功，token: ' + token);
+                conn.send('msg', 'open');
+                pageCtl.start();
+                connect.onMessage = function(actions) {
+                    conn.get(actions);
+                }
+            })
+            .fail(function(err) {
+                conn.fail();
+                _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
+            });
+        connect.onTokenExpired = function() {
+            conn.fail();
+        }
+    });
+};
+connectHandler.prototype.init = function(connect) {
+    this.connect = connect;
+};
+connectHandler.prototype.fail = function(connect) {
+    this.connect.destroy();
+    pageCtl.fail();
+};
+connectHandler.prototype.send = function(type, data) {
+    var sendTime = new Date().getTime();
+    this.connCache[this.connId] = sendTime;
+    this.connect.send([this.connId, sendTime, type, data]);
+    this.connId++;
+};
+connectHandler.prototype.get= function(data) {
+    var type = "msg";
+    if(data instanceof Array) {
+        type = data[0];
+        data = data[1];
+    }
+    if('msg' == type) {
+        _log(data);
+    }
+    if('end' == type) {
+        this.destroy();
+    }
+    if('score' == type) {
+        pageCtl.setScore(data);
+    }
+};
+connectHandler.prototype.destroy = function() {
+    pageCtl.finish();
+    this.connect.destroy();
+    orientation.stop();
+};
+
+function Orientation() {
+    this.hasDeviceOrientation = 'ondeviceorientation' in window;
+
+    this.threshold = 0.5;
+    this.timeInterval = 300;
+
+    this.lastTime = new Date();
+    this.lastOrientationTime = new Date();
+
+    this.lastZ = null;
+};
+
+Orientation.prototype.reset = function() {
+    this.lastTime = new Date();
+
+    this.lastZ = null;
+};
+
+/**
+ * 开始手机翻转互动
+ * @return {boolean} true: 支持并使用手机翻转, false: 不支持手机翻转
+ */
+Orientation.prototype.start = function() {
+    if(!this.hasDeviceOrientation) {
+        _log('[INFO] 你的手机不支持通过手机翻转与电脑的互动，将使用控制杆操作。');
+        dragCtrl.setType('handler');
+        return false;
+    }
+    this.reset();
+    window.addEventListener('deviceorientation', this, false);
+    return true;
+};
+
+Orientation.prototype.stop = function () {
+    if (this.hasDeviceOrientation) { window.removeEventListener('deviceorientation', this, false); }
+    this.reset();
+};
+
+Orientation.prototype.deviceorientation = function(e) {
+    var currentTime = new Date();
+    timeDifference = currentTime.getTime() - this.lastOrientationTime.getTime();
+    if(timeDifference > this.timeInterval) {
+        this.lastOrientationTime = new Date();
+        var a = isFirefox ? Math.round(-e.alpha) : Math.round(e.alpha);
+        var b = isFirefox ? Math.round(-e.beta)  : Math.round(e.beta);
+        var g = isFirefox ? Math.round(-e.gamma) : Math.round(e.gamma);
+        var deltaZ = 0;
+        if (this.lastZ === null) {
+            this.lastZ = g;
+            return;
+        }
+
+        deltaZ = Math.abs(this.lastZ - g);
+        if(deltaZ < 5) {
+            return;
+        }
+        this.lastZ = g;
+        conn.send('ori', [a, b, g]);
+    }
+};
+
+Orientation.prototype.handleEvent = function(e) {
+    if ('function' === typeof (this[e.type])) {
+        return this[e.type](e);
+    }
+};
+
+var conn = new connectHandler();
+var orientation = new Orientation();
+pageCtl.init();
+
+//滑块控制
+var dragCtrl = {
+    init: function(options) {
+        this.hammerInited = false;
+        this.typeDom = $('#ctlType');
+        this.ctlType = "orientation";
+        this.dragDom = $('#drag')[0];
+        this.lastLeft = null;
+
+        options = options || {};
+        this.positionEmitInter = options['positionEmitInter'] || 100; //发送位移时间间隔
+        //位移监听回调
+        this.positionListener = options['positionListener'] || function() {
+            var moLeft = this.moLeft;
+            if(!this.lastLeft) {
+                this.lastLeft = 0;
+            }
+            var deltaLeft = Math.abs(moLeft - this.lastLeft);
+            if(deltaLeft <= 5) {
+                return;
+            }
+            this.lastLeft =Math.round(moLeft);
+            conn.send('han', [moLeft, 0]);
+        };
+        var self = this;
+        this.typeDom.click(function() {
+            if(self.hammerInited) {
+                return;
+            }
+            dragCtrl.setType();
+        });
+    },
+    initHammer: function() {
+        if(this.hammerInited) {
+            return;
+        }
+        this.hammerInited = true;
+        var container = document.body;
+        var hammertime = new Hammer(container, { drag_max_touches: 0 });
+        hammertime.on("touch", function(ev) {
+            if(ev.target == dragCtrl.typeDom[0]) {
+                dragCtrl.setType();
+            }
+            if(ev.target == dragCtrl.dragDom) {
+                dragCtrl.holding = true;
+                dragCtrl.catchEvt(ev, true);
+            }
+        });
+        hammertime.on("drag", function(ev) {
+            dragCtrl.catchEvt(ev);
+        });
+        hammertime.on("touchend dragend", function(ev) {
+            dragCtrl.resetPos();
+        });
+    },
+    setType: function(type) {
+        if(type && 'handler' === type) {
+            this.ctlType = 'orientation';
+        }
+        if(type && 'orientation' === type) {
+            this.ctlType = 'handler';
+        }
+        var fromOri = ('orientation' == this.ctlType);
+        if(fromOri) {
+            if(!this.hammerInited) {
+                this.initHammer();
+            }
+            this.ctlType = "handler";
+            orientation.stop();
+        } else {
+            this.ctlType = "orientation";
+            orientation.start();
+        }
+        pageCtl.control(!fromOri);
+    },
+    resetPos: function() {
+        this.holding = false;
+        clearTimeout(this.positionEmitter);
+        conn.send('han', [0, 0]);
+        this.setDragPos(0);
+    },
+    move: function(toLeft) {
+        var moLeft = toLeft - this.initTouchX;
+
+        if(moLeft < -100) {
+            moLeft = -100;
+        }
+        if(moLeft > 100) {
+            moLeft = 100;
+        }
+
+        this.moLeft = moLeft;
+        this.setDragPos(moLeft);
+    },
+    setDragPos: function(tarLeft) {
+        this.dragDom.style[transformAttr] = "translateX(" + tarLeft + "px)";
+    },
+    catchEvt: function(ev, isTouch) {
+        if(!this.holding) {
+            return;
+        }
+        var touches = ev.gesture.touches;
+
+        ev.gesture.preventDefault();
+
+        for(var t = 0, len = touches.length; t < len; t++) {
+            var touchEvt = touches[t];
+            var proxyX = touchEvt.pageX;
+            if(isTouch) {
+                this.initTouchX = proxyX;
+                this.tickTack();
+            }
+            dragCtrl.move(proxyX);
+        }
+    },
+    tickTack: function() {
+        var me = this;
+        if(!me.holding) {
+            return;
+        }
+        me.positionEmitter = setTimeout(function() {
+            me.positionListener.call(me);
+            me.tickTack.call(me);
+        }, me.positionEmitInter);
+    }
+};
+dragCtrl.init();
+
+})(window, document);
+</script>
+
+</body>
+</html>

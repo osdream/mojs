@@ -1,0 +1,224 @@
+<!--******************************************************************************
+*     File Name           :     sketch/pc.html
+*     Created By          :     DestinyXie
+*     Creation Date       :     [2014-09-16 15:49]
+*     Last Modified       :     [2014-09-16 18:46]
+*     Description         :     双屏互动PC端调试页
+*******************************************************************************-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>双屏互动</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+    <style type="text/css" media="screen">
+        html {
+            height: 100%;
+        }
+        body {
+            position: relative;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #playground {
+            position: absolute;
+            right: 5px;
+            top: 220px;
+            height: 500px;
+            padding: 5px;
+            width: 300px;
+            font-size: 12px;
+            color: #666;
+            overflow: hidden;
+            background-color: #ddd;
+        }
+        #info {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 300px;
+            height: 200px;
+            background: #555;
+            color: #eee;
+            border: 1px solid #222;
+            border-width: 0 1px 1px 0;
+            padding: 5px;
+            font-size: 12px;
+        }
+        #qr {
+            position: absolute;
+            left: 15px;
+            bottom: 20px;
+        }
+        #speedWrap {
+            position: absolute;
+            right: 5px;
+            top: 700px;
+            font-size: 12px;
+            color: #333;
+        }
+        #speedWrap input {
+            width: 50px;
+        }
+        #flashWrap {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="flashWrap">
+        <object id="testFlashObj" width="538" height="335" type="application/x-shockwave-flash" >
+            <param value="http://ecma.bdimg.com/adtest/140520/basket.swf" name="movie" />
+            <param value="always" name="allowScriptAccess" />
+            <param value="high" name="quality" />
+        </object>
+    </div>
+    <div id="playground">
+
+    </div>
+    <div id="info">
+
+    </div>
+    <div id="speedWrap">
+        <label>移动速度：<span>5</span>(范围：1 - 20)</label>
+        <input id="speed" type="test" />
+        <button>生效</button>
+    </div>
+<script type="text/javascript" charset="utf-8">
+(function (window, document) {
+var pDom = $('#playground');
+var infoDom = $('#info');
+var flash = getSwfObj('testFlashObj');
+var flashWrap = $('#flashWrap');
+function getSwfObj(movieName) {
+    if (navigator.appName.indexOf("Microsoft") != -1) {
+        return window[movieName] ;
+    }
+    else {
+        return document[movieName] ;
+    }
+};
+function _log(s, dom) {
+    var logDom = dom || infoDom;
+    if(logDom.logL ) {
+        if(logDom.logL > 30) {
+            logDom.logL = 0;
+            logDom.html('');
+        }
+    } else {
+        logDom.logL = 0;
+    }
+    logDom.logL++;
+    logDom.prepend("<br>");
+    logDom.prepend(s);
+}
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
+
+function makeQR(token) {
+    require(['muses/tool'], function(tool) {
+        var QRCode = tool.QRCode;
+        $("body").append($('<div id="qr"></div>'));
+        var qrcode = new QRCode('qr', {
+            text: "http://dev046.baidu.com:8092/sketch/mobile.html?muses_scepter=" + token,
+            width: 120,
+            height: 120,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.L
+        });
+    });
+}
+
+// 加载ad-connect回调
+function ConnCB(Connect) {
+    window.connect = new Connect();
+    connect.onTokenExpired = function() {
+        _log('Expired~');
+        connect.destroy()
+            .then(function() {
+                makeConnect();
+            });
+    };
+    makeConnect();
+}
+
+// 生成connect二维码并开启PC端的连接
+function makeConnect() {
+    connect.createToken()
+        .then(function(token) {
+            makeQR(token);
+            connectToken(token, false);
+        })
+        .fail(function(err) {
+            _log('[ERROR] 创建游戏失败，' + (err ? err : ''));
+        });
+}
+
+// 开启PC端的连接
+function connectToken(token) {
+    connect.connectWith(token)
+        .then(function() {
+            _log('[INFO] 连接成功，token: ' + token);
+        })
+        .then(function() {
+            connect.send(['msg', 'Game Start!'])
+                .fail(function(err) {
+                    _log('[ERROR] 游戏启动失败，' + (err ? err : ''));
+                });
+
+            connect.onMessage = function(actions) {
+                var actionArr = actions.split('|');
+                _log(actions);
+                flash['callMessage'](actions);
+                if ('std' == actionArr[0].toLowerCase()) {
+                    // 品专log代码 及打开flash操作
+                    var stdCommand = actionArr[1];
+                }
+                <!--else {-->
+                    <!--var msgType = actionArr[1];-->
+                    <!--var msgInfo = actionArr.slice(2);-->
+                    <!--flash['callMessage'](actions);-->
+                <!--}-->
+                if('string' == typeof actions) {
+                    _log(actions);
+                } else if(actions instanceof Array) {
+                    var connId = actions[0];
+                    var sendTime = actions[1];
+                    var type = actions[2]
+                    var dataArr = actions[3];
+                    switch(type) {
+                        case 'msg':
+                            _log('Message: ' + dataArr + ', get time: ' + msgTime);
+                            if ('start' == dataArr) {
+                                flashWrap.show();
+                            }
+                            break;
+                        case 'ori':
+                            _log('DeviceOrientation: x: ' + dataArr[2] + ', y: ' + dataArr[1] + ', z: ' + dataArr[0], pDom);
+                            break;
+                        case 'han':
+                            _log('HandlerPos: x: ' + dataArr[0] + ', y: ' + dataArr[1], pDom);
+                            break;
+
+                    }
+                }
+            }
+        });
+}
+
+// 加载Connect模块
+require(['muses/connect'], ConnCB);
+
+})(window, document);
+</script>
+</body>
+</html>
+
