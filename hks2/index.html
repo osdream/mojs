@@ -1,0 +1,184 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <title>弹幕 hackthon</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+    <style type="text/css" media="screen">
+        html,body {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        .container {
+            display: -moz-box;
+            display: -webkit-box;
+            display: box;
+            width: 100%;
+            height: 100%;
+        }
+        .contentWraper {
+            -moz-box-flex: 1;
+            -webkit-box-flex: 1;
+            box-flex: 1;
+            height: 100%;
+            display: -moz-box;
+            display: -webkit-box;
+            display: box;
+            -moz-box-orient: vertical;
+            -webkit-box-orient: vertical;
+            box-orient: vertical;
+        }
+        .contentWraper label {
+            color: #333;
+            font-size: 18px;
+            display: block;
+            background-color: #eee;
+            padding: 5px 2px;
+            line-height: 31px;
+        }
+        .contentWraper textarea {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            border: 0 none;
+            width: 100%;
+            line-height: 18px;
+            padding: 5px 5px;
+            display: block;
+            margin: 0;
+            -moz-box-flex: 1;
+            -webkit-box-flex: 1;
+            box-flex: 1;
+            font-size: 18px;
+        }
+        .contentWraper .buttonWrap {
+            height: 40px;
+            border-top: 1px solid #666;
+        }
+        .contentWraper .buttonWrap span {
+            float: left;
+            width: 50%;
+            text-align: center;
+            line-height: 40px;
+            text-indent: 1em;
+        }
+        #timeBtn {
+            background: url(imgs/anchor.png) 10px 4px no-repeat;
+            background-size: 30px 30px;
+        }
+        #sendBtn {
+            -moz-box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+            border-left: 1px solid #666;
+            background: url(imgs/ok.png) 10px 4px no-repeat;
+        }
+        .configs {
+            position: relative;
+            width: 60px;
+            height: 100%;
+            border-left: 1px solid #666;
+            font-size: 20px;
+        }
+        .configs span {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+        }
+        .configs .switch {
+            top: 0;
+            border-bottom: 1px solid #666;
+        }
+        .configs .icons {
+            bottom: 40px;
+            border-top: 1px solid #666;
+        }
+        .configs .config {
+            top: auto;
+            bottom: 0;
+            border-top: 1px solid #666;
+            background: url(imgs/config.png) 14px 4px no-repeat;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="contentWraper">
+            <label for="content">输入吐槽内容:</label>
+            <textarea id="content" type="text" value="" ></textarea>
+            <div class="buttonWrap">
+                <span id="timeBtn">定锚</span>
+                <span id="sendBtn">吐槽</span>
+            </div>
+        </div>
+        <div class="configs">
+            <span class="switch">ON</span>
+            <span class="icons">:)</span>
+            <span class="config"></span>
+        </div>
+    </div>
+    <script type="text/javascript">
+        (function (window, document) {
+        var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
+        var token = matches && matches.length >= 2 ? matches[1] : null;
+        var content = $('#content');
+        var timeBtn = $('#timeBtn');
+        var sendBtn = $('#sendBtn');
+        function _log(s, dom) {
+            console.log(s);
+            return;
+            var logDom = dom || infoDom;
+            if(logDom.logL ) {
+                if(logDom.logL > 20) {
+                    logDom.logL = 0;
+                    logDom.html('');
+                }
+            } else {
+                logDom.logL = 0;
+            }
+            logDom.logL++;
+            logDom.prepend("<br>");
+            logDom.prepend(s);
+        }
+        require.config({
+            paths: {
+                'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+            }
+        });
+
+        // 加载Connect模块
+        require(['muses/connect'], function(Connect) {
+            window.connect = new Connect();
+            connect.connectWith(token)
+                .then(function() {
+                    _log('[INFO] 连接成功，token: ' + token);
+                    sendBtn.click(function() {
+                        connect.send(content.val());
+                        content.val('');
+                    });
+                })
+                .then(function() {
+                    connect.send('start')
+                        .fail(function(err) {
+                            _log('[ERROR] 游戏启动失败，' + (err ? err : ''));
+                        });
+
+                    connect.onMessage = function(actions) {
+                        _log(actions);
+                    }
+                })
+                .fail(function(err) {
+                    _log('[FAIL] 连接游戏失败，' + (err ? err : ''));
+                });
+        });
+        })(window, document);
+    </script>
+</body>
+</html>
