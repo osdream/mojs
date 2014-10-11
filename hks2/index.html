@@ -56,18 +56,18 @@
             font-size: 18px;
         }
         .contentWraper .buttonWrap {
-            height: 40px;
+            height: 60px;
             border-top: 1px solid #666;
         }
         .contentWraper .buttonWrap span {
             float: left;
             width: 50%;
             text-align: center;
-            line-height: 40px;
+            line-height: 60px;
             text-indent: 1em;
         }
         #timeBtn {
-            background: url(imgs/anchor.png) 10px 4px no-repeat;
+            background: url(imgs/anchor.png) 10px 14px no-repeat;
             background-size: 30px 30px;
         }
         #sendBtn {
@@ -75,7 +75,7 @@
             -webkit-box-sizing: border-box;
             box-sizing: border-box;
             border-left: 1px solid #666;
-            background: url(imgs/ok.png) 10px 4px no-repeat;
+            background: url(imgs/ok.png) 10px 14px no-repeat;
         }
         .configs {
             position: relative;
@@ -88,23 +88,27 @@
             position: absolute;
             left: 0;
             width: 100%;
-            height: 40px;
-            line-height: 40px;
+            height: 60px;
+            line-height: 60px;
             text-align: center;
         }
         .configs .switch {
-            top: 0;
-            border-bottom: 1px solid #666;
+            bottom: 0;
+            border-top: 1px solid #666;
         }
         .configs .icons {
-            bottom: 40px;
+            bottom: 60px;
             border-top: 1px solid #666;
         }
         .configs .config {
             top: auto;
-            bottom: 0;
+            bottom: 120px;
             border-top: 1px solid #666;
-            background: url(imgs/config.png) 14px 4px no-repeat;
+            background: url(imgs/config.png) 14px 14px no-repeat;
+        }
+        .colorSelector {
+            height: 54%;
+            display: none;
         }
     </style>
 </head>
@@ -119,15 +123,18 @@
             </div>
         </div>
         <div class="configs">
-            <span class="switch">ON</span>
-            <span class="icons">:)</span>
             <span class="config"></span>
+            <span class="icons">:)</span>
+            <span class="switch">ON</span>
         </div>
     </div>
+    <div class="colorSelector"></div>
     <script type="text/javascript">
         (function (window, document) {
         var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
         var token = matches && matches.length >= 2 ? matches[1] : null;
+        var authMatches = window.location.href.match(/(?:\?|&)muses_auth_key=([^&]+)/);
+        var authKey = authMatches && authMatches.length >=2 ? authMatches[1] : null;
         var content = $('#content');
         var timeBtn = $('#timeBtn');
         var sendBtn = $('#sendBtn');
@@ -156,6 +163,9 @@
         // 加载Connect模块
         require(['muses/connect'], function(Connect) {
             window.connect = new Connect();
+            connect.config({
+                'extraParam': '?muses_scepter=${token}&muses_auth_key=' + authKey
+            });
             connect.connectWith(token)
                 .then(function() {
                     _log('[INFO] 连接成功，token: ' + token);

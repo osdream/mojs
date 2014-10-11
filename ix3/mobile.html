@@ -1,0 +1,171 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=640,user-scalable=no" />
+<link href="css/mobile.css" rel="stylesheet" type="text/css">
+
+<title>北京现代ix25</title>
+
+<script src="js/jquery-1.10.2.min.js"></script>
+<script src="js/jquery.transit.min.js"></script>
+<script src="js/easing.js"></script>
+<script src="js/jquery.control.js"></script>
+<script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+<script>
+
+//分享缩略图,上线后请修改成正式地址图片路径
+var img_url = "http://bkyiyang.gotoip3.com/ix25/images/share.jpg"; 
+
+
+var title ="正青春 新力量！北京现代ix25 青春实力派SUV 耀动上市！"  //分享标题
+var content = "正青春 新力量！北京现代ix25 青春实力派SUV 耀动上市！"; //分享内容
+var shareurl = "http://ix25.beijing-hyundai.com.cn/‍"; //分享地址
+
+(function(){
+	if( document.addEventListener ){
+		document.addEventListener('WeixinJSBridgeReady', onBridgeReady, false);
+	}else if (document.attachEvent){
+		document.attachEvent('WeixinJSBridgeReady', onBridgeReady); 
+		document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+	}
+	
+	function onBridgeReady(){
+		
+		
+		// 发送给好友; 
+		WeixinJSBridge.on('menu:share:appmessage', function(argv){
+			WeixinJSBridge.invoke('sendAppMessage',{
+				"img_url"    : img_url,
+				"img_width"  : "640",
+				"img_height" : "640",
+				"link"       : shareurl,
+				"desc"       : content,
+				"title"      : title
+			}, function(res) {
+				
+			});
+		});
+		
+		// 分享到朋友圈;
+		WeixinJSBridge.on('menu:share:timeline', function(argv){
+				WeixinJSBridge.invoke('shareTimeline',{
+					"img_url"    : img_url,
+					"img_width"  : "640",
+					"img_height" : "640",
+					"link"       : shareurl,
+					"desc"       : content,
+					"title"      : title
+				}, function(res) {
+					
+				});
+		});
+		
+		// 分享到微博;
+		var weiboContent = '';
+		WeixinJSBridge.on('menu:share:weibo', function(argv){
+			WeixinJSBridge.invoke('shareWeibo',{
+			  "content" : title+content,
+			  "url"     : shareurl 
+			}, function(res) {
+			  
+			});
+		});
+	
+		// 分享到Facebook
+		 WeixinJSBridge.on('menu:share:facebook', function(argv){
+			WeixinJSBridge.invoke('shareFB',{
+				  "img_url"    : img_url,
+				  "img_width"  : "640",
+				  "img_height" : "640",
+				  "link"       : shareurl,
+				  "desc"       : content,
+				  "title"      : title
+			}, function(res) {
+				
+			});
+		});
+		
+		// 新的接口
+		WeixinJSBridge.on('menu:general:share', function(argv){
+			var scene = 0;
+			switch(argv.shareTo){
+				case 'friend'  : scene = 1; break;
+				case 'timeline': scene = 2; break;
+				case 'weibo'   : scene = 3; break;
+			}
+			argv.generalShare({
+				"appid"      : "",
+				"img_url"    : img_url,
+				"img_width"  : "640",
+				"img_height" : "640",
+				"link"       : shareurl,
+				"desc"       : content,
+				"title"      : title
+			}, function(res){
+				
+			});
+		});
+		
+		// get network type
+		var nettype_map = {
+			"network_type:fail" : "fail",
+			"network_type:edge": "2g",
+			"network_type:wwan": "3g",
+			"network_type:wifi": "wifi"
+		};
+		
+	}
+})();
+
+</script>
+
+</head>
+
+<body>
+<div id="loading"></div>
+<div id="main">
+
+		<div id="homepage" class="column">
+				<div class="btnbox"><img data-src="images/btn.jpg" id="btn-start" /></div>
+		</div>
+		<div id="move" class="column">
+				<div class="tip" id="tip"><img data-src="images/tip.png" /></div>
+				<div id="move-box">
+						<div id="box1" data="5" left="-450" top="-50" mleft="-10" mtop="67" angle="-20" class="box"><img data-src="images/1.png" /></div>
+						<div id="box2" data="3" left="-450" top="800" mleft="-20" mtop="455" angle="0" class="box"><img data-src="images/2.png" /></div>
+						<div id="box3" data="1" left="1100" top="-300" mleft="274" mtop="0" angle="20" class="box"><img data-src="images/3.png" /></div>
+						<div id="box4" data="4" left="1100" top="420" mleft="356" mtop="418" angle="0" class="box"><img data-src="images/4.png" /></div>
+						<div id="box5" data="2" left="1100" top="760" mleft="163" mtop="325" angle="0" class="box"><img data-src="images/5.png" /></div>
+				</div>
+				<div class="btnbox"><img data-src="images/btn-jx.jpg" id="btn-continue" /></div>
+		</div>
+
+		<div id="tab" class="column">
+				<div align="cbox">
+						<div id="tableBg"></div>
+						<div id="table">
+								<p id="hand"></p>
+						</div>
+						<div id="btn-sup"></div>
+						<div id="sup-tip"><img data-src="images/tip-power.png" /></div>
+				</div>
+		</div>
+
+		<div id="end" class="column">
+				<div class="ebox">
+						<div id="elogo"><img data-src="images/logo.png" /></div>
+						<div id="ebg"></div>
+						<div id="p"></div>
+						
+						<div id="btn-share"></div>
+						<div id="btn-end" onClick="game.complete()"></div>
+						<div id="btn-restart" onClick="game.restart()"></div>
+				</div>
+		</div>
+</div>
+
+<div id="weixin"><img data-src="images/weixin.png" /></div>
+
+</body>
+</html>

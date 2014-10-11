@@ -1,0 +1,282 @@
+<!--******************************************************************************
+*     File Name           :     sketch/pc.html
+*     Created By          :     DestinyXie
+*     Creation Date       :     [2014-09-16 15:49]
+*     Last Modified       :     [2014-10-09 17:35]
+*     Description         :     双屏互动PC端调试页
+*******************************************************************************-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>双屏互动</title>
+    <script src="http://libs.baidu.com/jquery/1.9.0/jquery.min.js"></script>
+    <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
+    <style type="text/css" media="screen">
+        html {
+            height: 100%;
+            background:url(images/bg.jpg) no-repeat;
+        }
+        body {
+            position: relative;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #playground {
+            position: absolute;
+            right: 5px;
+            top: 140px;
+            height: 500px;
+            padding: 5px;
+            width: 300px;
+            font-size: 12px;
+            color: #222;
+            overflow: hidden;
+            background-color: #ddd;
+            display:none;
+        }
+        #qr {
+            position: absolute;
+            left: 332px;
+            top: 331px;
+            background:#fff;
+            padding:20px;
+        }
+        #setupWrap {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 300px;
+            height: 120px;
+            background: #eee;
+            color: #333;
+            border: 1px solid #222;
+            border-width: 0 1px 1px 0;
+            padding: 5px;
+            font-size: 13px;
+            right: 5px;
+        }
+        #setupWrap input {
+            width: 295px;
+        }
+        #flashWrap {
+            width:100%;
+            height:100%;
+            position: fixed;
+            left:0;
+            top:0;
+            z-index:999;
+            display: none;
+        }
+        #helpBtn {
+            position: absolute;
+            right: 10px;
+            bottom: 10px;
+            width: 60px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+            border: 1px solid #333;
+            background: #1D7AD9;
+            color: #fff;
+            text-decoration: none;
+        }
+        #helpBtn:hover {
+            text-decoration: underline;
+        }
+        .helpCont {
+            display: none;
+            position: absolute;
+            width: 500px;
+            padding: 5px 20px;
+            left: 50%;
+            top: 100px;
+            margin-left: -270px;
+            border: 4px solid #1d7ad9;
+            background-color: #efefef;
+    -webkit-box-shadow: 5px 5px 10px #999;
+       -moz-box-shadow: 5px 5px 10px #999;
+            box-shadow: 5px 5px 10px #999;
+        }
+        .helpCont .close {
+            position: absolute;
+            right: -15px;
+            top: -15px;
+            width: 30px;
+            height: 30px;
+            text-decoration: none;
+            line-height: 30px;
+            color: #f00;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+    -webket-border-radius: 30px;
+       -moz-border-radius: 30px;
+            border-radius: 30px;
+            border: 4px solid #1d7ad9;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="flashWrap">
+    </div>
+    <div id="playground">
+
+    </div>
+    <div id="info">
+
+    </div>
+    <div id="setupWrap" style="display:none">
+        <label>flash地址：</label><input id="flashIpt" type="text" value="http://bs.baidu.com/public01/20141009/bjxd-ix25-s3/main.swf" />
+        <br />
+        <label>mobile页面地址：</label><input id="mobileIpt" type="text" value="http://cs.mh318.net/ix25/mobile.html" />
+
+
+        <a id="helpBtn" target="_blank" href="http://bs.baidu.com/public01/2014-09/%E7%99%BE%E5%BA%A6%E5%93%81%E4%B8%93%E5%8F%8C%E5%B1%8F%E4%BA%92%E5%8A%A8%E5%BC%80%E5%8F%91%E6%96%87%E6%A1%A3.html">help</a>
+    </div>
+    <div class="helpCont">
+        <a class='close' href="javascript:void(0)">X</a>
+        <p>1, flash开发详细<a target="_blank" href="http://bs.baidu.com/public01/2014-09/%E7%99%BE%E5%BA%A6%E5%93%81%E4%B8%93%E5%8F%8C%E5%B1%8F%E4%BA%92%E5%8A%A8%E5%BC%80%E5%8F%91%E6%96%87%E6%A1%A3.html">代码文档</a></p>
+        <p>2, 输入flash地址和mobile页面地址后点击生效按钮，flash会放在页面左侧，mobile页面地址与连接token合并生成的二维码在页面左下角，手机扫描二维码打开mobile页面就与本页面建立了连接。</p>
+        <p>3, mobile页面的实例代码页面: <a target="_blank" href="http://bs.baidu.com/adtest/sketch/mobile.html">实例</a>。实例是一个监听手机倾斜的demo，开发的时候主要看connPrepare函数就可以了。mobile发送的信号会在PC右侧打log，PC发送的信号也会在mobile上接收到。</p>
+        <p>4, PC上的flash默认不显示，mobile与PC建立连接后会发送一个"std|1"信号，PC接收到这个信号后显示出flash。</p>
+    </div>
+<script type="text/javascript" charset="utf-8">
+(function (window, document) {
+var flash;
+var flashWrap = $('#flashWrap');
+var flashUrl = "http://bs.baidu.com/public01/20141009/bjxd-ix25-s3/main.swf";
+var mobileUrl = "http://dev046.baidu.com:8092/ix3/mobile.html";
+
+function startGame() {
+    if (!connect) {
+        alert('等待connect加载中...');
+    }
+
+    buildSwf(flashUrl);
+    flash = getSwfObj('testFlashObj');
+    $(flash).on('MSG', function(msg) {
+        //_log(msg);
+    });
+    makeConnect(mobileUrl);
+}
+
+// flash -> MSG
+window['testJsapi'] = function(id, eventType, var_args) {
+    connect.send(var_args);
+    if(var_args == "closeFlash"){
+        flashWrap.hide();
+    }
+}
+
+function buildSwf(url) {
+
+    var swfStr = [
+        '<object id="testFlashObj" width="100%" height="100%" type="application/x-shockwave-flash" >',
+            '<param value="transparent" name="wmode" />',
+            '<param value="' + url + '" name="movie" />',
+            '<param value="always" name="allowScriptAccess" />',
+            '<param value="false" name="menu" />',
+            '<param value="high" name="quality" />',
+            '<param name="flashvars" value="jsapi=testJsapi&id=testFlashObj" />',
+            '<embed id="testFlashObj_embed" menu="false"  width="100%" align="middle" height="100%" pluginspage="http://www.macromedia.com/go/getflashplayer" type="application/x-shockwave-flash" name="testFlashObj" flashvars="jsapi=testJsapi&id=testFlashObj" src="' + url + '" allowscriptaccess="always" wmode="transparent">',
+        '</object>'
+    ].join('');
+    flashWrap.html(swfStr);
+}
+
+function getSwfObj(movieName) {
+    if (navigator.appName.indexOf("Microsoft") != -1) {
+        return window[movieName] ;
+    }
+    else {
+        return document[movieName] ;
+    }
+};
+
+require.config({
+    paths: {
+        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+    }
+});
+
+// 生成二维码
+function makeQR(url, token) {
+
+    require(['muses/tool'], function(tool) {
+        var QRCode = tool.QRCode;
+        $('#qr').remove();
+        $("body").append($('<div id="qr"></div>'));
+        var qrcode = new QRCode('qr', {
+            text: url + "?muses_scepter=" + token,
+            width: 120,
+            height: 120,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.L
+        });
+    });
+}
+
+// ad-connect回调
+function ConnCB(Connect) {
+    window.connect = new Connect();
+    connect.onTokenExpired = function() {
+        connect.disconnect();
+    };
+
+    startGame();
+}
+
+// 生成connect二维码并开启PC端的连接
+function makeConnect(mobileUrl) {
+    if (connect.isConnected()) {
+        connect.disconnect();
+    }
+    connect.createToken()
+        .then(function(token) {
+            makeQR(mobileUrl, token);
+            connectToken(token);
+        })
+        .fail(function(err) {
+
+        });
+}
+
+// 开启PC端的ad-connect连接
+function connectToken(token) {
+    connect.connectWith(token)
+        .then(function() {
+            connect.send(['msg', 'Start'].join('|'))
+                .fail(function(err) {
+
+                });
+
+            connect.onMessage = function(actions) {
+
+                if ('std|1' == actions) {
+                    flashWrap.show();
+                }
+                if ('std|4' == actions) {
+                    flashWrap.hide();
+                }
+                flash['receiveMSG'](actions);
+            };
+        });
+}
+
+// 加载Connect模块
+require(['muses/connect'], ConnCB);
+
+
+
+})(window, document);
+</script>
+</body>
+</html>
+
+
