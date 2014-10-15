@@ -11,7 +11,7 @@ img{border:0;vertical-align:top;}
 ::-moz-placeholder{color:#8d7b23;}
 :-ms-input-placeholder{color:#8d7b23;}
 #loading{width:100%;height:100%;position:fixed;left:0;top:0;background:#1a1a1a url(../images/loading.gif) center center no-repeat;z-index:999;}
-#main{width:640px;height:100%;position:relative; margin:0 auto;}
+#main{width:640px;height:960px;position:relative; margin:0 auto;}
 .column{width:640px;height:100%;position: absolute;left:0;top:-5000px;background:#000;overflow:hidden;}
 .btnbox{width:640px;text-align:center;position:absolute;left:0;top:50%;}
 #homepage{display: block;z-index:5;top:0;}

@@ -252,6 +252,10 @@ var game = {
             var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
             var token = matches && matches.length >= 2 ? matches[1] : null;
             window.connect = new Connect();
+            connect.config({
+                'authKey': '1UL3NP1la7Nv25r'
+            });
+
             connect.connectWith(token)
                 .then(function() {
                     //_log('[INFO] 连接成功，token: ' + token);

@@ -33,11 +33,12 @@
             box-orient: vertical;
         }
         .contentWraper label {
-            color: #333;
             font-size: 18px;
             display: block;
-            background-color: #eee;
-            padding: 5px 2px;
+            background-color: #333;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+            color: #fff;
+            padding: 5px 10px;
             line-height: 31px;
         }
         .contentWraper textarea {
@@ -67,15 +68,51 @@
             text-indent: 1em;
         }
         #timeBtn {
-            background: url(imgs/anchor.png) 10px 14px no-repeat;
+            position: relative;
+            background-color: #f5f5f5;
+            background-image: -moz-linear-gradient(top, #ffffff, #e6e6e6);
+            background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffffff), to(#e6e6e6));
+            background-image: -webkit-linear-gradient(top, #ffffff, #e6e6e6);
+            background-image: -o-linear-gradient(top, #ffffff, #e6e6e6);
+            background-image: linear-gradient(to bottom, #ffffff, #e6e6e6);
+            background-repeat: repeat-x;
+        }
+        #timeBtn:before {
+            position: absolute;
+            content: '';
+            display: block;
+            width: 30px;
+            height: 30px;
+            background: url(imgs/anchor.png) no-repeat;
             background-size: 30px 30px;
+            left: 15px;
+            top: 14px;
         }
         #sendBtn {
+            position: relative;
+            color: #fff;
             -moz-box-sizing: border-box;
             -webkit-box-sizing: border-box;
             box-sizing: border-box;
             border-left: 1px solid #666;
-            background: url(imgs/ok.png) 10px 14px no-repeat;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+            background-color: #006dcc;
+            background-image: -moz-linear-gradient(top, #0088cc, #0044cc);
+            background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#0088cc), to(#0044cc));
+            background-image: -webkit-linear-gradient(top, #0088cc, #0044cc);
+            background-image: -o-linear-gradient(top, #0088cc, #0044cc);
+            background-image: linear-gradient(to bottom, #0088cc, #0044cc);
+            background-repeat: repeat-x;
+        }
+        #sendBtn:before {
+            content: '';
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: url(imgs/ok.png) no-repeat;
+            background-size: 30px 30px;
+            left: 15px;
+            top: 14px;
         }
         .configs {
             position: relative;
@@ -83,6 +120,7 @@
             height: 100%;
             border-left: 1px solid #666;
             font-size: 20px;
+            background-color: #e7e7e7;
         }
         .configs span {
             position: absolute;
