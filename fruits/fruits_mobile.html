@@ -466,6 +466,9 @@ connectHandler.prototype.prepare = function() {
         var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
         var token = matches && matches.length >= 2 ? matches[1] : null;
         var connect = new Connect();
+        connect.config({
+            'authKey': 'aK3TcOqhhcc0PLf'
+        });
         conn.init(connect);
         connect.connectWith(token)
             .then(function() {
