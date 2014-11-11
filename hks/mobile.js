@@ -124,7 +124,7 @@
    * @param {number} long 长
    * @param {number} width 宽
    */
-  utils.calculPy: function(long, width) {
+  utils.calculPy = function(long, width) {
     return Math.sqrt(Math.pow(long, 2) + Math.pow(width, 2));
   };
 
@@ -134,7 +134,7 @@
    * @param {string} context 对象所在命名空间
    * @param {Function} callback 对象存在时需要执行的函数
    */
-  utils.waitVariableExists: function(varName, context, callback) {
+  utils.waitVariableExists = function(varName, context, callback) {
     var timer = null;
 
     function check() {
@@ -160,7 +160,7 @@
    */
   require.config({
     paths: {
-      'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+      'muses': 'http://bs.baidu.com/lego-mat/muses'
     }
   });
   require(['muses/connect'], function(Connect) {
@@ -169,7 +169,7 @@
      */
     var gameCenter = new GameCenter({
       MusesConnect: Connect,
-      host: 'http://114.215.181.63:8860'
+      host: 'http://gamecenter_1-0-0-4.jpaas-ng00.baidu.com'
     });
     context.gameCenter = gameCenter;
 
@@ -1067,6 +1067,12 @@
    */
   Competition.prototype.finishTask = function() {
     var me = this;
+
+    var oRightNum = this.opStatus['curRightNum'];
+    var oUseTime = this.opStatus['curUseTime'];
+    var record = 'name: ' + pageCtl.userName + ', fruits num: ' + oRightNum + ', user time: ' + oUseTime;
+    bd_tongji('sdc-game-20141113', 'records', record);
+    CMS.send(record, 'sdc-game-20141113');
     if (this.curCompeteTime < this.competeTimes) {
       fruitsCtl.reset();
     } else {
@@ -1441,5 +1447,13 @@
   var CMS = new ClickMonkeyService('bdd_sdc_one_hackathon');
   CMS.send('scan_count');
   win.CMS = CMS;
+
+  /**
+   * 百度统计
+   */
+  function bd_tongji(cat, action, label) {
+    _hmt.push(['_trackEvent', cat, action, label]);
+    //console.log("tongji:"+ cat, action, label);
+  }
 
 })(window, document);
