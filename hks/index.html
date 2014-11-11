@@ -15,7 +15,7 @@ function _log(msg, dom) {
 (function (window, document) {
 require.config({
     paths: {
-        'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+        'muses': 'http://bs.baidu.com/lego-mat/muses'
     }
 });
 
@@ -24,7 +24,7 @@ function makeQR(token) {
         var QRCode = tool.QRCode;
         $("body").append($('<div id="qr"></div>'));
         var qrcode = new QRCode('qr', {
-            text: "http://dev046.baidu.com:8092/hks/mobile.html?muses_scepter=" + token,
+            text: "http://bs.baidu.com/public01/fruits-game20141113/mobile.html?muses_scepter=" + token,
             width: 120,
             height: 120,
             colorDark: '#000000',
@@ -37,6 +37,11 @@ function makeQR(token) {
 // 加载Connect模块
 require(['muses/connect'], function(Connect) {
     window.connect = new Connect();
+    connect.config({
+        'host': 'http://muses-sandbox.baidu.com/interact/',
+        'apiHost': 'http://muses-sandbox.baidu.com/',
+        'authKey': 'tc3jc9zh9Zg558y'
+    });
     connect.onTokenExpired = function() {
         _log('Expired~');
         connect.destroy()

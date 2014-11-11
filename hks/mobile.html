@@ -4,23 +4,23 @@
     <meta charset="utf-8" />
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
-    <title>善存记忆力大比拼</title>
+    <title>水果记忆力大比拼</title>
     <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
-    <script src="http://ecma.bdimg.com/public01/js/jquery.imgpreload.min.js"></script>
+    <script src="http://bs.baidu.com/public01/js/jquery.imgpreload.min.js"></script>
     <script src="http://s1.bdstatic.com/r/www/cache/ecom/esl/1-6-10/esl.source.js"></script>
     <script src="http://bs.baidu.com/public01/2014-06/hackthon/stars.js"></script>
     <link rel="stylesheet" href="mobile.css" />
     <link rel="stylesheet" href="http://bs.baidu.com/public01/2014-06/hackthon/stars.css">
 </head>
 <body class="loading">
-<img src="http://ecma.bdimg.com/public01/2014-06/1.jpg" style="display:none" />
+<img src="http://bs.baidu.com/public01/2014-06/1.jpg" style="display:none" />
     <div id="controller">
         <div class="logo"></div>
         <div id="frame1">
             <div class="userWrap">
                 <h3></h3>
                 <label for="name">请输入用户名</label>
-                <input id="name" type="" value="" />
+                <input id="name" type="" value="" placeholder="请输入百度邮箱名"/>
                 <span id="startGame">进入游戏</span>
             </div>
             <span class="showHelp">比赛规则</span>
@@ -68,16 +68,21 @@
         </div>
     </div>
     <div id="rotateScreen">请切换成竖屏来玩游戏</div>
-    <script type="text/javascript" src="http://ecma.bdimg.com/adtest/140520/js/hammer.js"></script>
+
+    <script type="text/javascript">
+    var _bdhmProtocol = (("https:" == document.location.protocol) ? " https://" : " http://");
+    document.write(unescape("%3Cscript src='" + _bdhmProtocol + "hm.baidu.com/h.js%3Fce7a3e44a78c266391b71721a656ecb4' type='text/javascript'%3E%3C/script%3E"));
+    </script>
+    <script type="text/javascript" src="http://bs.baidu.com/adtest/140520/js/hammer.js"></script>
     <script type="text/javascript" src="game_center.js"></script>
     <script type="text/javascript" src="mobile.js"></script>
 
     <script type="text/javascript">
         //微信分享
-        var imgUrl = "http://ecma.bdimg.com/public01/2014-06/1.jpg";
-        var lineLink = "http://bs.baidu.com/public03/hk/mobile.html";
-        var shareTitle = '来挑战\n[善存]记忆力大比拼吧!';
-        var descContent = '挑战你的好友！[Hackathon][善存]\n记忆力大比拼!!!';
+        var imgUrl = "http://bs.baidu.com/public01/2014-06/1.jpg";
+        var lineLink = "http://bs.baidu.com/public01/fruits-game20141113/mobile.html";
+        var shareTitle = '来挑战\n水果记忆力大比拼吧!';
+        var descContent = '挑战你的好友！\n记忆力大比拼!!!';
         var appid = '';
         function shareFriend() {
             WeixinJSBridge.invoke('sendAppMessage', {

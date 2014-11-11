@@ -198,7 +198,7 @@ GameCenter.prototype.connectAsHost = function(token) {
     function connectInternal() {
         var connect = /** @type {Connect} */new me.MusesConnect();
         connect.config({
-            authKey: 'aK3TcOqhhcc0PLf'
+            'authKey': 'aK3TcOqhhcc0PLf'
         });
         me.connect = connect;
 
@@ -394,7 +394,7 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
     function connectInternal() {
         var connect = /** @type {Connect} */new me.MusesConnect();
         connect.config({
-            authKey: 'aK3TcOqhhcc0PLf'
+            'authKey': 'aK3TcOqhhcc0PLf'
         });
         me.connect = connect;
 
@@ -707,14 +707,14 @@ GameCenter.AI.prototype.createGameCenter = function(token, callback) {
     var that = this;
     require.config({
         paths: {
-            'muses': 'http://ecma.bdimg.com/lego-mat/muses'
+            'muses': 'http://bs.baidu.com/lego-mat/muses'
         }
     });
 
     require(['muses/connect'], function(Connect) {
         var gameCenter = new GameCenter({
             MusesConnect: Connect,
-            host: 'http://114.215.181.63:8860',
+            host: 'http://gamecenter_1-0-0-4.jpaas-ng00.baidu.com',
             specifiedToken: token
         });
         that.gameCenter = gameCenter;
@@ -761,7 +761,7 @@ GameCenter.AI.prototype.createGameCenter = function(token, callback) {
  * 获取AI玩家名称
  */
 GameCenter.AI.prototype.getRandomName = function() {
-    var names = ['小新', '苏牙', '李刚', '小A', '小B', 'Angela', 'Cloe', '有杀气', '来者何人'];
+    var names = ['小新', '苏牙', '李刚', '小A', '小C', 'Angela', 'Cloe', '有杀气', '来者何人'];
     return names[parseInt(Math.random() * names.length)];
 };
 
