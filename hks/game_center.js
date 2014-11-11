@@ -197,6 +197,9 @@ GameCenter.prototype.connectAsHost = function(token) {
     me.hostToken = token;
     function connectInternal() {
         var connect = /** @type {Connect} */new me.MusesConnect();
+        connect.config({
+            authKey: 'aK3TcOqhhcc0PLf'
+        });
         me.connect = connect;
 
         connect
@@ -241,7 +244,21 @@ GameCenter.prototype.playerStart = function(player) {
     var me = this;
     var matches = window.location.href.match(/(?:\?|&)muses_scepter=([^&]+)/);
     var token = matches && matches.length >= 2 ? matches[1] : null;
-    if (token) {
+    // 指定token，表明必须以这个token进入，所以这个时候需要将房间占用
+    if (this.options.specifiedToken) {
+        this.takeRoom(this.options.specifiedToken, function(err, token) {
+            if (!err) {
+                me.connectAsPlayer(token);
+            }
+            else {
+                me.trigger(
+                    GameCenter.Events.ERROR,
+                    err
+                );
+            }
+        });
+    }
+    else if (token) {
         this.tryEnterRoom(token, function(err, token, isNeedInformHost) {
             if (!err) {
                 me.connectAsPlayer(
@@ -278,6 +295,29 @@ GameCenter.prototype.playerStart = function(player) {
         });
     }
 };
+
+/**
+ * 占用房间(跟tryEnterRoom的区别：如果占用不了，不去创建新房间，直接报错)
+ */
+GameCenter.prototype.takeRoom = function(token, callback) {
+    var me = this;
+    var url = this.getUrl('/room/take');
+    $.getJSON(url, {token: token})
+        .done(function(data) {
+            if (data['success']) {
+                me.roomData = data;
+                callback(null, data['result']['token']);
+            }
+            else {
+                callback(new Error('占用房间失败'));
+            }
+        })
+        .fail(function() {
+            callback(new Error('服务器错误'));
+        });
+};
+
+
 
 /**
  * 尝试进入本地房间
@@ -333,6 +373,13 @@ GameCenter.prototype.getPlayToken = function() {
 };
 
 /**
+ * 获取当前GameCenter的token
+ */
+GameCenter.prototype.getToken = function() {
+    return this.playToken || this.hostToken;
+};
+
+/**
  * 以玩家身份与muses系统建立互动连接
  *
  * 会发送echo信息确认对方玩家的存在
@@ -346,6 +393,9 @@ GameCenter.prototype.connectAsPlayer = function(token, afterHandler) {
     me.playToken = token;
     function connectInternal() {
         var connect = /** @type {Connect} */new me.MusesConnect();
+        connect.config({
+            authKey: 'aK3TcOqhhcc0PLf'
+        });
         me.connect = connect;
 
         connect
@@ -530,6 +580,11 @@ GameCenter.AI = function(playerRecord, options) {
     // 这个功能还没有搞定哈
 
     /**
+     * 跟机器人对战的玩家所处房间的token
+     */
+    this.partnerToken = options.token;
+
+    /**
      * 向上难度系数
      * @type {number}
      */
@@ -630,22 +685,25 @@ GameCenter.AI.prototype.updatePlayerRecord = function(correctCount, costTime) {
  */
 GameCenter.AI.prototype.start = function() {
     var that = this;
-    this.createGameCenter(function(gameCenter) {
-        gameCenter.start(
-            GameCenter.ClientMode.PLAYER,
-            {
-                userName: that.getRandomName(),
-                isSilentBreaker: true,
-                isAI: true
-            }
-        );
-    });
+    this.createGameCenter(
+        this.partnerToken,
+        function(gameCenter) {
+            gameCenter.start(
+                GameCenter.ClientMode.PLAYER,
+                {
+                    userName: that.getRandomName(),
+                    isSilentBreaker: true,
+                    isAI: true
+                }
+            );
+        }
+    );
 };
 
 /**
  * 创建 GameCenter
  */
-GameCenter.AI.prototype.createGameCenter = function(callback) {
+GameCenter.AI.prototype.createGameCenter = function(token, callback) {
     var that = this;
     require.config({
         paths: {
@@ -656,7 +714,8 @@ GameCenter.AI.prototype.createGameCenter = function(callback) {
     require(['muses/connect'], function(Connect) {
         var gameCenter = new GameCenter({
             MusesConnect: Connect,
-            host: 'http://114.215.181.63:8860'
+            host: 'http://114.215.181.63:8860',
+            specifiedToken: token
         });
         that.gameCenter = gameCenter;
 
